@@ -12,6 +12,80 @@ import './style.css'
 
 gsap.registerPlugin(ScrollTrigger)
 
+let scrollProgressBar = null
+let bootScreen = null
+
+function mountChrome() {
+  const atmosphere =
+    document.createElement('div')
+
+  atmosphere.className =
+    'atmosphere'
+
+  atmosphere.setAttribute(
+    'aria-hidden',
+    'true'
+  )
+
+  atmosphere.innerHTML = `
+    <div class="atmosphere-vignette"></div>
+    <div class="atmosphere-grain"></div>
+  `
+
+  document.body.appendChild(
+    atmosphere
+  )
+
+  const progress =
+    document.createElement('div')
+
+  progress.className =
+    'scroll-progress'
+
+  progress.setAttribute(
+    'aria-hidden',
+    'true'
+  )
+
+  document.body.appendChild(
+    progress
+  )
+
+  scrollProgressBar =
+    progress
+
+  const boot =
+    document.createElement('div')
+
+  boot.className =
+    'boot-screen'
+
+  boot.setAttribute(
+    'aria-live',
+    'polite'
+  )
+
+  boot.innerHTML = `
+    <div class="boot-screen-inner">
+      <img
+        src="/metaminds-logo.png"
+        alt="MetaMinds STEM Academy"
+        class="boot-logo"
+      >
+      <p>Loading</p>
+    </div>
+  `
+
+  document.body.appendChild(
+    boot
+  )
+
+  bootScreen =
+    boot
+}
+
+mountChrome()
+
 // ======================================================
 // DEVICE / ACCESSIBILITY
 // ======================================================
@@ -79,7 +153,13 @@ const scene =
   new THREE.Scene()
 
 scene.background =
-  new THREE.Color(0x000000)
+  new THREE.Color(0x03060c)
+
+scene.fog =
+  new THREE.FogExp2(
+    0x03060c,
+    0.026
+  )
 
 // ======================================================
 // CAMERA
@@ -126,16 +206,10 @@ renderer.outputColorSpace =
 renderer.toneMapping =
   THREE.ACESFilmicToneMapping
 
-renderer.toneMappingExposure = 1
+renderer.toneMappingExposure = 1.08
 
-renderer.domElement.style.position =
-  'fixed'
-
-renderer.domElement.style.inset =
-  '0'
-
-renderer.domElement.style.zIndex =
-  '0'
+renderer.domElement.className =
+  'scene-canvas'
 
 document.body.appendChild(
   renderer.domElement
@@ -169,9 +243,9 @@ const bloomPass =
       window.innerWidth,
       window.innerHeight
     ),
-    0.15, // strength
-    0.08, // radius
-    0.60  // threshold
+    0.22, // strength
+    0.12, // radius
+    0.52  // threshold
   )
 
 composer.addPass(
@@ -1167,7 +1241,7 @@ function updateReducedMotionStory(
     associated with the part of the page.
   */
 
-  if (progress < 0.28) {
+  if (progress < 0.20) {
     currentStage = 'brain'
 
     writeStaticTarget(
@@ -1176,13 +1250,13 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        progress < 0.14
+        progress < 0.10
           ? RIGHT_X
           : LEFT_X
       )
   }
 
-  else if (progress < 0.52) {
+  else if (progress < 0.50) {
     currentStage = 'lightbulb'
 
     writeStaticTarget(
@@ -1195,7 +1269,7 @@ function updateReducedMotionStory(
       )
   }
 
-  else if (progress < 0.83) {
+  else if (progress < 0.82) {
     currentStage = 'earth'
 
     writeStaticTarget(
@@ -1232,17 +1306,20 @@ function updateReducedMotionStory(
 // MASTER STORY
 // ======================================================
 //
-// 0.00 - 0.10 Brain right
-// 0.10 - 0.22 Brain left + circular rotation
-// 0.22 - 0.32 Brain explosion
-// 0.32 - 0.41 Lightbulb formation
-// 0.41 - 0.48 Lightbulb hold
-// 0.48 - 0.56 Lightbulb explosion
-// 0.56 - 0.65 Earth formation
-// 0.65 - 0.79 Earth hold
-// 0.79 - 0.86 Earth explosion
-// 0.86 - 0.93 Logo formation
-// 0.93 - 1.00 Logo hold
+// Ten chapters share one 0→1 scrub. Holds sit on the
+// even tenths so copy and 3D land together:
+//
+// 0.00 - 0.10 Brain right            s1
+// 0.10 - 0.20 Brain left + rotation  s2
+// 0.20 - 0.30 Brain explosion        s3
+// 0.30 - 0.40 Lightbulb formation    s4
+// 0.40 - 0.50 Lightbulb hold         s5
+// 0.50 - 0.58 Lightbulb explosion    s6
+// 0.58 - 0.68 Earth formation        s7
+// 0.68 - 0.82 Earth hold             s8
+// 0.82 - 0.90 Earth explosion        s9
+// 0.90 - 0.96 Logo formation
+// 0.96 - 1.00 Logo hold              consultation
 //
 // ======================================================
 
@@ -1253,6 +1330,13 @@ function updateStory() {
 
   const p =
     story.progress
+
+  if (scrollProgressBar) {
+    scrollProgressBar.style.transform =
+      `scaleX(${p})`
+  }
+
+  syncNavHighlight(p)
 
   if (REDUCED_MOTION) {
     updateReducedMotionStory(
@@ -1306,7 +1390,7 @@ function updateStory() {
   // 2. BRAIN MOVES LEFT / CIRCULAR ROTATION
   // ==================================================
 
-  else if (p < 0.22) {
+  else if (p < 0.20) {
     currentStage =
       'brain-moving'
 
@@ -1320,7 +1404,7 @@ function updateStory() {
           p -
           0.10
         ) /
-          0.12
+          0.10
       )
 
     transformTarget.x =
@@ -1365,14 +1449,14 @@ function updateStory() {
   // 3. BRAIN EXPLOSION
   // ==================================================
 
-  else if (p < 0.32) {
+  else if (p < 0.30) {
     currentStage =
       'brain-explosion'
 
     const t =
       (
         p -
-        0.22
+        0.20
       ) /
       0.10
 
@@ -1407,16 +1491,16 @@ function updateStory() {
   // 4. LIGHTBULB FORMS
   // ==================================================
 
-  else if (p < 0.41) {
+  else if (p < 0.40) {
     currentStage =
       'lightbulb-forming'
 
     const t =
       (
         p -
-        0.32
+        0.30
       ) /
-      0.09
+      0.10
 
     writeMorphTarget(
       brainExplosion,
@@ -1453,7 +1537,7 @@ function updateStory() {
   // 5. LIGHTBULB HOLD
   // ==================================================
 
-  else if (p < 0.48) {
+  else if (p < 0.50) {
     currentStage =
       'lightbulb'
 
@@ -1480,14 +1564,14 @@ function updateStory() {
   // 6. LIGHTBULB EXPLOSION
   // ==================================================
 
-  else if (p < 0.56) {
+  else if (p < 0.58) {
     currentStage =
       'lightbulb-explosion'
 
     const t =
       (
         p -
-        0.48
+        0.50
       ) /
       0.08
 
@@ -1515,16 +1599,16 @@ function updateStory() {
   // 7. EARTH FORMS
   // ==================================================
 
-  else if (p < 0.65) {
+  else if (p < 0.68) {
     currentStage =
       'earth-forming'
 
     const t =
       (
         p -
-        0.56
+        0.58
       ) /
-      0.09
+      0.10
 
     writeMorphTarget(
       lightbulbExplosion,
@@ -1588,7 +1672,7 @@ function updateStory() {
   // 9. EARTH EXPLODES
   // ==================================================
 
-  else if (p < 0.89) {
+  else if (p < 0.90) {
     currentStage =
       'earth-explosion'
 
@@ -1597,7 +1681,7 @@ function updateStory() {
         p -
         0.82
       ) /
-      0.07
+      0.08
 
     writeMorphTarget(
       earthPositions,
@@ -1636,9 +1720,9 @@ function updateStory() {
     const t =
       (
         p -
-        0.89
+        0.90
       ) /
-      0.07
+      0.06
 
     writeMorphTarget(
       earthExplosion,
@@ -1713,6 +1797,7 @@ function updateStory() {
 // ======================================================
 // LOAD MODELS
 // ======================================================
+
 
 Promise.all([
   loadGLB(
@@ -1798,6 +1883,12 @@ Promise.all([
 
       createPage()
 
+      if (bootScreen) {
+        bootScreen.classList.add(
+          'is-done'
+        )
+      }
+
       // Build initial matrices/colors once.
       updateParticleInstances(
         true
@@ -1816,12 +1907,24 @@ Promise.all([
         'Model loading failed:',
         error
       )
+
+      if (bootScreen) {
+        const label =
+          bootScreen.querySelector('p')
+
+        if (label) {
+          label.textContent =
+            'Could not load the sketch'
+        }
+      }
     }
   )
 
 // ======================================================
 // NAV
 // ======================================================
+
+let navLinks = []
 
 function createNavbar() {
   const nav =
@@ -1832,27 +1935,19 @@ function createNavbar() {
   nav.className =
     'metaminds-nav'
 
+  nav.setAttribute(
+    'aria-label',
+    'MetaMinds'
+  )
+
   nav.innerHTML = `
-    <a class="brand" href="#">
+    <a class="brand" href="#s1">
       <img
         src="/metaminds-logo.png"
         alt="MetaMinds STEM Academy"
         class="brand-logo"
       >
     </a>
-
-    <div class="nav-links">
-      <a href="#s1">Home</a>
-      <a href="#s2">Assess</a>
-      <a href="#s3">Analyze</a>
-      <a href="#s4">Ignite</a>
-      <a href="#s5">Build</a>
-      <a href="#s6">Connect</a>
-      <a href="#s7">System</a>
-      <a href="#s8">Grow</a>
-      <a href="#s9">Transform</a>
-      <a href="#consultation">Begin</a>
-    </div>
 
     <a
       class="nav-cta"
@@ -1863,15 +1958,222 @@ function createNavbar() {
 
     <button
       class="menu-button"
-      aria-label="Menu"
+      type="button"
+      aria-label="Open chapters"
+      aria-expanded="false"
+      aria-controls="nav-panel"
     >
       <span></span>
       <span></span>
     </button>
+
+    <div class="nav-panel" id="nav-panel">
+      <div class="nav-links">
+        <a href="#s1">Home</a>
+        <a href="#s2">Assess</a>
+        <a href="#s3">Analyze</a>
+        <a href="#s4">Ignite</a>
+        <a href="#s5">Build</a>
+        <a href="#s6">Connect</a>
+        <a href="#s7">System</a>
+        <a href="#s8">Grow</a>
+        <a href="#s9">Transform</a>
+        <a href="#consultation">Begin</a>
+      </div>
+      <a
+        class="nav-cta nav-panel-cta"
+        href="#consultation"
+      >
+        Book a Free Consultation
+      </a>
+    </div>
   `
 
   document.body.appendChild(
     nav
+  )
+}
+
+function closeNav() {
+  const nav =
+    document.querySelector(
+      '.metaminds-nav'
+    )
+
+  if (!nav) {
+    return
+  }
+
+  const button =
+    nav.querySelector(
+      '.menu-button'
+    )
+
+  nav.classList.remove(
+    'is-open'
+  )
+
+  document.body.classList.remove(
+    'nav-open'
+  )
+
+  if (button) {
+    button.setAttribute(
+      'aria-expanded',
+      'false'
+    )
+
+    button.setAttribute(
+      'aria-label',
+      'Open chapters'
+    )
+  }
+}
+
+function setupNav() {
+  const nav =
+    document.querySelector(
+      '.metaminds-nav'
+    )
+
+  if (!nav) {
+    return
+  }
+
+  const button =
+    nav.querySelector(
+      '.menu-button'
+    )
+
+  const panel =
+    nav.querySelector(
+      '.nav-panel'
+    )
+
+  navLinks =
+    Array.from(
+      nav.querySelectorAll(
+        '.nav-links a'
+      )
+    )
+
+  button.addEventListener(
+    'click',
+    () => {
+      const open =
+        nav.classList.toggle(
+          'is-open'
+        )
+
+      document.body.classList.toggle(
+        'nav-open',
+        open
+      )
+
+      button.setAttribute(
+        'aria-expanded',
+        String(open)
+      )
+
+      button.setAttribute(
+        'aria-label',
+        open
+          ? 'Close chapters'
+          : 'Open chapters'
+      )
+    }
+  )
+
+  navLinks.forEach(
+    (link) => {
+      link.addEventListener(
+        'click',
+        closeNav
+      )
+    }
+  )
+
+  nav.querySelector(
+    '.brand'
+  )?.addEventListener(
+    'click',
+    closeNav
+  )
+
+  nav.querySelectorAll(
+    '.nav-cta'
+  ).forEach(
+    (link) => {
+      link.addEventListener(
+        'click',
+        closeNav
+      )
+    }
+  )
+
+  panel.addEventListener(
+    'click',
+    (event) => {
+      if (event.target === panel) {
+        closeNav()
+      }
+    }
+  )
+
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key === 'Escape') {
+        closeNav()
+      }
+    }
+  )
+}
+
+function syncNavHighlight(
+  progress
+) {
+  if (!navLinks.length) {
+    return
+  }
+
+  const ids = [
+    '#s1',
+    '#s2',
+    '#s3',
+    '#s4',
+    '#s5',
+    '#s6',
+    '#s7',
+    '#s8',
+    '#s9',
+    '#consultation',
+  ]
+
+  const index =
+    Math.min(
+      ids.length - 1,
+      Math.max(
+        0,
+        Math.floor(
+          progress * 10
+        )
+      )
+    )
+
+  const active =
+    ids[index]
+
+  navLinks.forEach(
+    (link) => {
+      link.classList.toggle(
+        'is-active',
+        link.getAttribute(
+          'href'
+        ) ===
+          active
+      )
+    }
   )
 }
 
@@ -2161,7 +2463,7 @@ function createPage() {
         </p>
 
         <a
-          href="#final-cta"
+          href="mailto:hello@metaminds.com"
           class="primary-button"
         >
           Book a Free Consultation
@@ -2172,6 +2474,11 @@ function createPage() {
 
     </section>
 
+    <footer class="sketch-footer">
+      <span>MetaMinds STEM Academy</span>
+      <a href="mailto:hello@metaminds.com">hello@metaminds.com</a>
+    </footer>
+
   `
 
   document.body.appendChild(
@@ -2181,7 +2488,7 @@ function createPage() {
   experienceElement =
     main
 
-  createConventionalContent()
+  setupNav()
 
   // ==================================================
   // MASTER SCROLL
@@ -2207,7 +2514,7 @@ function createPage() {
         scrub:
           REDUCED_MOTION
             ? false
-            : 0.4,
+            : 0.55,
 
         onUpdate:
           updateStory,
@@ -2235,9 +2542,47 @@ function createPage() {
         )
 
       if (
+        !copy
+      ) {
+        return
+      }
+
+      if (
         REDUCED_MOTION
       ) {
         return
+      }
+
+      if (
+        index === 0
+      ) {
+        const marker =
+          chapter.querySelector(
+            '.scroll-marker'
+          )
+
+        if (marker) {
+          gsap.to(
+            marker,
+            {
+              opacity: 0,
+
+              scrollTrigger: {
+                trigger:
+                  chapter,
+
+                start:
+                  '20% top',
+
+                end:
+                  '55% top',
+
+                scrub:
+                  true,
+              },
+            }
+          )
+        }
       }
 
       if (
@@ -2247,7 +2592,7 @@ function createPage() {
           copy,
           {
             opacity: 0,
-            y: 65,
+            y: 48,
           },
           {
             opacity: 1,
@@ -2258,10 +2603,10 @@ function createPage() {
                 chapter,
 
               start:
-                'top 70%',
+                'top 78%',
 
               end:
-                '35% center',
+                '42% center',
 
               scrub:
                 true,
@@ -2278,17 +2623,17 @@ function createPage() {
           copy,
           {
             opacity: 0,
-            y: -55,
+            y: -40,
 
             scrollTrigger: {
               trigger:
                 chapter,
 
               start:
-                '58% center',
+                '62% center',
 
               end:
-                'bottom 27%',
+                'bottom 18%',
 
               scrub:
                 true,
@@ -2302,1155 +2647,7 @@ function createPage() {
   setupVisibilityObserver()
 }
 
-// ======================================================
-// CONVENTIONAL HOMEPAGE CONTENT
-// ======================================================
 
-function createConventionalContent() {
-  const section =
-    document.createElement(
-      'div'
-    )
-
-  section.className =
-    'homepage-content'
-
-  section.innerHTML = `
-
-    <div class="hc-section" id="programs">
-      <div class="hc-inner">
-
-        <div class="hc-label">PROGRAMS</div>
-
-        <h3 class="hc-heading">
-          Find the right fit
-          <br>for your student.
-        </h3>
-
-        <div class="hc-cards">
-
-          <div class="hc-card">
-            <div class="hc-card-tag">K–8</div>
-            <h4>Foundation Skills</h4>
-            <p>Reading comprehension, math fundamentals, study habits, and the academic confidence younger learners need to thrive.</p>
-          </div>
-
-          <div class="hc-card">
-            <div class="hc-card-tag">9–12</div>
-            <h4>High School Prep</h4>
-            <p>Subject mastery, GPA recovery, AP coursework, and college-readiness skills across every core subject.</p>
-          </div>
-
-          <div class="hc-card">
-            <div class="hc-card-tag">TEST PREP</div>
-            <h4>SAT / ACT / PSAT</h4>
-            <p>Structured, personalized test preparation with targeted practice, pacing strategy, and real score improvement.</p>
-          </div>
-
-          <div class="hc-card">
-            <div class="hc-card-tag">STEM</div>
-            <h4>STEM Acceleration</h4>
-            <p>Advanced math, physics, computer science, and engineering thinking for students ready to go further, faster.</p>
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-
-
-    <div class="hc-section hc-section--dark" id="why-metaminds">
-      <div class="hc-inner hc-inner--split">
-
-        <div class="hc-split-text">
-          <div class="hc-label">WHY METAMINDS</div>
-          <h3 class="hc-heading">
-            Not just tutoring.
-            <br>A system built
-            <br>around your student.
-          </h3>
-        </div>
-
-        <div class="hc-split-body">
-          <p>Most tutoring addresses symptoms — a bad grade, a missed concept, an upcoming test. MetaMinds starts by understanding the student: how they think, where confidence breaks down, what motivates them, and where the real gaps are.</p>
-          <p>Then we build a connected plan — one that links subjects, skills, and habits — and we adapt it continuously as your student grows.</p>
-          <div class="hc-stat-row">
-            <div class="hc-stat">
-              <span class="hc-stat-num">94%</span>
-              <span class="hc-stat-label">of students improve their GPA within one semester</span>
-            </div>
-            <div class="hc-stat">
-              <span class="hc-stat-num">+180</span>
-              <span class="hc-stat-label">average SAT score improvement after a full prep program</span>
-            </div>
-            <div class="hc-stat">
-              <span class="hc-stat-num">3×</span>
-              <span class="hc-stat-label">faster skill transfer when subjects are taught as connected</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-
-    <div class="hc-section" id="how-it-works">
-      <div class="hc-inner">
-
-        <div class="hc-label">HOW IT WORKS</div>
-
-        <h3 class="hc-heading">
-          Four steps to a student
-          <br>who learns differently.
-        </h3>
-
-        <div class="hc-steps">
-
-          <div class="hc-step">
-            <div class="hc-step-num">01</div>
-            <h4>Free Consultation</h4>
-            <p>A 45-minute conversation to understand your student's goals, current struggles, and what's held them back. No commitment required.</p>
-          </div>
-
-          <div class="hc-step">
-            <div class="hc-step-num">02</div>
-            <h4>Personalized Assessment</h4>
-            <p>We map your student's actual skill level across subjects — not just where grades say they are, but where their understanding truly is.</p>
-          </div>
-
-          <div class="hc-step">
-            <div class="hc-step-num">03</div>
-            <h4>Connected Learning Plan</h4>
-            <p>A custom roadmap that links subjects, fills gaps in order, and builds on every win — designed around how your student thinks.</p>
-          </div>
-
-          <div class="hc-step">
-            <div class="hc-step-num">04</div>
-            <h4>Ongoing Progress &amp; Adaptation</h4>
-            <p>Regular sessions, progress tracking, and continuous plan adjustments so your student keeps moving forward — never plateauing.</p>
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-
-
-    <div class="hc-section hc-section--dark" id="reviews">
-      <div class="hc-inner">
-
-        <div class="hc-label">WHAT PARENTS SAY</div>
-
-        <h3 class="hc-heading">
-          Results that speak
-          <br>for themselves.
-        </h3>
-
-        <div class="hc-reviews">
-
-          <div class="hc-review">
-            <div class="hc-review-stars">★★★★★</div>
-            <p>"Our daughter went from a C student to making honor roll in one semester. What changed wasn't just her grades — it was how she thinks about learning."</p>
-            <div class="hc-reviewer">— Sarah M., parent of a 10th grader</div>
-          </div>
-
-          <div class="hc-review">
-            <div class="hc-review-stars">★★★★★</div>
-            <p>"My son's SAT score went up 210 points. More importantly, he actually understood the material for the first time. MetaMinds found the gaps we didn't even know were there."</p>
-            <div class="hc-reviewer">— David K., parent of an 11th grader</div>
-          </div>
-
-          <div class="hc-review">
-            <div class="hc-review-stars">★★★★★</div>
-            <p>"We tried three other tutoring services before MetaMinds. The difference is they actually take the time to understand how your kid learns — not just what they need to memorize."</p>
-            <div class="hc-reviewer">— Jennifer L., parent of a 7th grader</div>
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-
-
-    <div class="hc-section" id="faq">
-      <div class="hc-inner">
-
-        <div class="hc-label">FAQ</div>
-
-        <h3 class="hc-heading">Common questions.</h3>
-
-        <div class="hc-faqs">
-
-          <div class="hc-faq">
-            <div class="hc-faq-q">How does the free consultation work?</div>
-            <div class="hc-faq-a">We schedule a 45-minute call to understand your student's goals, current situation, and learning challenges. From there we put together a personalized plan and walk you through exactly what working together looks like — with no pressure to commit.</div>
-          </div>
-
-          <div class="hc-faq">
-            <div class="hc-faq-q">How quickly will we see results?</div>
-            <div class="hc-faq-a">Most students notice improved confidence and clearer understanding within the first 2–3 sessions. Measurable academic results — better grades, test scores, classroom performance — typically follow within 4–6 weeks of consistent work.</div>
-          </div>
-
-          <div class="hc-faq">
-            <div class="hc-faq-q">Do you work with students online or in person?</div>
-            <div class="hc-faq-a">Both. Our online sessions use collaborative tools built for real-time problem solving, whiteboarding, and concept explanations. We also offer in-person tutoring in select areas — ask us during your consultation.</div>
-          </div>
-
-          <div class="hc-faq">
-            <div class="hc-faq-q">What subjects and grade levels do you cover?</div>
-            <div class="hc-faq-a">We work with students from K–12 across math, reading, writing, science, history, test prep (SAT/ACT/PSAT), and computer science. We also offer study skills coaching, academic planning, and mentorship for high school students preparing for college.</div>
-          </div>
-
-          <div class="hc-faq">
-            <div class="hc-faq-q">What makes MetaMinds different from other tutoring services?</div>
-            <div class="hc-faq-a">Most tutoring is reactive — it addresses whatever is due tomorrow. MetaMinds is proactive. We identify the underlying gaps that cause recurring struggles, build a connected learning plan across subjects, and adapt it over time. We treat every student as a complete learner, not just a grade to improve.</div>
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-
-
-    <div class="hc-section hc-cta-section" id="final-cta">
-      <div class="hc-inner hc-inner--center">
-
-        <div class="hc-label">GET STARTED</div>
-
-        <h3 class="hc-heading hc-heading--large">
-          Ready to get
-          <br>started?
-        </h3>
-
-        <p class="hc-cta-body">
-          Every student is different. Let's find out
-          what will actually move the needle for yours.
-        </p>
-
-        <a href="mailto:hello@metaminds.com" class="primary-button primary-button--large">
-          Book a Free Consultation
-          <strong>→</strong>
-        </a>
-
-      </div>
-    </div>
-
-
-    <footer class="hc-footer">
-      <div class="hc-inner hc-inner--footer">
-
-        <div class="hc-footer-brand">
-          <img src="/metaminds-logo.png" alt="MetaMinds" class="hc-footer-logo">
-          <p>Personalized learning and mentorship<br>built around how your student thinks.</p>
-        </div>
-
-        <div class="hc-footer-links">
-          <div class="hc-footer-col">
-            <div class="hc-footer-col-title">Programs</div>
-            <a href="#programs">Foundation Skills (K–8)</a>
-            <a href="#programs">High School Prep (9–12)</a>
-            <a href="#programs">SAT / ACT / PSAT</a>
-            <a href="#programs">STEM Acceleration</a>
-          </div>
-          <div class="hc-footer-col">
-            <div class="hc-footer-col-title">Company</div>
-            <a href="#why-metaminds">Why MetaMinds</a>
-            <a href="#how-it-works">How It Works</a>
-            <a href="#reviews">Results</a>
-            <a href="#faq">FAQ</a>
-          </div>
-          <div class="hc-footer-col">
-            <div class="hc-footer-col-title">Get In Touch</div>
-            <a href="mailto:hello@metaminds.com">hello@metaminds.com</a>
-            <a href="#final-cta">Book a Consultation</a>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="hc-footer-bottom">
-        <div class="hc-inner">
-          <span>© ${new Date().getFullYear()} MetaMinds STEM Academy. All rights reserved.</span>
-          <span class="hc-footer-legal">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-          </span>
-        </div>
-      </div>
-    </footer>
-
-  `
-
-  document.body.appendChild(
-    section
-  )
-}
-
-// ======================================================
-// CSS
-// ======================================================
-
-const styles =
-  document.createElement(
-    'style'
-  )
-
-styles.textContent = `
-
-  html {
-    scroll-behavior: smooth;
-  }
-
-  html,
-  body {
-    margin: 0;
-    padding: 0;
-
-    background: #000;
-
-    color: #F3F6F9;
-
-    overflow-x: hidden;
-
-    font-family:
-      Arial,
-      Helvetica,
-      sans-serif;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-
-  /* =========================
-     NAV
-  ========================= */
-
-  .metaminds-nav {
-    position: fixed;
-
-    top: 0;
-    left: 0;
-    right: 0;
-
-    height: 84px;
-
-    display: flex;
-    align-items: center;
-
-    padding:
-      0 clamp(
-        28px,
-        6vw,
-        96px
-      );
-
-    z-index: 100;
-
-    background:
-      linear-gradient(
-        to bottom,
-        rgba(0,0,0,.96),
-        rgba(0,0,0,.62),
-        transparent
-      );
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-
-    margin-right: auto;
-  }
-
-  .brand-logo {
-    height: 38px;
-    width: auto;
-    display: block;
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 20px;
-
-    margin-right: 28px;
-  }
-
-  .nav-links a {
-    color: #7F91A8;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .nav-links a:hover {
-    color: #FFFFFF;
-  }
-
-  .nav-cta {
-    border:
-      1px solid #2E3543;
-
-    border-radius: 999px;
-
-    padding: 12px 19px;
-
-    font-size: 12px;
-
-    white-space: nowrap;
-  }
-
-  .menu-button {
-    display: none;
-
-    background: none;
-    border: 0;
-  }
-
-
-  /* =========================
-     STORY
-  ========================= */
-
-  .experience {
-    position: relative;
-
-    z-index: 2;
-
-    pointer-events: none;
-  }
-
-  .chapter {
-    position: relative;
-
-    min-height: 145vh;
-    min-height: 145svh;
-
-    display: flex;
-    align-items: center;
-
-    padding:
-      110px
-      clamp(
-        30px,
-        8vw,
-        130px
-      );
-  }
-
-  .chapter:first-child {
-    align-items: flex-start;
-
-    padding-top: 145px;
-  }
-
-  .logo-hold-chapter {
-    min-height: 210vh;
-    min-height: 210svh;
-  }
-
-  .copy {
-    width:
-      min(
-        520px,
-        39vw
-      );
-
-    position: relative;
-
-    z-index: 10;
-
-    pointer-events: auto;
-  }
-
-  .copy-right {
-    margin-left: auto;
-    text-align: right;
-  }
-
-  .copy-right p {
-    margin-left: auto;
-  }
-
-  .eyebrow {
-    margin-bottom: 23px;
-
-    font-size: 10px;
-
-    letter-spacing: 4px;
-
-    font-weight: 600;
-  }
-
-  .eyebrow.orange {
-    color: #D65108;
-  }
-
-  .eyebrow.blue {
-    color: #7F91A8;
-  }
-
-  h1,
-  h2 {
-    margin: 0;
-
-    font-weight: 400;
-
-    letter-spacing:
-      -0.06em;
-
-    line-height: 0.92;
-  }
-
-  h1 {
-    font-size:
-      clamp(
-        64px,
-        7.4vw,
-        120px
-      );
-  }
-
-  h2 {
-    font-size:
-      clamp(
-        58px,
-        6.5vw,
-        104px
-      );
-  }
-
-  h1 span,
-  h2 span {
-    color: #7F91A8;
-  }
-
-  .copy p {
-    max-width: 420px;
-
-    margin-top: 30px;
-
-    font-size: 16px;
-
-    line-height: 1.65;
-
-    color: #7F91A8;
-  }
-
-  .primary-button {
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 20px;
-
-    margin-top: 28px;
-
-    padding: 15px 21px;
-
-    border-radius: 999px;
-
-    background: #F3F6F9;
-    color: #00205B;
-
-    font-size: 13px;
-    font-weight: 600;
-
-    transition:
-      transform .2s ease;
-  }
-
-  .primary-button:hover {
-    transform:
-      translateY(-2px);
-  }
-
-  .scroll-marker {
-    position: absolute;
-
-    left:
-      clamp(
-        30px,
-        8vw,
-        130px
-      );
-
-    bottom: 10svh;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px;
-
-    font-size: 9px;
-
-    letter-spacing:
-      2.5px;
-
-    color: #7F91A8;
-  }
-
-  .scroll-marker span {
-    width: 55px;
-    height: 1px;
-
-    background: #2E3543;
-  }
-
-
-  /* =========================
-     MOBILE
-  ========================= */
-
-  @media (
-    max-width: 767px
-  ) {
-
-    .metaminds-nav {
-      height: 70px;
-
-      padding:
-        0 20px;
-    }
-
-    .nav-links,
-    .nav-cta {
-      display: none;
-    }
-
-    .menu-button {
-      display: block;
-    }
-
-    .chapter {
-      min-height: 145vh;
-      min-height: 145svh;
-
-      padding:
-        105px
-        22px
-        90px;
-
-      align-items: flex-start;
-    }
-
-    .copy {
-      width: 100%;
-
-      max-width: 380px;
-    }
-
-    .copy-right {
-      margin-left: 0;
-      text-align: left;
-    }
-
-    .copy-right p {
-      margin-left: 0;
-    }
-
-    h1 {
-      font-size:
-        clamp(
-          53px,
-          14vw,
-          72px
-        );
-    }
-
-    h2 {
-      font-size:
-        clamp(
-          49px,
-          13vw,
-          68px
-        );
-    }
-
-    .copy p {
-      max-width: 330px;
-
-      font-size: 15px;
-    }
-
-    .chapter:nth-child(even) {
-      align-items: flex-end;
-
-      padding-bottom: 120px;
-    }
-
-    .scroll-marker {
-      left: 22px;
-      bottom: 6svh;
-    }
-
-  }
-
-
-  @media (
-    prefers-reduced-motion: reduce
-  ) {
-
-    html {
-      scroll-behavior: auto;
-    }
-
-    .primary-button {
-      transition: none;
-    }
-
-  }
-
-
-  /* =========================
-     CONVENTIONAL CONTENT
-  ========================= */
-
-  .homepage-content {
-    position: relative;
-    z-index: 2;
-    background: #000;
-  }
-
-  .hc-section {
-    padding:
-      120px
-      clamp(30px, 8vw, 130px);
-
-    border-top:
-      1px solid #111;
-  }
-
-  .hc-section--dark {
-    background: #080808;
-  }
-
-  .hc-cta-section {
-    padding:
-      160px
-      clamp(30px, 8vw, 130px);
-
-    border-top: none;
-  }
-
-  .hc-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .hc-inner--split {
-    display: grid;
-    grid-template-columns:
-      1fr 1fr;
-    gap: 80px;
-    align-items: start;
-  }
-
-  .hc-inner--center {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .hc-label {
-    font-size: 10px;
-    letter-spacing: 4px;
-    font-weight: 600;
-    color: #D65108;
-    margin-bottom: 28px;
-  }
-
-  .hc-heading {
-    font-size:
-      clamp(42px, 4.5vw, 72px);
-
-    font-weight: 400;
-    letter-spacing: -0.05em;
-    line-height: 0.95;
-
-    margin: 0 0 48px;
-
-    color: #F3F6F9;
-  }
-
-  .hc-heading--large {
-    font-size:
-      clamp(56px, 6vw, 96px);
-
-    margin-bottom: 24px;
-  }
-
-  .hc-split-body p {
-    font-size: 16px;
-    line-height: 1.65;
-    color: #7F91A8;
-    max-width: 480px;
-    margin: 0 0 20px;
-  }
-
-  .hc-stat-row {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    margin-top: 48px;
-    padding-top: 40px;
-    border-top: 1px solid #1a1a1a;
-  }
-
-  .hc-stat {
-    display: flex;
-    align-items: baseline;
-    gap: 18px;
-  }
-
-  .hc-stat-num {
-    font-size: clamp(36px, 3.5vw, 52px);
-    font-weight: 300;
-    letter-spacing: -0.04em;
-    color: #F3F6F9;
-    white-space: nowrap;
-  }
-
-  .hc-stat-label {
-    font-size: 13px;
-    line-height: 1.5;
-    color: #7F91A8;
-    max-width: 280px;
-  }
-
-  .hc-cards {
-    display: grid;
-    grid-template-columns:
-      repeat(4, 1fr);
-    gap: 2px;
-    margin-top: 0;
-  }
-
-  .hc-card {
-    padding: 36px 28px 40px;
-    background: #0a0a0a;
-    border: 1px solid #111;
-  }
-
-  .hc-card-tag {
-    font-size: 9px;
-    letter-spacing: 3px;
-    font-weight: 700;
-    color: #2A4F91;
-    margin-bottom: 20px;
-  }
-
-  .hc-card h4 {
-    margin: 0 0 14px;
-    font-size: 20px;
-    font-weight: 500;
-    color: #F3F6F9;
-    letter-spacing: -0.03em;
-  }
-
-  .hc-card p {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #7F91A8;
-    margin: 0;
-  }
-
-  .hc-reviews {
-    display: grid;
-    grid-template-columns:
-      repeat(3, 1fr);
-    gap: 2px;
-    margin-top: 0;
-  }
-
-  .hc-review {
-    padding: 40px 32px;
-    background: #0a0a0a;
-    border: 1px solid #111;
-  }
-
-  .hc-review p {
-    font-size: 15px;
-    line-height: 1.65;
-    color: #b0bcc9;
-    margin: 0 0 24px;
-    font-style: italic;
-  }
-
-  .hc-reviewer {
-    font-size: 12px;
-    color: #7F91A8;
-    letter-spacing: 0.5px;
-  }
-
-  .hc-faqs {
-    display: flex;
-    flex-direction: column;
-    max-width: 760px;
-    margin-top: 0;
-  }
-
-  .hc-faq {
-    padding: 32px 0;
-    border-bottom: 1px solid #1a1a1a;
-  }
-
-  .hc-faq:first-child {
-    border-top: 1px solid #1a1a1a;
-  }
-
-  .hc-faq-q {
-    font-size: 17px;
-    font-weight: 500;
-    color: #F3F6F9;
-    margin-bottom: 12px;
-    letter-spacing: -0.02em;
-  }
-
-  .hc-faq-a {
-    font-size: 15px;
-    line-height: 1.65;
-    color: #7F91A8;
-  }
-
-  .hc-cta-body {
-    font-size: 18px;
-    line-height: 1.6;
-    color: #7F91A8;
-    max-width: 420px;
-    margin: 0 0 40px;
-    text-align: center;
-  }
-
-  .primary-button--large {
-    font-size: 15px;
-    padding: 18px 28px;
-    gap: 24px;
-  }
-
-
-  /* =========================
-     HOW IT WORKS STEPS
-  ========================= */
-
-  .hc-steps {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2px;
-    margin-top: 0;
-  }
-
-  .hc-step {
-    padding: 40px 28px 44px;
-    background: #0a0a0a;
-    border: 1px solid #111;
-    position: relative;
-  }
-
-  .hc-step-num {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: #D65108;
-    margin-bottom: 24px;
-  }
-
-  .hc-step h4 {
-    margin: 0 0 14px;
-    font-size: 19px;
-    font-weight: 500;
-    color: #F3F6F9;
-    letter-spacing: -0.03em;
-  }
-
-  .hc-step p {
-    font-size: 14px;
-    line-height: 1.65;
-    color: #7F91A8;
-    margin: 0;
-  }
-
-
-  /* =========================
-     REVIEW STARS
-  ========================= */
-
-  .hc-review-stars {
-    color: #D65108;
-    font-size: 13px;
-    letter-spacing: 2px;
-    margin-bottom: 18px;
-  }
-
-
-  /* =========================
-     FOOTER
-  ========================= */
-
-  .hc-footer {
-    border-top: 1px solid #111;
-    background: #000;
-  }
-
-  .hc-inner--footer {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 80px;
-    padding: 80px clamp(30px, 8vw, 130px);
-    max-width: none;
-    margin: 0;
-  }
-
-  .hc-footer-brand p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: #4A5568;
-    margin: 20px 0 0;
-    max-width: 240px;
-  }
-
-  .hc-footer-logo {
-    height: 32px;
-    width: auto;
-    opacity: 0.7;
-  }
-
-  .hc-footer-links {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
-  }
-
-  .hc-footer-col {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .hc-footer-col-title {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: #F3F6F9;
-    margin-bottom: 4px;
-  }
-
-  .hc-footer-col a {
-    font-size: 13px;
-    color: #4A5568;
-    transition: color .15s ease;
-  }
-
-  .hc-footer-col a:hover {
-    color: #7F91A8;
-  }
-
-  .hc-footer-bottom {
-    border-top: 1px solid #0e0e0e;
-    padding: 24px clamp(30px, 8vw, 130px);
-  }
-
-  .hc-footer-bottom .hc-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: none;
-    margin: 0;
-    font-size: 12px;
-    color: #2E3543;
-  }
-
-  .hc-footer-legal {
-    display: flex;
-    gap: 24px;
-  }
-
-  .hc-footer-legal a {
-    color: #2E3543;
-    transition: color .15s ease;
-  }
-
-  .hc-footer-legal a:hover {
-    color: #4A5568;
-  }
-
-
-  /* Conventional content mobile */
-
-  @media (max-width: 767px) {
-
-    .hc-section {
-      padding:
-        80px
-        22px;
-    }
-
-    .hc-cta-section {
-      padding:
-        100px
-        22px;
-    }
-
-    .hc-inner--split {
-      grid-template-columns: 1fr;
-      gap: 48px;
-    }
-
-    .hc-cards {
-      grid-template-columns: 1fr;
-    }
-
-    .hc-steps {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .hc-reviews {
-      grid-template-columns: 1fr;
-    }
-
-    .hc-heading {
-      font-size: clamp(38px, 10vw, 58px);
-    }
-
-    .hc-stat-row {
-      gap: 20px;
-    }
-
-    .hc-inner--footer {
-      grid-template-columns: 1fr;
-      gap: 48px;
-      padding: 60px 22px;
-    }
-
-    .hc-footer-links {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .hc-footer-bottom {
-      padding: 20px 22px;
-    }
-
-    .hc-footer-bottom .hc-inner {
-      flex-direction: column;
-      gap: 12px;
-      text-align: center;
-    }
-
-  }
-
-`
-
-document.head.appendChild(
-  styles
-)
 
 // ======================================================
 // INSTANCE UPDATE
