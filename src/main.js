@@ -2345,6 +2345,9 @@ function createPage() {
           </div>
           <div class="tier-line">
             <div class="tier-name">Junior College Mentor</div>
+            <p class="tier-tag">Foundational Support · Homework Help · Younger Students</p>
+            <p>Focused support for foundational learning, homework help, and younger students. A natural entry point for building consistent study habits from an early age.</p>
+            <p class="tier-rate">Book a consultation to discuss rates</p>
           </div>
         </div>
 
@@ -2403,6 +2406,13 @@ function createPage() {
 
         <p>
           <span class="tier-name">Junior College Mentor</span>
+          Foundational Support · Homework Help · Younger Students
+        </p>
+        <p>
+          Focused support for foundational learning, homework help, and younger students. A natural entry point for building consistent study habits from an early age.
+        </p>
+        <p class="tier-rate">
+          Book a consultation to discuss rates
         </p>
 
       </div>
@@ -2421,6 +2431,13 @@ function createPage() {
         <p>
           Every tier runs on the same system. The difference is who sits with your child.
         </p>
+
+        <div class="tier-name">Junior College Mentor</div>
+        <p class="tier-tag">Foundational Support · Homework Help · Younger Students</p>
+        <p>
+          Focused support for foundational learning, homework help, and younger students. A natural entry point for building consistent study habits from an early age.
+        </p>
+        <p class="tier-rate">Book a consultation to discuss rates</p>
 
       </div>
 

@@ -486,6 +486,7 @@ h2 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 28px;
   margin-top: 48px;
+  align-items: start;
 }
 
 .tier-name {
@@ -498,10 +499,28 @@ h2 {
   margin-bottom: 8px;
 }
 
+.tier-tag {
+  margin-top: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: var(--mm-ink);
+}
+
 .tier-line p {
   margin-top: 0;
   font-size: 14px;
   line-height: 1.55;
+}
+
+.tier-line p + p,
+.tier-rate {
+  margin-top: 10px;
+}
+
+.tier-rate {
+  font-size: 13px;
+  color: var(--mm-mute);
 }
 
 .score-line {
