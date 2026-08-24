@@ -1953,8 +1953,15 @@ function createNavbar() {
       class="nav-cta"
       href="#consultation"
     >
-      Book a Free Consultation
+      Book Free Consultation
     </a>
+
+    <button
+      class="nav-signin"
+      type="button"
+    >
+      Sign In
+    </button>
 
     <button
       class="menu-button"
@@ -1970,21 +1977,23 @@ function createNavbar() {
     <div class="nav-panel" id="nav-panel">
       <div class="nav-links">
         <a href="#s1">Home</a>
-        <a href="#s2">Assess</a>
-        <a href="#s3">Analyze</a>
-        <a href="#s4">Ignite</a>
-        <a href="#s5">Build</a>
-        <a href="#s6">Connect</a>
-        <a href="#s7">System</a>
-        <a href="#s8">Grow</a>
-        <a href="#s9">Transform</a>
+        <a href="#notes">Notes</a>
+        <a href="#team">Team</a>
+        <a href="#mentors">Mentors</a>
+        <a href="#results">Results</a>
         <a href="#consultation">Begin</a>
       </div>
+      <button
+        class="nav-signin nav-panel-signin"
+        type="button"
+      >
+        Sign In
+      </button>
       <a
         class="nav-cta nav-panel-cta"
         href="#consultation"
       >
-        Book a Free Consultation
+        Book Free Consultation
       </a>
     </div>
   `
@@ -2111,6 +2120,17 @@ function setupNav() {
     }
   )
 
+  nav.querySelectorAll(
+    '.nav-signin'
+  ).forEach(
+    (button) => {
+      button.addEventListener(
+        'click',
+        closeNav
+      )
+    }
+  )
+
   panel.addEventListener(
     'click',
     (event) => {
@@ -2137,32 +2157,19 @@ function syncNavHighlight(
     return
   }
 
-  const ids = [
-    '#s1',
-    '#s2',
-    '#s3',
-    '#s4',
-    '#s5',
-    '#s6',
-    '#s7',
-    '#s8',
-    '#s9',
-    '#consultation',
-  ]
+  let active = '#s1'
 
-  const index =
-    Math.min(
-      ids.length - 1,
-      Math.max(
-        0,
-        Math.floor(
-          progress * 10
-        )
-      )
-    )
-
-  const active =
-    ids[index]
+  if (progress >= 0.90) {
+    active = '#consultation'
+  } else if (progress >= 0.82) {
+    active = '#results'
+  } else if (progress >= 0.58) {
+    active = '#mentors'
+  } else if (progress >= 0.40) {
+    active = '#team'
+  } else if (progress >= 0.20) {
+    active = '#notes'
+  }
 
   navLinks.forEach(
     (link) => {
@@ -2196,33 +2203,44 @@ function createPage() {
 
   main.innerHTML = `
 
-    <section class="chapter" id="s1">
+    <section class="chapter chapter-hero" id="s1">
 
-      <div class="copy copy-left">
+      <div class="copy copy-left copy-hero">
 
         <div class="eyebrow orange">
-          PERSONALIZED LEARNING
+          ONE DEDICATED MENTOR · A PLAN YOU CAN SEE
         </div>
 
         <h1>
-          Every mind
-          <br>learns
-          <br><span>differently.</span>
+          A mentor who stays with your kid,
+          and a plan you can actually see.
         </h1>
 
         <p>
-          Tailored tutoring and mentorship
-          built around how your student
-          actually thinks, learns, and grows.
+          MetaMinds pairs your child with one dedicated mentor who builds a personalized plan, sends session notes after every session, and tracks skill growth you can actually see. SAT &amp; ACT, AP classes, K–12 math, coding, and robotics. Every tier runs on the same system. The difference is who sits with your child.
         </p>
 
         <a
           href="#consultation"
           class="primary-button"
         >
-          Book a Free Consultation
+          Book Free Consultation
           <strong>→</strong>
         </a>
+
+        <div class="tier-row">
+          <div class="tier-chip">
+            <div class="tier-name">Premium</div>
+            <p>experienced / working professionals</p>
+          </div>
+          <div class="tier-chip">
+            <div class="tier-name">College Mentor</div>
+            <p>high-achieving, selected, supervised, same system, more accessible price</p>
+          </div>
+          <div class="tier-chip">
+            <div class="tier-name">Junior College Mentor</div>
+          </div>
+        </div>
 
       </div>
 
@@ -2234,204 +2252,110 @@ function createPage() {
     </section>
 
 
-    <section class="chapter" id="s2">
+    <section class="chapter chapter-notes" id="notes">
 
-      <div class="copy copy-right">
-
-        <div class="eyebrow orange">
-          UNDERSTAND THE WHOLE STUDENT
-        </div>
-
-        <h2>
-          Look at learning
-          <br>from every
-          <br><span>angle.</span>
-        </h2>
-
-        <p>
-          Scores tell only part of the story.
-          We look at skills, habits, confidence,
-          pacing, strengths, and goals together.
-        </p>
-
-      </div>
-
-    </section>
-
-
-    <section class="chapter" id="s3">
-
-      <div class="copy copy-right">
-
-        <div class="eyebrow orange">
-          FIND THE GAPS
-        </div>
-
-        <h2>
-          Break the
-          <br>problem
-          <br><span>apart.</span>
-        </h2>
-
-        <p>
-          Complex challenges become manageable
-          when we identify the individual skills
-          underneath — and understand exactly
-          what is holding your student back.
-        </p>
-
-      </div>
-
-    </section>
-
-
-    <section class="chapter" id="s4">
-
-      <div class="copy copy-left">
+      <div class="copy copy-right copy-cards">
 
         <div class="eyebrow blue">
-          THE BREAKTHROUGH
+          SESSION NOTES
         </div>
 
-        <h2>
-          The right explanation
-          <br>changes
-          <br><span>everything.</span>
-        </h2>
-
-        <p>
-          A well-chosen strategy, example,
-          or question can turn months of
-          confusion into a moment of clarity.
-        </p>
+        <div class="mm-cards">
+          <div class="mm-card">
+            <p>After every session, the tutor who taught writes notes for you and your child. No exceptions.</p>
+          </div>
+          <div class="mm-card">
+            <p>Session notes and parent updates included with every tutoring package</p>
+          </div>
+          <div class="mm-card">
+            <p>skill tracking you can follow over time</p>
+          </div>
+        </div>
 
       </div>
 
     </section>
 
 
-    <section class="chapter" id="s5">
+    <section class="chapter chapter-team" id="team">
 
-      <div class="copy copy-left">
+      <div class="copy copy-left copy-cards">
 
         <div class="eyebrow blue">
-          BUILD ON EVERY WIN
+          TEAM
         </div>
 
-        <h2>
-          One breakthrough
-          <br>leads to
-          <br><span>another.</span>
-        </h2>
-
-        <p>
-          Learning compounds. Each skill
-          mastered becomes the foundation
-          for the next challenge. Progress
-          builds confidence, and confidence
-          builds progress.
-        </p>
+        <div class="mm-cards">
+          <div class="mm-card">
+            <div class="card-label">Premium</div>
+            <p>experienced / working professionals</p>
+          </div>
+          <div class="mm-card">
+            <div class="card-label">College Mentor</div>
+            <p>high-achieving, selected, supervised, same system, more accessible price</p>
+          </div>
+          <div class="mm-card">
+            <div class="card-label">Junior College Mentor</div>
+          </div>
+        </div>
 
       </div>
 
     </section>
 
 
-    <section class="chapter" id="s6">
+    <section class="chapter chapter-mentors" id="mentors">
 
-      <div class="copy copy-right">
-
-        <div class="eyebrow blue">
-          CONNECTED LEARNING
-        </div>
-
-        <h2>
-          See the
-          <br>bigger
-          <br><span>picture.</span>
-        </h2>
-
-        <p>
-          Math, reading, science, test prep,
-          technology, and study habits all
-          influence one another. Understanding
-          the connections is how we accelerate growth.
-        </p>
-
-      </div>
-
-    </section>
-
-
-    <section class="chapter" id="s7">
-
-      <div class="copy copy-left">
-
-        <div class="eyebrow blue">
-          ONE LEARNING SYSTEM
-        </div>
-
-        <h2>
-          Everything
-          <br>is
-          <br><span>connected.</span>
-        </h2>
-
-        <p>
-          MetaMinds brings together tutoring,
-          targeted practice, progress tracking,
-          and mentorship around one student —
-          not one subject.
-        </p>
-
-      </div>
-
-    </section>
-
-
-    <section class="chapter" id="s8">
-
-      <div class="copy copy-right">
+      <div class="copy copy-right copy-cards">
 
         <div class="eyebrow orange">
-          GROW BEYOND THE CLASSROOM
+          MENTORS
         </div>
 
-        <h2>
-          Build skills
-          <br>that keep
-          <br><span>growing.</span>
-        </h2>
-
         <p>
-          We want students to become stronger,
-          more confident, and more independent
-          learners — not just better at homework.
+          Every tier runs on the same system. The difference is who sits with your child.
         </p>
+
+        <div class="mm-cards">
+          <div class="mm-card">
+            <div class="card-label">Premium</div>
+            <p>experienced / working professionals</p>
+          </div>
+          <div class="mm-card">
+            <div class="card-label">College Mentor</div>
+            <p>high-achieving, selected, supervised, same system, more accessible price</p>
+          </div>
+          <div class="mm-card">
+            <div class="card-label">Junior College Mentor</div>
+          </div>
+        </div>
 
       </div>
 
     </section>
 
 
-    <section class="chapter" id="s9">
+    <section class="chapter chapter-results" id="results">
 
-      <div class="copy copy-left">
+      <div class="copy copy-left copy-cards">
 
         <div class="eyebrow orange">
-          METAMINDS
+          RESULTS
         </div>
 
-        <h2>
-          Built around
-          <br>how students
-          <br><span>learn.</span>
-        </h2>
+        <div class="score-row">
+          <div class="score-card">
+            <div class="score-label">SAT</div>
+            <div class="score-line">950→1110</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">SAT Math</div>
+            <div class="score-line">370→590</div>
+          </div>
+        </div>
 
-        <p>
-          Every decision — from session pacing
-          to practice problems — is driven by
-          what the student actually needs next.
+        <p class="score-note">
+          Individual results vary. Examples, not guarantees.
         </p>
 
       </div>
@@ -2446,27 +2370,11 @@ function createPage() {
 
       <div class="copy copy-right">
 
-        <div class="eyebrow blue">
-          METAMINDS
-        </div>
-
-        <h2>
-          Let's build
-          <br>what comes
-          <br><span>next.</span>
-        </h2>
-
-        <p>
-          Start with a free consultation and
-          tell us about your student's goals,
-          strengths, and challenges.
-        </p>
-
         <a
           href="mailto:hello@metaminds.com"
           class="primary-button"
         >
-          Book a Free Consultation
+          Book Free Consultation
           <strong>→</strong>
         </a>
 
