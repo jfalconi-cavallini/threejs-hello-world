@@ -153,12 +153,12 @@ const scene =
   new THREE.Scene()
 
 scene.background =
-  new THREE.Color(0x03060c)
+  new THREE.Color(0x000000)
 
 scene.fog =
   new THREE.FogExp2(
-    0x03060c,
-    0.038
+    0x000000,
+    0.045
   )
 
 // ======================================================
@@ -347,9 +347,11 @@ const particleMaterial =
 
     transparent: true,
 
-    opacity: 0.78,
+    opacity: 0.72,
 
     toneMapped: false,
+
+    fog: true,
   })
 
 const particles =
@@ -377,6 +379,115 @@ particles.instanceColor.setUsage(
 )
 
 scene.add(particles)
+
+// ======================================================
+// AMBIENT DEBRIS — sparse large wireframes in the dark
+// ======================================================
+
+const DEBRIS_COUNT =
+  MOBILE_AT_LOAD
+    ? 16
+    : 40
+
+const debrisGeometry =
+  new THREE.TetrahedronGeometry(
+    MOBILE_AT_LOAD
+      ? 0.11
+      : 0.15,
+    0
+  )
+
+const debrisMaterial =
+  new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.16,
+    toneMapped: false,
+    fog: true,
+  })
+
+const debris =
+  new THREE.InstancedMesh(
+    debrisGeometry,
+    debrisMaterial,
+    DEBRIS_COUNT
+  )
+
+debris.instanceColor =
+  new THREE.InstancedBufferAttribute(
+    new Float32Array(
+      DEBRIS_COUNT * 3
+    ),
+    3
+  )
+
+{
+  const debrisDummy =
+    new THREE.Object3D()
+
+  for (
+    let i = 0;
+    i < DEBRIS_COUNT;
+    i++
+  ) {
+    debrisDummy.position.set(
+      (Math.random() - 0.5) * 16,
+      (Math.random() - 0.5) * 11,
+      (Math.random() - 0.5) * 14
+    )
+
+    debrisDummy.rotation.set(
+      Math.random() * Math.PI,
+      Math.random() * Math.PI,
+      Math.random() * Math.PI
+    )
+
+    const s =
+      0.35 +
+      Math.random() *
+      2.1
+
+    debrisDummy.scale.set(
+      s,
+      s,
+      s
+    )
+
+    debrisDummy.updateMatrix()
+    debris.setMatrixAt(
+      i,
+      debrisDummy.matrix
+    )
+
+    if (i % 3 === 0) {
+      tempColor.copy(ORANGE)
+    } else if (i % 3 === 1) {
+      tempColor.copy(NAVY)
+    } else {
+      tempColor.copy(BLUE)
+    }
+
+    tempColor.multiplyScalar(
+      0.55 +
+      Math.random() *
+      0.45
+    )
+
+    debris.setColorAt(
+      i,
+      tempColor
+    )
+  }
+
+  debris.instanceMatrix.needsUpdate =
+    true
+
+  debris.instanceColor.needsUpdate =
+    true
+}
+
+scene.add(debris)
 
 // ======================================================
 // PARTICLE PERSONALITY
@@ -1241,7 +1352,7 @@ function updateReducedMotionStory(
     associated with the part of the page.
   */
 
-  if (progress < 0.20) {
+  if (progress < 0.22) {
     currentStage = 'brain'
 
     writeStaticTarget(
@@ -1250,13 +1361,13 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        progress < 0.10
+        progress < 0.16
           ? RIGHT_X
           : LEFT_X
       )
   }
 
-  else if (progress < 0.50) {
+  else if (progress < 0.52) {
     currentStage = 'lightbulb'
 
     writeStaticTarget(
@@ -1269,7 +1380,7 @@ function updateReducedMotionStory(
       )
   }
 
-  else if (progress < 0.82) {
+  else if (progress < 0.84) {
     currentStage = 'earth'
 
     writeStaticTarget(
@@ -1306,20 +1417,20 @@ function updateReducedMotionStory(
 // MASTER STORY
 // ======================================================
 //
-// Ten chapters share one 0→1 scrub. Holds sit on the
-// even tenths so copy and 3D land together:
+// Copy beats hold the 3D form. Morphs are short
+// transitions between scenes:
 //
-// 0.00 - 0.10 Brain right            s1
-// 0.10 - 0.20 Brain left + rotation  s2
-// 0.20 - 0.30 Brain explosion        s3
-// 0.30 - 0.40 Lightbulb formation    s4
-// 0.40 - 0.50 Lightbulb hold         s5
-// 0.50 - 0.58 Lightbulb explosion    s6
-// 0.58 - 0.68 Earth formation        s7
-// 0.68 - 0.82 Earth hold             s8
-// 0.82 - 0.90 Earth explosion        s9
-// 0.90 - 0.96 Logo formation
-// 0.96 - 1.00 Logo hold              consultation
+// 0.00 - 0.16 Brain hold             hero
+// 0.16 - 0.22 Brain moves
+// 0.22 - 0.28 Brain explosion
+// 0.28 - 0.36 Lightbulb formation
+// 0.36 - 0.52 Lightbulb hold         notes / team
+// 0.52 - 0.58 Lightbulb explosion
+// 0.58 - 0.66 Earth formation
+// 0.66 - 0.84 Earth hold             mentors / results
+// 0.84 - 0.89 Earth explosion
+// 0.89 - 0.94 Logo formation
+// 0.94 - 1.00 Logo hold              consultation
 //
 // ======================================================
 
@@ -1350,7 +1461,7 @@ function updateStory() {
   // 1. BRAIN HERO
   // ==================================================
 
-  if (p < 0.10) {
+  if (p < 0.16) {
     currentStage =
       'brain'
 
@@ -1358,29 +1469,18 @@ function updateStory() {
       brainPositions
     )
 
-    const t =
-      p / 0.10
-
     transformTarget.x =
       desktopOrMobileX(
         RIGHT_X
       )
 
-    transformTarget.y =
-      Math.sin(
-        t * Math.PI
-      ) *
-      0.04
+    transformTarget.y = 0
 
     transformTarget.rx =
       -0.02
 
     transformTarget.ry =
-      lerp(
-        -0.12,
-        0.08,
-        t
-      )
+      0.08
 
     transformTarget.rz =
       0
@@ -1390,7 +1490,7 @@ function updateStory() {
   // 2. BRAIN MOVES LEFT / CIRCULAR ROTATION
   // ==================================================
 
-  else if (p < 0.20) {
+  else if (p < 0.22) {
     currentStage =
       'brain-moving'
 
@@ -1402,9 +1502,9 @@ function updateStory() {
       smoothstep(
         (
           p -
-          0.10
+          0.16
         ) /
-          0.10
+          0.06
       )
 
     transformTarget.x =
@@ -1449,16 +1549,16 @@ function updateStory() {
   // 3. BRAIN EXPLOSION
   // ==================================================
 
-  else if (p < 0.30) {
+  else if (p < 0.28) {
     currentStage =
       'brain-explosion'
 
     const t =
       (
         p -
-        0.20
+        0.22
       ) /
-      0.10
+      0.06
 
     writeMorphTarget(
       brainPositions,
@@ -1491,16 +1591,16 @@ function updateStory() {
   // 4. LIGHTBULB FORMS
   // ==================================================
 
-  else if (p < 0.40) {
+  else if (p < 0.36) {
     currentStage =
       'lightbulb-forming'
 
     const t =
       (
         p -
-        0.30
+        0.28
       ) /
-      0.10
+      0.08
 
     writeMorphTarget(
       brainExplosion,
@@ -1537,7 +1637,7 @@ function updateStory() {
   // 5. LIGHTBULB HOLD
   // ==================================================
 
-  else if (p < 0.50) {
+  else if (p < 0.52) {
     currentStage =
       'lightbulb'
 
@@ -1571,9 +1671,9 @@ function updateStory() {
     const t =
       (
         p -
-        0.50
+        0.52
       ) /
-      0.08
+      0.06
 
     writeMorphTarget(
       lightbulbPositions,
@@ -1599,7 +1699,7 @@ function updateStory() {
   // 7. EARTH FORMS
   // ==================================================
 
-  else if (p < 0.68) {
+  else if (p < 0.66) {
     currentStage =
       'earth-forming'
 
@@ -1608,7 +1708,7 @@ function updateStory() {
         p -
         0.58
       ) /
-      0.10
+      0.08
 
     writeMorphTarget(
       lightbulbExplosion,
@@ -1645,7 +1745,7 @@ function updateStory() {
   // 8. EARTH HOLD
   // ==================================================
 
-  else if (p < 0.82) {
+  else if (p < 0.84) {
     currentStage =
       'earth'
 
@@ -1672,16 +1772,16 @@ function updateStory() {
   // 9. EARTH EXPLODES
   // ==================================================
 
-  else if (p < 0.90) {
+  else if (p < 0.89) {
     currentStage =
       'earth-explosion'
 
     const t =
       (
         p -
-        0.82
+        0.84
       ) /
-      0.08
+      0.05
 
     writeMorphTarget(
       earthPositions,
@@ -1713,16 +1813,16 @@ function updateStory() {
   // 10. LOGO FORMS
   // ==================================================
 
-  else if (p < 0.96) {
+  else if (p < 0.94) {
     currentStage =
       'logo-forming'
 
     const t =
       (
         p -
-        0.90
+        0.89
       ) /
-      0.06
+      0.05
 
     writeMorphTarget(
       earthExplosion,
@@ -1949,12 +2049,12 @@ function createNavbar() {
       >
     </a>
 
-    <a
-      class="nav-cta"
-      href="#consultation"
-    >
-      Book Free Consultation
-    </a>
+    <div class="nav-inline">
+      <a href="#notes">Notes</a>
+      <a href="#team">Team</a>
+      <a href="#mentors">Mentors</a>
+      <a href="#results">Results</a>
+    </div>
 
     <button
       class="nav-signin"
@@ -1962,6 +2062,13 @@ function createNavbar() {
     >
       Sign In
     </button>
+
+    <a
+      class="nav-cta"
+      href="#consultation"
+    >
+      Book Free Consultation
+    </a>
 
     <button
       class="menu-button"
@@ -2062,7 +2169,7 @@ function setupNav() {
   navLinks =
     Array.from(
       nav.querySelectorAll(
-        '.nav-links a'
+        '.nav-inline a, .nav-links a'
       )
     )
 
@@ -2159,15 +2266,15 @@ function syncNavHighlight(
 
   let active = '#s1'
 
-  if (progress >= 0.90) {
+  if (progress >= 0.84) {
     active = '#consultation'
-  } else if (progress >= 0.82) {
+  } else if (progress >= 0.72) {
     active = '#results'
-  } else if (progress >= 0.58) {
+  } else if (progress >= 0.52) {
     active = '#mentors'
-  } else if (progress >= 0.40) {
+  } else if (progress >= 0.36) {
     active = '#team'
-  } else if (progress >= 0.20) {
+  } else if (progress >= 0.19) {
     active = '#notes'
   }
 
@@ -2755,8 +2862,20 @@ function updateParticleInstances(
       ]
     )
 
+    const depth =
+      THREE.MathUtils.clamp(
+        (z + 2.8) / 5.6,
+        0,
+        1
+      )
+
     const scale =
       scales[i] *
+      (
+        0.42 +
+        depth *
+        0.72
+      ) *
       (
         1 +
         influence *
@@ -2852,6 +2971,12 @@ function updateParticleInstances(
           )
         }
       }
+
+      tempColor.multiplyScalar(
+        0.38 +
+        depth *
+        0.72
+      )
 
       particles.setColorAt(
         i,
@@ -3046,6 +3171,16 @@ function animate() {
   // EXPENSIVE PARTICLE LOOP
   // ONLY WHEN REQUIRED
   // ----------------------------------
+
+  if (!REDUCED_MOTION) {
+    debris.rotation.y +=
+      dt *
+      0.028
+
+    debris.rotation.x +=
+      dt *
+      0.01
+  }
 
   const needParticleLoop =
     particlesNeedUpdate ||
