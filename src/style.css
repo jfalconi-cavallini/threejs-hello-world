@@ -1,0 +1,37 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  background: black;
+}
+
+canvas {
+  display: block;
+}
+.controls {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+}
+
+.controls button {
+  padding: 10px 18px;
+  border: 1px solid #00aaff;
+  background: #111;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.controls button:hover {
+  background: #00aaff;
+  color: black;
+}
