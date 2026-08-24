@@ -126,7 +126,7 @@ const LOGO_SIZE = 4.6
 const RIGHT_X = 1.45
 const LEFT_X = -1.25
 const CENTER_X = 0.45
-const LOGO_X = 0.55
+const LOGO_X = 0
 
 const MOBILE_X = 0
 
@@ -360,6 +360,9 @@ const particleMaterial =
 const ambientTime =
   { value: 0 }
 
+const logoStill =
+  { value: 0 }
+
 function attachAmbientShader(
   material,
   drift = 0.05
@@ -376,9 +379,13 @@ function attachAmbientShader(
       shader.uniforms.uDrift =
         { value: drift }
 
+      shader.uniforms.uLogoStill =
+        logoStill
+
       shader.vertexShader =
         'uniform float uTime;\n' +
         'uniform float uDrift;\n' +
+        'uniform float uLogoStill;\n' +
         shader.vertexShader
 
       shader.vertexShader =
@@ -394,11 +401,12 @@ function attachAmbientShader(
           #endif
           float seed = mvPosition.x * 1.73 + mvPosition.y * 2.11 + mvPosition.z * 1.37;
           float pulse = sin(uTime * 0.33 + seed) * 0.5 + 0.5;
+          float driftAmt = uDrift * mix(1.0, 0.08, uLogoStill);
           mvPosition.xyz += vec3(
             sin(uTime * 0.53 + seed) * 1.15,
             cos(uTime * 0.41 + seed * 1.2) * 0.88,
             sin(uTime * 0.47 + seed * 0.8) * 1.02
-          ) * uDrift * (0.55 + pulse * 0.85);
+          ) * driftAmt * (0.55 + pulse * 0.85);
           mvPosition = modelViewMatrix * mvPosition;
           gl_Position = projectionMatrix * mvPosition;
           `
@@ -1069,10 +1077,9 @@ function sampleLogoTextOnly(model, count) {
   const centerX = (minX + maxX) / 2
   const centerY = (minY + maxY) / 2
   const textHeight = maxY - minY
-  const textWidth = maxX - minX
-  // Scale to ~0.6 scene units tall — legible at viewport height while fitting beside the brain.
-  const scale = 0.6 / textHeight
-  const TEXT_OFFSET_X = 0.15
+  // Tall enough that META MINDS reads as a word at the logo hold.
+  const scale = 1.22 / textHeight
+  const TEXT_OFFSET_X = 0.42
 
   const output = new Float32Array(count * 3)
   for (let i = 0; i < count; i++) {
@@ -1090,26 +1097,26 @@ function sampleLogoTextOnly(model, count) {
     const i3 = i * 3
     output[i3]     = (w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale + TEXT_OFFSET_X
     output[i3 + 1] = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
-    output[i3 + 2] = (Math.random() - 0.5) * 0.12
+    output[i3 + 2] = (Math.random() - 0.5) * 0.018
   }
   return output
 }
 
 // Combines a mini version of brain.glb (left) with MetaMinds text only (right).
 function generateLogoPositions(brainGLBScene, logoGLBScene) {
-  const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.30)
+  const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.12)
   const TEXT_COUNT = PARTICLE_COUNT - BRAIN_COUNT
 
-  // Mini brain: scale brain.glb down to ~1.3 units tall, offset left
-  const MINI_BRAIN_SIZE = 1.3
+  // Mini brain mark stays; word gets most of the particles.
+  const MINI_BRAIN_SIZE = 0.78
   const miniScale = MINI_BRAIN_SIZE / BRAIN_SIZE
-  const BRAIN_OFFSET_X = -2.9
+  const BRAIN_OFFSET_X = -2.35
 
   const brainOut = new Float32Array(BRAIN_COUNT * 3)
   for (let i = 0; i < BRAIN_COUNT; i++) {
     brainOut[i * 3]     = brainPositions[i * 3]     * miniScale + BRAIN_OFFSET_X
     brainOut[i * 3 + 1] = brainPositions[i * 3 + 1] * miniScale
-    brainOut[i * 3 + 2] = brainPositions[i * 3 + 2] * miniScale
+    brainOut[i * 3 + 2] = brainPositions[i * 3 + 2] * miniScale * 0.22
   }
 
   // MetaMinds text — front faces only, no STEM ACADEMY
@@ -1118,17 +1125,6 @@ function generateLogoPositions(brainGLBScene, logoGLBScene) {
   const output = new Float32Array(PARTICLE_COUNT * 3)
   output.set(brainOut, 0)
   output.set(textOut, BRAIN_COUNT * 3)
-
-  for (
-    let i = 0;
-    i < PARTICLE_COUNT;
-    i++
-  ) {
-    output[i * 3 + 2] +=
-      (Math.random() - 0.5) *
-      0.14
-  }
-
   return output
 }
 
@@ -1666,7 +1662,7 @@ function updateReducedMotionStory(
       )
   }
 
-  else if (progress < 0.84) {
+  else if (progress < 0.82) {
     currentStage = 'earth'
 
     writeStaticTarget(
@@ -1714,9 +1710,9 @@ function updateReducedMotionStory(
 // 0.52 - 0.58 Lightbulb explosion
 // 0.58 - 0.66 Earth formation
 // 0.66 - 0.84 Earth hold             mentors / results
-// 0.84 - 0.89 Earth explosion
-// 0.89 - 0.94 Logo formation
-// 0.94 - 1.00 Logo hold              consultation
+// 0.82 - 0.87 Earth explosion
+// 0.87 - 0.91 Logo formation
+// 0.91 - 1.00 Logo hold              consultation
 //
 // ======================================================
 
@@ -2087,7 +2083,7 @@ function updateStory() {
   // 8. EARTH HOLD
   // ==================================================
 
-  else if (p < 0.84) {
+  else if (p < 0.82) {
     if (currentStage !== 'earth') {
       writeStaticTarget(
         earthPositions
@@ -2122,14 +2118,14 @@ function updateStory() {
   // 9. EARTH EXPLODES
   // ==================================================
 
-  else if (p < 0.89) {
+  else if (p < 0.87) {
     currentStage =
       'earth-explosion'
 
     const t =
       (
         p -
-        0.84
+        0.82
       ) /
       0.05
 
@@ -2171,16 +2167,16 @@ function updateStory() {
   // 10. LOGO FORMS
   // ==================================================
 
-  else if (p < 0.94) {
+  else if (p < 0.91) {
     currentStage =
       'logo-forming'
 
     const t =
       (
         p -
-        0.89
+        0.87
       ) /
-      0.05
+      0.04
 
     writeMorphTarget(
       earthExplosion,
@@ -2190,11 +2186,11 @@ function updateStory() {
     )
 
     setTransformShot(
-      5.12,
-      50,
-      0.08,
-      -0.025,
-      0.91
+      4.35,
+      44,
+      0,
+      0,
+      1.02
     )
 
     transformTarget.x =
@@ -2202,28 +2198,11 @@ function updateStory() {
         LOGO_X
       )
 
-    transformTarget.y =
-      lerp(
-        0,
-        0.04,
-        t
-      )
+    transformTarget.y = 0
 
-    transformTarget.rx =
-      lerp(
-        0.08,
-        0,
-        t
-      )
+    transformTarget.rx = 0
 
-    // Let logo settle front-facing
-    // before it begins its idle spin.
-    transformTarget.ry =
-      lerp(
-        0.45,
-        0,
-        smoothstep(t)
-      )
+    transformTarget.ry = 0
 
     transformTarget.rz =
       0
@@ -2244,10 +2223,13 @@ function updateStory() {
       'logo'
 
     setHoldShot(
-      5.24,
-      52,
-      0.05
+      4.05,
+      42,
+      0
     )
+
+    bloomTarget = 0.14
+    transformTarget.s = 1.05
 
     transformTarget.x =
       desktopOrMobileX(
@@ -2255,7 +2237,7 @@ function updateStory() {
       )
 
     transformTarget.y =
-      0.04
+      0
 
     transformTarget.rx =
       0
@@ -2263,8 +2245,8 @@ function updateStory() {
     transformTarget.rz =
       0
 
-    // Continuous cheap global spin
-    // handled in animate().
+    transformTarget.ry =
+      0
   }
 }
 
@@ -2425,6 +2407,7 @@ function createNavbar() {
 
     <div class="nav-inline">
       <a href="#notes">Notes</a>
+      <a href="#teach">Teach</a>
       <a href="#team">Team</a>
       <a href="#mentors">Mentors</a>
       <a href="#results">Results</a>
@@ -2459,6 +2442,7 @@ function createNavbar() {
       <div class="nav-links">
         <a href="#s1">Home</a>
         <a href="#notes">Notes</a>
+        <a href="#teach">Teach</a>
         <a href="#team">Team</a>
         <a href="#mentors">Mentors</a>
         <a href="#results">Results</a>
@@ -2640,15 +2624,17 @@ function syncNavHighlight(
 
   let active = '#s1'
 
-  if (progress >= 0.84) {
+  if (progress >= 0.90) {
     active = '#consultation'
-  } else if (progress >= 0.72) {
+  } else if (progress >= 0.76) {
     active = '#results'
-  } else if (progress >= 0.52) {
+  } else if (progress >= 0.58) {
     active = '#mentors'
-  } else if (progress >= 0.36) {
+  } else if (progress >= 0.44) {
     active = '#team'
-  } else if (progress >= 0.19) {
+  } else if (progress >= 0.30) {
+    active = '#teach'
+  } else if (progress >= 0.18) {
     active = '#notes'
   }
 
@@ -2708,23 +2694,6 @@ function createPage() {
           Book Free Consultation
         </a>
 
-        <div class="tier-row">
-          <div class="tier-line">
-            <div class="tier-name">Premium</div>
-            <p>experienced / working professionals</p>
-          </div>
-          <div class="tier-line">
-            <div class="tier-name">College Mentor</div>
-            <p>high-achieving, selected, supervised, same system, more accessible price</p>
-          </div>
-          <div class="tier-line">
-            <div class="tier-name">Junior College Mentor</div>
-            <p class="tier-tag">Foundational Support · Homework Help · Younger Students</p>
-            <p>Focused support for foundational learning, homework help, and younger students. A natural entry point for building consistent study habits from an early age.</p>
-            <p class="tier-rate">Book a consultation to discuss rates</p>
-          </div>
-        </div>
-
       </div>
 
       <div class="scroll-marker">
@@ -2755,6 +2724,40 @@ function createPage() {
           skill tracking you can follow over time
         </p>
 
+        <p>
+          homework with real feedback
+        </p>
+
+        <p>
+          one mentor, not a rotation
+        </p>
+
+        <p>
+          K–12 through college
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <section class="chapter chapter-teach" id="teach">
+
+      <div class="copy copy-left">
+
+        <div class="eyebrow">
+          WHAT WE TEACH
+        </div>
+
+        <ul class="teach-list">
+          <li>SAT &amp; ACT</li>
+          <li>AP</li>
+          <li>K–12 math</li>
+          <li>coding (Python/Java/JS)</li>
+          <li>robotics (VEX)</li>
+          <li>3D printing/CAD</li>
+        </ul>
+
       </div>
 
     </section>
@@ -2768,26 +2771,14 @@ function createPage() {
           TEAM
         </div>
 
-        <p>
-          <span class="tier-name">Premium</span>
-          experienced / working professionals
-        </p>
-
-        <p>
-          <span class="tier-name">College Mentor</span>
-          high-achieving, selected, supervised, same system, more accessible price
-        </p>
-
-        <p>
-          <span class="tier-name">Junior College Mentor</span>
-          Foundational Support · Homework Help · Younger Students
-        </p>
-        <p>
-          Focused support for foundational learning, homework help, and younger students. A natural entry point for building consistent study habits from an early age.
-        </p>
-        <p class="tier-rate">
-          Book a consultation to discuss rates
-        </p>
+        <ul class="tutor-list">
+          <li>Jose Falconi-Cavallini</li>
+          <li>Emma Brugman</li>
+          <li>Johan Falconi-Cavallini</li>
+          <li>Roberto Medina</li>
+          <li>Alan Martinez</li>
+          <li>Christian Tapia</li>
+        </ul>
 
       </div>
 
@@ -2796,22 +2787,34 @@ function createPage() {
 
     <section class="chapter chapter-mentors" id="mentors">
 
-      <div class="copy copy-center">
+      <div class="copy copy-mentors">
 
         <div class="eyebrow">
           MENTORS
         </div>
 
-        <p>
-          Every tier runs on the same system. The difference is who sits with your child.
-        </p>
-
-        <div class="tier-name">Junior College Mentor</div>
-        <p class="tier-tag">Foundational Support · Homework Help · Younger Students</p>
-        <p>
-          Focused support for foundational learning, homework help, and younger students. A natural entry point for building consistent study habits from an early age.
-        </p>
-        <p class="tier-rate">Book a consultation to discuss rates</p>
+        <div class="tier-row">
+          <div class="tier-line">
+            <div class="tier-name">Premium Mentoring</div>
+            <p class="tier-tag">SAT/ACT · AP Courses · Advanced Coursework</p>
+            <p>Our most experienced tutors — practicing engineers, scientists, and subject specialists who've taught this exact material for years.</p>
+            <p class="tier-rate">From $70/hr</p>
+            <p class="tier-rate">Single session through 20-hour packages</p>
+          </div>
+          <div class="tier-line">
+            <div class="tier-name">College Mentor</div>
+            <p class="tier-tag">High School · Middle School · Elementary</p>
+            <p>High-achieving college students, carefully selected and supervised by MetaMinds. The full MetaMinds system — session notes, homework, parent updates, skill tracking — at a more accessible rate.</p>
+            <p class="tier-rate">From $50/hr</p>
+            <p class="tier-rate">Single session through 20-hour packages</p>
+          </div>
+          <div class="tier-line">
+            <div class="tier-name">Junior College Mentor</div>
+            <p class="tier-tag">Foundational Support · Homework Help · Younger Students</p>
+            <p>Focused support for foundational learning, homework help, and younger students. A natural entry point for building consistent study habits from an early age.</p>
+            <p class="tier-rate">Book a consultation to discuss rates</p>
+          </div>
+        </div>
 
       </div>
 
@@ -2845,8 +2848,16 @@ function createPage() {
 
       <div class="copy copy-center">
 
+        <h2>
+          Let's find the right tutor for your kid.
+        </h2>
+
+        <p>
+          Free, 30 minutes, no obligation.
+        </p>
+
         <a
-          href="mailto:hello@metaminds.com"
+          href="mailto:metamindsstemacademy@gmail.com"
           class="primary-button"
         >
           Book Free Consultation
@@ -2858,7 +2869,7 @@ function createPage() {
 
     <footer class="sketch-footer">
       <span>MetaMinds STEM Academy</span>
-      <a href="mailto:hello@metaminds.com">hello@metaminds.com</a>
+      <a href="mailto:metamindsstemacademy@gmail.com">metamindsstemacademy@gmail.com</a>
     </footer>
 
   `
@@ -3299,7 +3310,17 @@ function updateParticleInstances(
           currentStage === 'earth-explosion'
         )
 
-      if (isEarthStage) {
+      const isLogoStage =
+        currentStage === 'logo' ||
+        currentStage === 'logo-forming'
+
+      if (isLogoStage) {
+        tempColor.lerpColors(
+          ORANGE,
+          WHITE,
+          0.42
+        )
+      } else if (isEarthStage) {
         const lat =
           earthParticleLatLon[i * 2]
 
@@ -3363,11 +3384,17 @@ function updateParticleInstances(
         }
       }
 
-      tempColor.multiplyScalar(
-        0.38 +
-        depth *
-        0.72
-      )
+      if (isLogoStage) {
+        tempColor.multiplyScalar(
+          1.08
+        )
+      } else {
+        tempColor.multiplyScalar(
+          0.38 +
+          depth *
+          0.72
+        )
+      }
 
       particles.setColorAt(
         i,
@@ -3637,18 +3664,16 @@ function animate() {
 
     else if (
       currentStage ===
-      'logo'
+      'logo' ||
+      currentStage ===
+      'logo-forming'
     ) {
       particles.rotation.y +=
         (
-          Math.sin(
-            lastFrameTime *
-            0.0008
-          ) *
-          0.18 -
+          0 -
           particles.rotation.y
         ) *
-        0.025
+        0.08
     }
 
     else {
@@ -3701,6 +3726,31 @@ function animate() {
 
     debris.position.y =
       camera.position.y * 0.07
+
+    const onLogo =
+      currentStage === 'logo' ||
+      currentStage === 'logo-forming'
+
+    logoStill.value +=
+      (
+        (onLogo ? 1 : 0) -
+        logoStill.value
+      ) *
+      0.1
+
+    field.material.opacity +=
+      (
+        (onLogo ? 0.06 : 0.22) -
+        field.material.opacity
+      ) *
+      0.08
+
+    particleMaterial.opacity +=
+      (
+        (onLogo ? 0.92 : 0.7) -
+        particleMaterial.opacity
+      ) *
+      0.08
   }
 
   const needParticleLoop =

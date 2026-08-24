@@ -3,8 +3,8 @@
   --mm-navy: #00205b;
   --mm-blue: #2a4f91;
   --mm-primary: #2563eb;
-  --mm-ink: #f3f6f9;
-  --mm-mute: #7f91a8;
+  --mm-ink: #f7f9fc;
+  --mm-mute: #c5d0dc;
   --mm-line: #2e3543;
   --mm-void: #000000;
   --font-display: "Syne", Arial, Helvetica, sans-serif;
@@ -367,18 +367,23 @@ button {
 }
 
 .chapter-notes {
-  min-height: 240vh;
-  min-height: 240svh;
-}
-
-.chapter-team {
   min-height: 220vh;
   min-height: 220svh;
 }
 
+.chapter-teach {
+  min-height: 200vh;
+  min-height: 200svh;
+}
+
+.chapter-team {
+  min-height: 200vh;
+  min-height: 200svh;
+}
+
 .chapter-mentors {
-  min-height: 280vh;
-  min-height: 280svh;
+  min-height: 260vh;
+  min-height: 260svh;
 }
 
 .chapter-results {
@@ -387,20 +392,30 @@ button {
 }
 
 .logo-hold-chapter {
-  min-height: 220vh;
-  min-height: 220svh;
-  padding-bottom: 12vh;
+  min-height: 280vh;
+  min-height: 280svh;
+  align-items: flex-end;
+  padding-bottom: 16vh;
 }
 
 .copy {
-  width: min(560px, 42vw);
+  width: min(680px, 54vw);
   position: relative;
   z-index: 10;
   pointer-events: auto;
+  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.55);
 }
 
 .copy-hero {
-  width: min(720px, 54vw);
+  width: min(860px, 68vw);
+}
+
+.copy-mentors {
+  width: min(1120px, 88vw);
+}
+
+.copy-mentors p {
+  max-width: none;
 }
 
 .copy-right {
@@ -425,10 +440,10 @@ button {
 
 .eyebrow {
   margin-bottom: 22px;
-  font-size: 10px;
-  letter-spacing: 0.34em;
-  font-weight: 600;
-  color: var(--mm-mute);
+  font-size: 13px;
+  letter-spacing: 0.28em;
+  font-weight: 700;
+  color: #dbe3ec;
 }
 
 h1,
@@ -439,25 +454,26 @@ h2 {
   letter-spacing: -0.05em;
   line-height: 0.98;
   text-wrap: balance;
+  color: var(--mm-ink);
 }
 
 h1 {
-  font-size: clamp(44px, 6.8vw, 104px);
-  line-height: 0.98;
+  font-size: clamp(52px, 7.6vw, 124px);
+  line-height: 0.96;
 }
 
 h2 {
-  font-size: clamp(36px, 5vw, 72px);
-  line-height: 1.06;
+  font-size: clamp(44px, 6vw, 92px);
+  line-height: 1.04;
 }
 
 .copy p {
-  max-width: 460px;
+  max-width: 640px;
   margin-top: 28px;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.75;
-  color: var(--mm-mute);
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--mm-ink);
 }
 
 .primary-button {
@@ -465,14 +481,15 @@ h2 {
   align-items: center;
   gap: 18px;
   margin-top: 36px;
-  padding: 15px 24px;
+  padding: 18px 28px;
   border-radius: 999px;
   background: var(--mm-orange);
   color: #fff;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-shadow: none;
   transition: transform 0.2s ease, filter 0.2s ease;
 }
 
@@ -491,9 +508,9 @@ h2 {
 
 .tier-name {
   display: block;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--mm-ink);
   margin-bottom: 8px;
@@ -501,7 +518,7 @@ h2 {
 
 .tier-tag {
   margin-top: 0;
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.5;
   letter-spacing: 0.04em;
   color: var(--mm-ink);
@@ -509,8 +526,8 @@ h2 {
 
 .tier-line p {
   margin-top: 0;
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 18px;
+  line-height: 1.5;
 }
 
 .tier-line p + p,
@@ -519,14 +536,41 @@ h2 {
 }
 
 .tier-rate {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--mm-mute);
+}
+
+.teach-list,
+.tutor-list {
+  list-style: none;
+  margin-top: 28px;
+  padding: 0;
+}
+
+.teach-list li,
+.tutor-list li {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--mm-ink);
+}
+
+.teach-list li {
+  font-size: clamp(28px, 3.6vw, 48px);
+  line-height: 1.2;
+  margin-top: 8px;
+}
+
+.tutor-list li {
+  font-size: clamp(26px, 3.2vw, 44px);
+  line-height: 1.25;
+  margin-top: 10px;
 }
 
 .score-line {
   margin-top: 18px !important;
   font-family: var(--font-display);
-  font-size: clamp(36px, 4.4vw, 64px);
+  font-size: clamp(42px, 5.2vw, 76px);
   font-weight: 700;
   letter-spacing: -0.045em;
   line-height: 1.05;
@@ -535,7 +579,7 @@ h2 {
 
 .score-note {
   margin-top: 28px;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .scroll-marker {
@@ -668,6 +712,7 @@ h2 {
   }
 
   .chapter-notes,
+  .chapter-teach,
   .chapter-team,
   .chapter-mentors {
     min-height: 175vh;
@@ -680,14 +725,16 @@ h2 {
   }
 
   .logo-hold-chapter {
-    min-height: 170vh;
-    min-height: 170svh;
+    min-height: 200vh;
+    min-height: 200svh;
+    align-items: flex-end;
   }
 
   .copy,
-  .copy-hero {
+  .copy-hero,
+  .copy-mentors {
     width: 100%;
-    max-width: 390px;
+    max-width: 420px;
   }
 
   .copy-right,
@@ -704,16 +751,21 @@ h2 {
   }
 
   h1 {
-    font-size: clamp(34px, 9vw, 48px);
+    font-size: clamp(40px, 11vw, 56px);
   }
 
   h2 {
-    font-size: clamp(28px, 7.4vw, 38px);
+    font-size: clamp(34px, 8.8vw, 46px);
   }
 
   .copy p {
-    max-width: 340px;
-    font-size: 15px;
+    max-width: 420px;
+    font-size: 18px;
+  }
+
+  .teach-list li,
+  .tutor-list li {
+    font-size: clamp(24px, 7vw, 34px);
   }
 
   .tier-row {
