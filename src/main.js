@@ -105,8 +105,8 @@ const REDUCED_MOTION =
 // Mobile gets a much safer workload.
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
-    ? 9000
-    : 26000
+    ? 12000
+    : 38000
 
 console.log({
   PARTICLE_COUNT,
@@ -138,8 +138,11 @@ const DEPTH_BULGE = 0.16
 // How quickly actual particles chase the story target.
 const POSITION_LERP =
   MOBILE_AT_LOAD
-    ? 0.09
-    : 0.048
+    ? 0.11
+    : 0.055
+
+let morphLerp =
+  POSITION_LERP
 
 // Once every particle gets sufficiently close,
 // stop touching the instance matrices.
@@ -158,7 +161,7 @@ scene.background =
 scene.fog =
   new THREE.FogExp2(
     0x000000,
-    0.045
+    0.03
   )
 
 // ======================================================
@@ -243,9 +246,9 @@ const bloomPass =
       window.innerWidth,
       window.innerHeight
     ),
-    0.28, // strength
-    0.18, // radius
-    0.48  // threshold
+    0.36, // strength
+    0.24, // radius
+    0.42  // threshold
   )
 
 composer.addPass(
@@ -334,8 +337,8 @@ const currentPositions =
 const particleGeometry =
   new THREE.TetrahedronGeometry(
     MOBILE_AT_LOAD
-      ? 0.018
-      : 0.015,
+      ? 0.016
+      : 0.011,
     0
   )
 
@@ -347,12 +350,69 @@ const particleMaterial =
 
     transparent: true,
 
-    opacity: 0.72,
+    opacity: 0.7,
 
     toneMapped: false,
 
     fog: true,
   })
+
+const ambientTime =
+  { value: 0 }
+
+function attachAmbientShader(
+  material,
+  drift = 0.05
+) {
+  if (REDUCED_MOTION) {
+    return
+  }
+
+  material.onBeforeCompile =
+    (shader) => {
+      shader.uniforms.uTime =
+        ambientTime
+
+      shader.uniforms.uDrift =
+        { value: drift }
+
+      shader.vertexShader =
+        'uniform float uTime;\n' +
+        'uniform float uDrift;\n' +
+        shader.vertexShader
+
+      shader.vertexShader =
+        shader.vertexShader.replace(
+          '#include <project_vertex>',
+          `
+          vec4 mvPosition = vec4( transformed, 1.0 );
+          #ifdef USE_BATCHING
+            mvPosition = batchingMatrix * mvPosition;
+          #endif
+          #ifdef USE_INSTANCING
+            mvPosition = instanceMatrix * mvPosition;
+          #endif
+          float seed = mvPosition.x * 1.73 + mvPosition.y * 2.11 + mvPosition.z * 1.37;
+          float pulse = sin(uTime * 0.33 + seed) * 0.5 + 0.5;
+          mvPosition.xyz += vec3(
+            sin(uTime * 0.53 + seed) * 1.15,
+            cos(uTime * 0.41 + seed * 1.2) * 0.88,
+            sin(uTime * 0.47 + seed * 0.8) * 1.02
+          ) * uDrift * (0.55 + pulse * 0.85);
+          mvPosition = modelViewMatrix * mvPosition;
+          gl_Position = projectionMatrix * mvPosition;
+          `
+        )
+    }
+
+  material.customProgramCacheKey =
+    () => `mm-ambient-drift-${drift}`
+}
+
+attachAmbientShader(
+  particleMaterial,
+  0.048
+)
 
 const particles =
   new THREE.InstancedMesh(
@@ -386,8 +446,8 @@ scene.add(particles)
 
 const DEBRIS_COUNT =
   MOBILE_AT_LOAD
-    ? 16
-    : 40
+    ? 28
+    : 84
 
 const debrisGeometry =
   new THREE.TetrahedronGeometry(
@@ -402,10 +462,15 @@ const debrisMaterial =
     color: 0xffffff,
     wireframe: true,
     transparent: true,
-    opacity: 0.16,
+    opacity: 0.2,
     toneMapped: false,
     fog: true,
   })
+
+attachAmbientShader(
+  debrisMaterial,
+  0.11
+)
 
 const debris =
   new THREE.InstancedMesh(
@@ -488,6 +553,151 @@ debris.instanceColor =
 }
 
 scene.add(debris)
+
+// ======================================================
+// VOLUME FIELD — particles in the dark around the form
+// ======================================================
+
+const FIELD_COUNT =
+  MOBILE_AT_LOAD
+    ? 2200
+    : 8000
+
+const fieldGeometry =
+  new THREE.TetrahedronGeometry(
+    MOBILE_AT_LOAD
+      ? 0.012
+      : 0.008,
+    0
+  )
+
+const fieldMaterial =
+  new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.22,
+    toneMapped: false,
+    fog: true,
+  })
+
+attachAmbientShader(
+  fieldMaterial,
+  0.16
+)
+
+const field =
+  new THREE.InstancedMesh(
+    fieldGeometry,
+    fieldMaterial,
+    FIELD_COUNT
+  )
+
+field.instanceColor =
+  new THREE.InstancedBufferAttribute(
+    new Float32Array(
+      FIELD_COUNT * 3
+    ),
+    3
+  )
+
+{
+  const fieldDummy =
+    new THREE.Object3D()
+
+  for (
+    let i = 0;
+    i < FIELD_COUNT;
+    i++
+  ) {
+    const radius =
+      Math.pow(
+        Math.random(),
+        0.45
+      ) *
+      8.2
+
+    const theta =
+      Math.random() *
+      Math.PI *
+      2
+
+    const phi =
+      Math.acos(
+        2 *
+        Math.random() -
+        1
+      )
+
+    fieldDummy.position.set(
+      radius *
+        Math.sin(phi) *
+        Math.cos(theta),
+      radius *
+        Math.sin(phi) *
+        Math.sin(theta) *
+        0.7,
+      radius *
+        Math.cos(phi)
+    )
+
+    fieldDummy.rotation.set(
+      Math.random() * Math.PI,
+      Math.random() * Math.PI,
+      Math.random() * Math.PI
+    )
+
+    const s =
+      0.45 +
+      Math.random() *
+      1.8
+
+    fieldDummy.scale.set(
+      s,
+      s,
+      s
+    )
+
+    fieldDummy.updateMatrix()
+    field.setMatrixAt(
+      i,
+      fieldDummy.matrix
+    )
+
+    if (i % 2 === 0) {
+      tempColor.lerpColors(
+        ORANGE,
+        BURNT_ORANGE,
+        Math.random()
+      )
+    } else {
+      tempColor.lerpColors(
+        NAVY,
+        BLUE,
+        Math.random()
+      )
+    }
+
+    tempColor.multiplyScalar(
+      0.35 +
+      Math.random() *
+      0.5
+    )
+
+    field.setColorAt(
+      i,
+      tempColor
+    )
+  }
+
+  field.instanceMatrix.needsUpdate =
+    true
+
+  field.instanceColor.needsUpdate =
+    true
+}
+
+scene.add(field)
 
 // ======================================================
 // PARTICLE PERSONALITY
@@ -773,9 +983,14 @@ function modelToParticlePositions(
     const w = 1 - u - v
 
     const i3 = i * 3
-    output[i3]     = (w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale
-    output[i3 + 1] = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
-    output[i3 + 2] = (w * tris[base + 2] + u * tris[base + 5] + v * tris[base + 8] - centerZ) * scale
+    const px = (w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale
+    const py = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
+    const pz = (w * tris[base + 2] + u * tris[base + 5] + v * tris[base + 8] - centerZ) * scale
+    const plen = Math.sqrt(px * px + py * py + pz * pz) || 1
+    const puff = (Math.random() - 0.22) * 0.22
+    output[i3]     = px + (px / plen) * puff
+    output[i3 + 1] = py + (py / plen) * puff
+    output[i3 + 2] = pz + (pz / plen) * puff
   }
 
   return output
@@ -875,7 +1090,7 @@ function sampleLogoTextOnly(model, count) {
     const i3 = i * 3
     output[i3]     = (w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale + TEXT_OFFSET_X
     output[i3 + 1] = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
-    output[i3 + 2] = 0
+    output[i3 + 2] = (Math.random() - 0.5) * 0.12
   }
   return output
 }
@@ -903,6 +1118,17 @@ function generateLogoPositions(brainGLBScene, logoGLBScene) {
   const output = new Float32Array(PARTICLE_COUNT * 3)
   output.set(brainOut, 0)
   output.set(textOut, BRAIN_COUNT * 3)
+
+  for (
+    let i = 0;
+    i < PARTICLE_COUNT;
+    i++
+  ) {
+    output[i * 3 + 2] +=
+      (Math.random() - 0.5) *
+      0.14
+  }
+
   return output
 }
 
@@ -989,9 +1215,14 @@ function generateGlobePositions(landGeoJSON) {
     const cosLat = Math.sqrt(Math.max(0, 1 - sinLat * sinLat))
     const lonRad = (2 * Math.PI * i / PHI) % (2 * Math.PI)
 
-    output[i3]     = radius * cosLat * Math.cos(lonRad)
-    output[i3 + 1] = radius * sinLat
-    output[i3 + 2] = radius * cosLat * Math.sin(lonRad)
+    const jitter =
+      1 +
+      (Math.random() - 0.5) *
+      0.04
+
+    output[i3]     = radius * jitter * cosLat * Math.cos(lonRad)
+    output[i3 + 1] = radius * jitter * sinLat
+    output[i3 + 2] = radius * jitter * cosLat * Math.sin(lonRad)
 
     const latDeg =
       Math.asin(Math.max(-1, Math.min(1, sinLat))) *
@@ -1310,12 +1541,67 @@ const transformTarget = {
   rx: 0,
   ry: 0,
   rz: 0,
+  s: 1,
 }
 
+const cameraTarget = {
+  z: 5.55,
+  fov: 58,
+  x: 0,
+  y: 0,
+  roll: 0,
+}
+
+const lookTarget =
+  new THREE.Vector3()
+
+let cameraRoll = 0
+let bloomTarget = 0.32
+
 let currentStage = 'brain'
+let stageIsTransform = false
 
 let particlesNeedUpdate = true
 let colorsNeedUpdate = true
+
+function setHoldShot(
+  z,
+  fov,
+  x = 0
+) {
+  stageIsTransform = false
+  morphLerp =
+    POSITION_LERP * 0.7
+  transformTarget.s = 1
+  cameraTarget.z = z
+  cameraTarget.fov = fov
+  cameraTarget.x = x
+  cameraTarget.y = 0
+  cameraTarget.roll = 0
+  bloomTarget = 0.28
+}
+
+function setTransformShot(
+  z,
+  fov,
+  x,
+  roll,
+  scale = 1.14
+) {
+  stageIsTransform = true
+  morphLerp =
+    POSITION_LERP * 1.9
+  transformTarget.s = scale
+  cameraTarget.z = z
+  cameraTarget.fov = fov
+  cameraTarget.x = x
+  cameraTarget.y = 0
+  cameraTarget.roll = roll
+  bloomTarget =
+    0.38 +
+    Math.abs(scale - 1) *
+    0.55
+}
 
 // ======================================================
 // POSITION HELPERS
@@ -1361,7 +1647,7 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        progress < 0.16
+        progress < 0.18
           ? RIGHT_X
           : LEFT_X
       )
@@ -1461,12 +1747,20 @@ function updateStory() {
   // 1. BRAIN HERO
   // ==================================================
 
-  if (p < 0.16) {
+  if (p < 0.18) {
+    if (currentStage !== 'brain') {
+      writeStaticTarget(
+        brainPositions
+      )
+    }
+
     currentStage =
       'brain'
 
-    writeStaticTarget(
-      brainPositions
+    setHoldShot(
+      5.28,
+      52,
+      0.1
     )
 
     transformTarget.x =
@@ -1490,7 +1784,7 @@ function updateStory() {
   // 2. BRAIN MOVES LEFT / CIRCULAR ROTATION
   // ==================================================
 
-  else if (p < 0.22) {
+  else if (p < 0.24) {
     currentStage =
       'brain-moving'
 
@@ -1498,11 +1792,19 @@ function updateStory() {
       brainPositions
     )
 
+    setTransformShot(
+      6.85,
+      68,
+      -0.22,
+      0.055,
+      1.08
+    )
+
     const t =
       smoothstep(
         (
           p -
-          0.16
+          0.18
         ) /
           0.06
       )
@@ -1549,14 +1851,14 @@ function updateStory() {
   // 3. BRAIN EXPLOSION
   // ==================================================
 
-  else if (p < 0.28) {
+  else if (p < 0.30) {
     currentStage =
       'brain-explosion'
 
     const t =
       (
         p -
-        0.22
+        0.24
       ) /
       0.06
 
@@ -1565,6 +1867,14 @@ function updateStory() {
       brainExplosion,
       t,
       1
+    )
+
+    setTransformShot(
+      7.45,
+      73,
+      0.04,
+      0.07,
+      1.28
     )
 
     transformTarget.x =
@@ -1591,14 +1901,14 @@ function updateStory() {
   // 4. LIGHTBULB FORMS
   // ==================================================
 
-  else if (p < 0.36) {
+  else if (p < 0.38) {
     currentStage =
       'lightbulb-forming'
 
     const t =
       (
         p -
-        0.28
+        0.30
       ) /
       0.08
 
@@ -1607,6 +1917,14 @@ function updateStory() {
       lightbulbPositions,
       t,
       -1
+    )
+
+    setTransformShot(
+      5.08,
+      49,
+      0.14,
+      -0.04,
+      0.9
     )
 
     transformTarget.x =
@@ -1638,11 +1956,19 @@ function updateStory() {
   // ==================================================
 
   else if (p < 0.52) {
+    if (currentStage !== 'lightbulb') {
+      writeStaticTarget(
+        lightbulbPositions
+      )
+    }
+
     currentStage =
       'lightbulb'
 
-    writeStaticTarget(
-      lightbulbPositions
+    setHoldShot(
+      5.18,
+      51,
+      0.08
     )
 
     transformTarget.x =
@@ -1682,6 +2008,14 @@ function updateStory() {
       -1
     )
 
+    setTransformShot(
+      7.12,
+      71,
+      0.1,
+      0.06,
+      1.26
+    )
+
     transformTarget.x =
       desktopOrMobileX(
         RIGHT_X
@@ -1717,6 +2051,14 @@ function updateStory() {
       1
     )
 
+    setTransformShot(
+      5.22,
+      51,
+      -0.04,
+      -0.02,
+      0.92
+    )
+
     transformTarget.x =
       desktopOrMobileX(
         CENTER_X
@@ -1746,11 +2088,19 @@ function updateStory() {
   // ==================================================
 
   else if (p < 0.84) {
+    if (currentStage !== 'earth') {
+      writeStaticTarget(
+        earthPositions
+      )
+    }
+
     currentStage =
       'earth'
 
-    writeStaticTarget(
-      earthPositions
+    setHoldShot(
+      5.62,
+      55,
+      0.02
     )
 
     transformTarget.x =
@@ -1788,6 +2138,14 @@ function updateStory() {
       earthExplosion,
       t,
       1
+    )
+
+    setTransformShot(
+      7.38,
+      72,
+      0.06,
+      0.065,
+      1.3
     )
 
     transformTarget.x =
@@ -1831,6 +2189,14 @@ function updateStory() {
       -1
     )
 
+    setTransformShot(
+      5.12,
+      50,
+      0.08,
+      -0.025,
+      0.91
+    )
+
     transformTarget.x =
       desktopOrMobileX(
         LOGO_X
@@ -1868,11 +2234,19 @@ function updateStory() {
   // ==================================================
 
   else {
+    if (currentStage !== 'logo') {
+      writeStaticTarget(
+        logoPositions
+      )
+    }
+
     currentStage =
       'logo'
 
-    writeStaticTarget(
-      logoPositions
+    setHoldShot(
+      5.24,
+      52,
+      0.05
     )
 
     transformTarget.x =
@@ -1956,19 +2330,19 @@ Promise.all([
       brainExplosion =
         createExplosion(
           brainPositions,
-          2.2
+          2.85
         )
 
       lightbulbExplosion =
         createExplosion(
           lightbulbPositions,
-          2.0
+          2.6
         )
 
       earthExplosion =
         createExplosion(
           earthPositions,
-          2.5
+          3.2
         )
 
       currentPositions.set(
@@ -2522,7 +2896,7 @@ function createPage() {
         scrub:
           REDUCED_MOTION
             ? false
-            : 1.15,
+            : 0.95,
 
         onUpdate:
           updateStory,
@@ -2755,15 +3129,15 @@ function updateParticleInstances(
 
       x +=
         dxTarget *
-        POSITION_LERP
+        morphLerp
 
       y +=
         dyTarget *
-        POSITION_LERP
+        morphLerp
 
       z +=
         dzTarget *
-        POSITION_LERP
+        morphLerp
 
       currentPositions[i3] =
         x
@@ -3087,7 +3461,16 @@ function animate() {
   const chase =
     REDUCED_MOTION
       ? 1
-      : 0.055
+      : stageIsTransform
+        ? 0.085
+        : 0.032
+
+  const camChase =
+    REDUCED_MOTION
+      ? 1
+      : stageIsTransform
+        ? 0.075
+        : 0.022
 
   const idleY =
     REDUCED_MOTION
@@ -3096,7 +3479,7 @@ function animate() {
           lastFrameTime *
           0.00038
         ) *
-        0.055
+        0.04
 
   particles.position.x +=
     (
@@ -3127,14 +3510,115 @@ function animate() {
     ) *
     chase
 
+  const scaleNow =
+    particles.scale.x +
+    (
+      transformTarget.s -
+      particles.scale.x
+    ) *
+    chase
+
+  particles.scale.setScalar(
+    scaleNow
+  )
+
   if (!REDUCED_MOTION) {
-    camera.position.z =
-      5.9 +
-      Math.sin(
-        lastFrameTime *
-        0.00022
+    ambientTime.value =
+      lastFrameTime *
+      0.001
+
+    camera.position.z +=
+      (
+        cameraTarget.z +
+        Math.sin(
+          lastFrameTime *
+          0.0002
+        ) *
+        0.07 -
+        camera.position.z
       ) *
-      0.07
+      camChase
+
+    camera.position.x +=
+      (
+        cameraTarget.x +
+        Math.sin(
+          lastFrameTime *
+          0.00016
+        ) *
+        0.035 -
+        camera.position.x
+      ) *
+      camChase
+
+    camera.position.y +=
+      (
+        cameraTarget.y +
+        Math.sin(
+          lastFrameTime *
+          0.00027
+        ) *
+        0.045 -
+        camera.position.y
+      ) *
+      camChase
+
+    cameraRoll +=
+      (
+        cameraTarget.roll +
+        Math.sin(
+          lastFrameTime *
+          0.00013
+        ) *
+        0.008 -
+        cameraRoll
+      ) *
+      camChase
+
+    lookTarget.x +=
+      (
+        particles.position.x *
+        0.18 -
+        lookTarget.x
+      ) *
+      camChase
+
+    lookTarget.y +=
+      (
+        particles.position.y *
+        0.42 -
+        lookTarget.y
+      ) *
+      camChase
+
+    lookTarget.z = 0
+
+    camera.lookAt(lookTarget)
+    camera.rotateZ(cameraRoll)
+
+    camera.fov +=
+      (
+        cameraTarget.fov -
+        camera.fov
+      ) *
+      camChase
+
+    camera.updateProjectionMatrix()
+
+    bloomPass.strength +=
+      (
+        bloomTarget -
+        bloomPass.strength
+      ) *
+      camChase
+  } else {
+    camera.position.z =
+      cameraTarget.z
+
+    camera.fov =
+      cameraTarget.fov
+
+    camera.updateProjectionMatrix()
   }
 
   // ----------------------------------
@@ -3192,11 +3676,31 @@ function animate() {
   if (!REDUCED_MOTION) {
     debris.rotation.y +=
       dt *
-      0.028
+      0.032
 
     debris.rotation.x +=
       dt *
-      0.01
+      0.012
+
+    field.rotation.y -=
+      dt *
+      0.022
+
+    field.rotation.x +=
+      dt *
+      0.008
+
+    field.position.x =
+      camera.position.x * 0.22
+
+    field.position.y =
+      camera.position.y * 0.16
+
+    debris.position.x =
+      camera.position.x * 0.09
+
+    debris.position.y =
+      camera.position.y * 0.07
   }
 
   const needParticleLoop =

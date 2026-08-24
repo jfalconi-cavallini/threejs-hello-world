@@ -360,35 +360,35 @@ button {
 }
 
 .chapter-hero {
-  min-height: 240vh;
-  min-height: 240svh;
+  min-height: 280vh;
+  min-height: 280svh;
   align-items: center;
   padding-top: 88px;
 }
 
 .chapter-notes {
+  min-height: 240vh;
+  min-height: 240svh;
+}
+
+.chapter-team {
   min-height: 220vh;
   min-height: 220svh;
 }
 
-.chapter-team {
-  min-height: 200vh;
-  min-height: 200svh;
-}
-
 .chapter-mentors {
-  min-height: 260vh;
-  min-height: 260svh;
+  min-height: 280vh;
+  min-height: 280svh;
 }
 
 .chapter-results {
-  min-height: 160vh;
-  min-height: 160svh;
+  min-height: 180vh;
+  min-height: 180svh;
 }
 
 .logo-hold-chapter {
-  min-height: 200vh;
-  min-height: 200svh;
+  min-height: 220vh;
+  min-height: 220svh;
   padding-bottom: 12vh;
 }
 
