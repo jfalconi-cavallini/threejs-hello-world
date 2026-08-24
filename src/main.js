@@ -138,8 +138,8 @@ const DEPTH_BULGE = 0.16
 // How quickly actual particles chase the story target.
 const POSITION_LERP =
   MOBILE_AT_LOAD
-    ? 0.12
-    : 0.085
+    ? 0.09
+    : 0.048
 
 // Once every particle gets sufficiently close,
 // stop touching the instance matrices.
@@ -158,7 +158,7 @@ scene.background =
 scene.fog =
   new THREE.FogExp2(
     0x03060c,
-    0.026
+    0.038
   )
 
 // ======================================================
@@ -167,14 +167,14 @@ scene.fog =
 
 const camera =
   new THREE.PerspectiveCamera(
-    72,
+    62,
     window.innerWidth /
       window.innerHeight,
     0.1,
     1000
   )
 
-camera.position.z = 5.5
+camera.position.z = 5.9
 
 // ======================================================
 // RENDERER
@@ -243,9 +243,9 @@ const bloomPass =
       window.innerWidth,
       window.innerHeight
     ),
-    0.22, // strength
-    0.12, // radius
-    0.52  // threshold
+    0.28, // strength
+    0.18, // radius
+    0.48  // threshold
   )
 
 composer.addPass(
@@ -2207,7 +2207,7 @@ function createPage() {
 
       <div class="copy copy-left copy-hero">
 
-        <div class="eyebrow orange">
+        <div class="eyebrow">
           ONE DEDICATED MENTOR · A PLAN YOU CAN SEE
         </div>
 
@@ -2225,19 +2225,18 @@ function createPage() {
           class="primary-button"
         >
           Book Free Consultation
-          <strong>→</strong>
         </a>
 
         <div class="tier-row">
-          <div class="tier-chip">
+          <div class="tier-line">
             <div class="tier-name">Premium</div>
             <p>experienced / working professionals</p>
           </div>
-          <div class="tier-chip">
+          <div class="tier-line">
             <div class="tier-name">College Mentor</div>
             <p>high-achieving, selected, supervised, same system, more accessible price</p>
           </div>
-          <div class="tier-chip">
+          <div class="tier-line">
             <div class="tier-name">Junior College Mentor</div>
           </div>
         </div>
@@ -2245,7 +2244,7 @@ function createPage() {
       </div>
 
       <div class="scroll-marker">
-        SCROLL TO EXPLORE
+        SCROLL
         <span></span>
       </div>
 
@@ -2254,23 +2253,23 @@ function createPage() {
 
     <section class="chapter chapter-notes" id="notes">
 
-      <div class="copy copy-right copy-cards">
+      <div class="copy copy-center">
 
-        <div class="eyebrow blue">
+        <div class="eyebrow">
           SESSION NOTES
         </div>
 
-        <div class="mm-cards">
-          <div class="mm-card">
-            <p>After every session, the tutor who taught writes notes for you and your child. No exceptions.</p>
-          </div>
-          <div class="mm-card">
-            <p>Session notes and parent updates included with every tutoring package</p>
-          </div>
-          <div class="mm-card">
-            <p>skill tracking you can follow over time</p>
-          </div>
-        </div>
+        <p>
+          After every session, the tutor who taught writes notes for you and your child. No exceptions.
+        </p>
+
+        <p>
+          Session notes and parent updates included with every tutoring package
+        </p>
+
+        <p>
+          skill tracking you can follow over time
+        </p>
 
       </div>
 
@@ -2279,25 +2278,25 @@ function createPage() {
 
     <section class="chapter chapter-team" id="team">
 
-      <div class="copy copy-left copy-cards">
+      <div class="copy copy-left">
 
-        <div class="eyebrow blue">
+        <div class="eyebrow">
           TEAM
         </div>
 
-        <div class="mm-cards">
-          <div class="mm-card">
-            <div class="card-label">Premium</div>
-            <p>experienced / working professionals</p>
-          </div>
-          <div class="mm-card">
-            <div class="card-label">College Mentor</div>
-            <p>high-achieving, selected, supervised, same system, more accessible price</p>
-          </div>
-          <div class="mm-card">
-            <div class="card-label">Junior College Mentor</div>
-          </div>
-        </div>
+        <p>
+          <span class="tier-name">Premium</span>
+          experienced / working professionals
+        </p>
+
+        <p>
+          <span class="tier-name">College Mentor</span>
+          high-achieving, selected, supervised, same system, more accessible price
+        </p>
+
+        <p>
+          <span class="tier-name">Junior College Mentor</span>
+        </p>
 
       </div>
 
@@ -2306,29 +2305,15 @@ function createPage() {
 
     <section class="chapter chapter-mentors" id="mentors">
 
-      <div class="copy copy-right copy-cards">
+      <div class="copy copy-center">
 
-        <div class="eyebrow orange">
+        <div class="eyebrow">
           MENTORS
         </div>
 
         <p>
           Every tier runs on the same system. The difference is who sits with your child.
         </p>
-
-        <div class="mm-cards">
-          <div class="mm-card">
-            <div class="card-label">Premium</div>
-            <p>experienced / working professionals</p>
-          </div>
-          <div class="mm-card">
-            <div class="card-label">College Mentor</div>
-            <p>high-achieving, selected, supervised, same system, more accessible price</p>
-          </div>
-          <div class="mm-card">
-            <div class="card-label">Junior College Mentor</div>
-          </div>
-        </div>
 
       </div>
 
@@ -2337,22 +2322,14 @@ function createPage() {
 
     <section class="chapter chapter-results" id="results">
 
-      <div class="copy copy-left copy-cards">
+      <div class="copy copy-left">
 
-        <div class="eyebrow orange">
+        <div class="eyebrow">
           RESULTS
         </div>
 
-        <div class="score-row">
-          <div class="score-card">
-            <div class="score-label">SAT</div>
-            <div class="score-line">950→1110</div>
-          </div>
-          <div class="score-card">
-            <div class="score-label">SAT Math</div>
-            <div class="score-line">370→590</div>
-          </div>
-        </div>
+        <p class="score-line">SAT 950→1110</p>
+        <p class="score-line">SAT Math 370→590</p>
 
         <p class="score-note">
           Individual results vary. Examples, not guarantees.
@@ -2368,14 +2345,13 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
 
-      <div class="copy copy-right">
+      <div class="copy copy-center">
 
         <a
           href="mailto:hello@metaminds.com"
           class="primary-button"
         >
           Book Free Consultation
-          <strong>→</strong>
         </a>
 
       </div>
@@ -2422,7 +2398,7 @@ function createPage() {
         scrub:
           REDUCED_MOTION
             ? false
-            : 0.55,
+            : 1.15,
 
         onUpdate:
           updateStory,
@@ -2500,7 +2476,7 @@ function createPage() {
           copy,
           {
             opacity: 0,
-            y: 48,
+            y: 24,
           },
           {
             opacity: 1,
@@ -2511,10 +2487,10 @@ function createPage() {
                 chapter,
 
               start:
-                'top 78%',
+                'top 82%',
 
               end:
-                '42% center',
+                '38% center',
 
               scrub:
                 true,
@@ -2531,17 +2507,17 @@ function createPage() {
           copy,
           {
             opacity: 0,
-            y: -40,
+            y: -22,
 
             scrollTrigger: {
               trigger:
                 chapter,
 
               start:
-                '62% center',
+                '68% center',
 
               end:
-                'bottom 18%',
+                'bottom 12%',
 
               scrub:
                 true,
@@ -2966,49 +2942,58 @@ function animate() {
     InstancedMesh as a single object.
   */
 
+  const chase =
+    REDUCED_MOTION
+      ? 1
+      : 0.055
+
+  const idleY =
+    REDUCED_MOTION
+      ? 0
+      : Math.sin(
+          lastFrameTime *
+          0.00038
+        ) *
+        0.055
+
   particles.position.x +=
     (
       transformTarget.x -
       particles.position.x
     ) *
-    (
-      REDUCED_MOTION
-        ? 1
-        : 0.10
-    )
+    chase
 
   particles.position.y +=
     (
-      transformTarget.y -
+      transformTarget.y +
+      idleY -
       particles.position.y
     ) *
-    (
-      REDUCED_MOTION
-        ? 1
-        : 0.10
-    )
+    chase
 
   particles.rotation.x +=
     (
       transformTarget.rx -
       particles.rotation.x
     ) *
-    (
-      REDUCED_MOTION
-        ? 1
-        : 0.10
-    )
+    chase
 
   particles.rotation.z +=
     (
       transformTarget.rz -
       particles.rotation.z
     ) *
-    (
-      REDUCED_MOTION
-        ? 1
-        : 0.10
-    )
+    chase
+
+  if (!REDUCED_MOTION) {
+    camera.position.z =
+      5.9 +
+      Math.sin(
+        lastFrameTime *
+        0.00022
+      ) *
+      0.07
+  }
 
   // ----------------------------------
   // CHEAP IDLE ROTATION
@@ -3019,29 +3004,15 @@ function animate() {
       currentStage ===
       'earth'
     ) {
-      /*
-        Earth continues rotating even
-        when the user stops scrolling.
-
-        Cheap because it is only the
-        parent object transform.
-      */
-
       particles.rotation.y +=
         dt *
-        0.32
+        0.14
     }
 
     else if (
       currentStage ===
       'logo'
     ) {
-      /*
-        Gentle oscillation keeps the logo
-        facing roughly forward so MetaMinds
-        text stays legible at all times.
-      */
-
       particles.rotation.y +=
         (
           Math.sin(
@@ -3060,7 +3031,11 @@ function animate() {
           transformTarget.ry -
           particles.rotation.y
         ) *
-        0.10
+        chase
+
+      particles.rotation.y +=
+        dt *
+        0.045
     }
   } else {
     particles.rotation.y =
