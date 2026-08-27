@@ -68,9 +68,11 @@ function mountChrome() {
   boot.innerHTML = `
     <div class="boot-screen-inner">
       <img
-        src="/metaminds-logo-lock.png"
+        src="/metaminds-logo-pixel.png"
         alt="MetaMinds STEM Academy"
         class="boot-logo"
+        width="160"
+        height="40"
       >
       <p>Loading</p>
     </div>
@@ -2565,13 +2567,13 @@ function createNavbar() {
 
   nav.innerHTML = `
     <a class="brand" href="#s1">
-      <span class="brand-plate">
-        <img
-          src="/metaminds-logo-lock.png"
-          alt="MetaMinds STEM Academy"
-          class="brand-logo"
-        >
-      </span>
+      <img
+        src="/metaminds-logo-pixel.png"
+        alt="MetaMinds STEM Academy"
+        class="brand-logo"
+        width="160"
+        height="40"
+      >
     </a>
 
     <a
@@ -2793,13 +2795,13 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
       <div class="copy copy-center copy-consult">
-        <span class="brand-plate end-mark-plate">
-          <img
-            class="end-mark"
-            src="/metaminds-logo-lock.png"
-            alt="MetaMinds STEM Academy"
-          >
-        </span>
+        <img
+          class="end-mark"
+          src="/metaminds-logo-pixel.png"
+          alt="MetaMinds STEM Academy"
+          width="160"
+          height="40"
+        >
         <h2>
           Let's find the right tutor.
         </h2>
