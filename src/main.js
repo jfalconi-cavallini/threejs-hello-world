@@ -2793,11 +2793,13 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
       <div class="copy copy-center copy-consult">
-        <img
-          class="end-mark"
-          src="/metaminds-logo-lock.png"
-          alt="MetaMinds STEM Academy"
-        >
+        <span class="brand-plate end-mark-plate">
+          <img
+            class="end-mark"
+            src="/metaminds-logo-lock.png"
+            alt="MetaMinds STEM Academy"
+          >
+        </span>
         <h2>
           Let's find the right tutor.
         </h2>

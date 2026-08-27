@@ -472,7 +472,7 @@ button {
   left: 50%;
   top: 50%;
   bottom: auto;
-  width: min(640px, 86vw);
+  width: min(760px, 90vw);
   text-align: center;
   transform: translate(-50%, -50%);
   text-shadow: none;
@@ -481,11 +481,17 @@ button {
   align-items: center;
 }
 
+.end-mark-plate {
+  border-radius: 22px;
+  padding: 18px 24px;
+  margin: 0 0 28px;
+}
+
 .end-mark {
-  width: min(620px, 80vw);
+  width: min(640px, 78vw);
   height: auto;
   display: block;
-  margin: 0 0 28px;
+  margin: 0;
   background: transparent;
 }
 
@@ -768,14 +774,20 @@ h2 {
     bottom: auto;
     left: 50%;
     right: auto;
-    width: min(86vw, 340px);
+    width: min(92vw, 360px);
     text-align: center;
     transform: translate(-50%, -50%);
   }
 
+  .end-mark-plate {
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin: 0 0 18px;
+  }
+
   .end-mark {
-    width: min(86vw, 320px);
-    margin-bottom: 18px;
+    width: min(82vw, 320px);
+    margin: 0;
   }
 
   h1 {
