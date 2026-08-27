@@ -101,15 +101,31 @@ const REDUCED_MOTION =
     '(prefers-reduced-motion: reduce)'
   ).matches
 
-// Desktop keeps the richer visual.
-// Mobile gets a much safer workload.
+// Phone-first 60fps-class budget. Density is secondary.
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
-    ? 12000
-    : 38000
+    ? 4000
+    : 10000
+
+const PIXEL_RATIO_CAP =
+  MOBILE_AT_LOAD
+    ? 1
+    : 1.5
+
+const PIXEL_RATIO =
+  Math.min(
+    window.devicePixelRatio || 1,
+    PIXEL_RATIO_CAP
+  )
+
+const USE_COMPOSER =
+  !MOBILE_AT_LOAD
 
 console.log({
   PARTICLE_COUNT,
+  PIXEL_RATIO,
+  PIXEL_RATIO_CAP,
+  USE_COMPOSER,
   TOUCH_DEVICE,
   REDUCED_MOTION,
 })
@@ -192,12 +208,7 @@ renderer.setSize(
 )
 
 renderer.setPixelRatio(
-  Math.min(
-    window.devicePixelRatio,
-    MOBILE_AT_LOAD
-      ? 1.25
-      : 1.5
-  )
+  PIXEL_RATIO
 )
 
 renderer.outputColorSpace =
@@ -243,14 +254,16 @@ const bloomPass =
       window.innerWidth,
       window.innerHeight
     ),
-    MOBILE_AT_LOAD ? 0 : 0.36,
-    MOBILE_AT_LOAD ? 0 : 0.24,
-    MOBILE_AT_LOAD ? 1 : 0.42
+    MOBILE_AT_LOAD ? 0 : 0.22,
+    MOBILE_AT_LOAD ? 0 : 0.18,
+    MOBILE_AT_LOAD ? 1 : 0.48
   )
 
-composer.addPass(
-  bloomPass
-)
+if (USE_COMPOSER) {
+  composer.addPass(
+    bloomPass
+  )
+}
 
 // ======================================================
 // COLORS
@@ -465,7 +478,7 @@ particleGeometry.setAttribute(
 
 const particleMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 4.6 : 3.15,
+    size: MOBILE_AT_LOAD ? 5.6 : 4.4,
     drift: REDUCED_MOTION ? 0 : 0.042,
     alpha: 0.9,
     additive: true,
@@ -487,8 +500,8 @@ scene.add(particles)
 
 const DEBRIS_COUNT =
   MOBILE_AT_LOAD
-    ? 28
-    : 84
+    ? 14
+    : 42
 
 const debrisPositions =
   new Float32Array(
@@ -602,8 +615,8 @@ scene.add(debris)
 
 const FIELD_COUNT =
   MOBILE_AT_LOAD
-    ? 2200
-    : 8000
+    ? 0
+    : 2000
 
 const fieldPositions =
   new Float32Array(
@@ -740,7 +753,9 @@ const field =
 
 field.frustumCulled = false
 
-scene.add(field)
+if (FIELD_COUNT > 0) {
+  scene.add(field)
+}
 
 // ======================================================
 // PARTICLE PERSONALITY
@@ -809,9 +824,16 @@ let volumeField = null
 // so the existing RNG stream for forms/explosions stays intact.
 const VOLUME_COUNT =
   MOBILE_AT_LOAD
-    ? 9000
-    : 32000
+    ? 0
+    : 2500
 
+console.log({
+  FIELD_COUNT,
+  DEBRIS_COUNT,
+  VOLUME_COUNT,
+})
+
+if (VOLUME_COUNT > 0)
 {
   const volumePositions =
     new Float32Array(
@@ -1701,7 +1723,7 @@ const lookTarget =
   new THREE.Vector3()
 
 let cameraRoll = 0
-let bloomTarget = MOBILE_AT_LOAD ? 0 : 0.32
+let bloomTarget = MOBILE_AT_LOAD ? 0 : 0.18
 
 let currentStage = 'brain'
 let stageIsTransform = false
@@ -1718,7 +1740,7 @@ function setHoldShot(
   morphLerp =
     POSITION_LERP * 0.55
   transformTarget.s = 1
-  bloomTarget = MOBILE_AT_LOAD ? 0 : 0.2
+  bloomTarget = MOBILE_AT_LOAD ? 0 : 0.14
 }
 
 function setTransformShot(
@@ -1732,7 +1754,7 @@ function setTransformShot(
   morphLerp =
     POSITION_LERP * 2.05
   transformTarget.s = scale
-  bloomTarget = MOBILE_AT_LOAD ? 0 : 0.33
+  bloomTarget = MOBILE_AT_LOAD ? 0 : 0.2
 }
 
 function applyScrollCamera(p) {
@@ -2607,11 +2629,13 @@ function createNavbar() {
 
   nav.innerHTML = `
     <a class="brand" href="#s1">
-      <img
-        src="/metaminds-logo-lock.png"
-        alt="MetaMinds STEM Academy"
-        class="brand-logo"
-      >
+      <span class="brand-plate">
+        <img
+          src="/metaminds-logo-lock.png"
+          alt="MetaMinds STEM Academy"
+          class="brand-logo"
+        >
+      </span>
     </a>
 
     <a
@@ -3611,19 +3635,21 @@ function animate() {
       dt *
       0.012
 
-    field.rotation.y -=
-      dt *
-      0.022
+    if (FIELD_COUNT > 0) {
+      field.rotation.y -=
+        dt *
+        0.022
 
-    field.rotation.x +=
-      dt *
-      0.008
+      field.rotation.x +=
+        dt *
+        0.008
 
-    field.position.x =
-      camera.position.x * 0.22
+      field.position.x =
+        camera.position.x * 0.22
 
-    field.position.y =
-      camera.position.y * 0.16
+      field.position.y =
+        camera.position.y * 0.16
+    }
 
     debris.position.x =
       camera.position.x * 0.09
@@ -3660,15 +3686,17 @@ function animate() {
         0.14
     }
 
-    const fieldAlpha =
-      onLogo ? 0 : 0.55
+    if (FIELD_COUNT > 0) {
+      const fieldAlpha =
+        onLogo ? 0 : 0.55
 
-    fieldMaterial.uniforms.uAlpha.value +=
-      (
-        fieldAlpha -
-        fieldMaterial.uniforms.uAlpha.value
-      ) *
-      0.1
+      fieldMaterial.uniforms.uAlpha.value +=
+        (
+          fieldAlpha -
+          fieldMaterial.uniforms.uAlpha.value
+        ) *
+        0.1
+    }
 
     debrisMaterial.uniforms.uAlpha.value +=
       (
@@ -3728,9 +3756,12 @@ function animate() {
     }
   }
 
+  // Copy holds: once particles have settled, do not rewrite
+  // instance positions every frame under the type.
   const needParticleLoop =
     particlesNeedUpdate ||
     (
+      stageIsTransform &&
       pointerActive &&
       !TOUCH_DEVICE &&
       !REDUCED_MOTION
@@ -3742,7 +3773,17 @@ function animate() {
     )
   }
 
-  composer.render()
+  if (
+    USE_COMPOSER &&
+    bloomPass.strength > 0.01
+  ) {
+    composer.render()
+  } else {
+    renderer.render(
+      scene,
+      camera
+    )
+  }
 }
 
 // ======================================================
@@ -3875,11 +3916,9 @@ window.addEventListener(
 
     const ratio =
       Math.min(
-        window.devicePixelRatio,
-
-        window.innerWidth <
-          768
-          ? 1.25
+        window.devicePixelRatio || 1,
+        window.innerWidth < 768
+          ? 1
           : 1.5
       )
 

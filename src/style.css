@@ -167,8 +167,17 @@ button {
   z-index: 102;
 }
 
+.brand-plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 8px 12px;
+}
+
 .brand-logo {
-  height: 68px;
+  height: 64px;
   width: auto;
   display: block;
 }
@@ -657,8 +666,13 @@ h2 {
     font-size: 10px;
   }
 
+  .brand-plate {
+    border-radius: 12px;
+    padding: 6px 8px;
+  }
+
   .brand-logo {
-    height: 46px;
+    height: 44px;
   }
 
   .chapter {
