@@ -123,9 +123,9 @@ const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
-const RIGHT_X = 1.72
+const RIGHT_X = 2.08
 const LEFT_X = -1.25
-const CENTER_X = 0.45
+const CENTER_X = 0.35
 const LOGO_X = 0
 
 const MOBILE_X = 0
@@ -386,15 +386,18 @@ function createPointMaterial({
             sin(uTime * 0.47 + seed * 0.8) * 1.02
           ) * driftAmt;
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-          float dist = max(1.15, -mvPosition.z);
-          float logoSize = mix(1.0, 0.78, uLogoStill);
-          gl_PointSize = uSize * aScale * logoSize * uPixelRatio * (7.4 / dist);
+          float dist = max(0.42, -mvPosition.z);
+          float atten = mix(12.4 / dist, 3.1, uLogoStill);
+          float sz = uSize * aScale * atten * uPixelRatio;
+          sz = min(sz, mix(58.0, 3.4, uLogoStill));
+          gl_PointSize = max(sz, mix(1.15, 2.1, uLogoStill));
           gl_Position = projectionMatrix * mvPosition;
-          vAlpha = mix(0.82, 1.0, uLogoStill);
+          vAlpha = mix(0.78, 1.0, uLogoStill);
         }
       `,
       fragmentShader: `
         uniform float uAlpha;
+        uniform float uLogoStill;
         varying vec3 vColor;
         varying float vAlpha;
 
@@ -402,9 +405,11 @@ function createPointMaterial({
           vec2 c = gl_PointCoord - vec2(0.5);
           float d = length(c);
           if (d > 0.5) discard;
-          float core = smoothstep(0.5, 0.12, d);
-          float hot = smoothstep(0.22, 0.0, d);
-          vec3 rgb = vColor * (0.72 + hot * 0.55);
+          float soft = smoothstep(0.5, 0.10, d);
+          float hard = 1.0 - smoothstep(0.32, 0.48, d);
+          float core = mix(soft, hard, uLogoStill);
+          float hot = mix(smoothstep(0.22, 0.0, d), 1.0, uLogoStill);
+          vec3 rgb = vColor * mix(0.72 + hot * 0.55, 1.18, uLogoStill);
           gl_FragColor = vec4(rgb, core * vAlpha * uAlpha);
         }
       `,
@@ -1159,14 +1164,10 @@ function modelToParticlePositions(
 }
 
 // ======================================================
-// LOGO GENERATION (mini brain.glb + MetaMinds text only)
+// LOGO — flat MetaMinds silhouette (no mini-brain, no extrusion)
 // ======================================================
 
-// Samples only the front/back flat faces of the MetaMinds text from logo.glb,
-// filtering out the STEM ACADEMY text (Y < 5) and the brain icon (X < -30).
-// Front/back faces have |normalZ| > 0.7; the thick extrusion side-walls are excluded
-// so particles fill the letter silhouettes cleanly.
-function sampleLogoTextOnly(model, count) {
+function collectLogoTextTris(model) {
   model.updateMatrixWorld(true)
   const tris = []
   let totalArea = 0
@@ -1191,8 +1192,6 @@ function sampleLogoTextOnly(model, count) {
       vC.fromBufferAttribute(pos, c).applyMatrix4(child.matrixWorld)
 
       // Filter: MetaMinds text only (not STEM ACADEMY, not logo brain icon)
-      // Logo GLB world-space coords: X ±10.1, Y ±2.663 (1/10 Blender export scale)
-      // Brain icon: x < -5; STEM ACADEMY: y < 0.5
       const cx = (vA.x + vB.x + vC.x) / 3
       const cy = (vA.y + vB.y + vC.y) / 3
       if (cx < -5 || cy < 0.5) continue
@@ -1201,8 +1200,6 @@ function sampleLogoTextOnly(model, count) {
       edge2.subVectors(vC, vA)
       cross.crossVectors(edge1, edge2)
 
-      // Only flat front/back faces — skips extrusion side-walls so letter
-      // shapes are filled solid rather than appearing as outline tubes.
       const len = cross.length()
       if (len < 1e-10) continue
       if (Math.abs(cross.z) / len < 0.7) continue
@@ -1217,7 +1214,20 @@ function sampleLogoTextOnly(model, count) {
     }
   })
 
-  if (!tris.length) return new Float32Array(count * 3)
+  return { tris, totalArea, minX, maxX, minY, maxY }
+}
+
+function consumeLogoSampleRng(pack, count) {
+  const { tris, totalArea, minX, maxX, minY, maxY } = pack
+  if (!tris.length) {
+    for (let i = 0; i < count; i++) {
+      Math.random()
+      Math.random()
+      Math.random()
+      Math.random()
+    }
+    return
+  }
 
   const STRIDE = 10
   const triCount = tris.length / STRIDE
@@ -1231,11 +1241,9 @@ function sampleLogoTextOnly(model, count) {
   const centerX = (minX + maxX) / 2
   const centerY = (minY + maxY) / 2
   const textHeight = maxY - minY
-  // Tall enough that META MINDS reads as a word at the logo hold.
   const scale = 1.58 / textHeight
   const TEXT_OFFSET_X = 0.52
 
-  const output = new Float32Array(count * 3)
   for (let i = 0; i < count; i++) {
     const r = Math.random()
     let lo = 0, hi = triCount - 1
@@ -1248,38 +1256,88 @@ function sampleLogoTextOnly(model, count) {
     let u = Math.random(), v = Math.random()
     if (u + v > 1) { u = 1 - u; v = 1 - v }
     const w = 1 - u - v
-    const i3 = i * 3
-    output[i3]     = (w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale + TEXT_OFFSET_X
-    output[i3 + 1] = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
-    output[i3 + 2] = (Math.random() - 0.5) * 0.018
+    void ((w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale + TEXT_OFFSET_X)
+    void ((w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale)
+    void ((Math.random() - 0.5) * 0.018)
   }
+}
+
+function rasterizeLogoSilhouette(pack, count) {
+  const output = new Float32Array(count * 3)
+  const { tris, minX, maxX, minY, maxY } = pack
+  if (!tris.length) return output
+
+  const STRIDE = 10
+  const triCount = tris.length / STRIDE
+  const textW = maxX - minX
+  const textH = maxY - minY
+  const GRID_W = 1600
+  const GRID_H = Math.max(80, Math.round(GRID_W * (textH / textW)))
+  const filled = new Uint8Array(GRID_W * GRID_H)
+
+  const toGX = (x) => ((x - minX) / textW) * (GRID_W - 1)
+  const toGY = (y) => ((maxY - y) / textH) * (GRID_H - 1)
+
+  for (let t = 0; t < triCount; t++) {
+    const base = t * STRIDE
+    const ax = toGX(tris[base]),     ay = toGY(tris[base + 1])
+    const bx = toGX(tris[base + 3]), by = toGY(tris[base + 4])
+    const cx = toGX(tris[base + 6]), cy = toGY(tris[base + 7])
+
+    let minGX = Math.max(0, Math.floor(Math.min(ax, bx, cx)))
+    let maxGX = Math.min(GRID_W - 1, Math.ceil(Math.max(ax, bx, cx)))
+    let minGY = Math.max(0, Math.floor(Math.min(ay, by, cy)))
+    let maxGY = Math.min(GRID_H - 1, Math.ceil(Math.max(ay, by, cy)))
+
+    const v0x = cx - ax, v0y = cy - ay
+    const v1x = bx - ax, v1y = by - ay
+    const den = v0x * v1y - v1x * v0y
+    if (Math.abs(den) < 1e-8) continue
+    const inv = 1 / den
+
+    for (let gy = minGY; gy <= maxGY; gy++) {
+      for (let gx = minGX; gx <= maxGX; gx++) {
+        const px = gx + 0.5 - ax
+        const py = gy + 0.5 - ay
+        const u = (px * v1y - v1x * py) * inv
+        const v = (v0x * py - px * v0y) * inv
+        if (u >= 0 && v >= 0 && u + v <= 1) {
+          filled[gy * GRID_W + gx] = 1
+        }
+      }
+    }
+  }
+
+  const cells = []
+  for (let i = 0; i < filled.length; i++) {
+    if (filled[i]) cells.push(i)
+  }
+  if (!cells.length) return output
+
+  const worldW = 8.6
+  const worldH = worldW * (textH / textW)
+
+  for (let i = 0; i < count; i++) {
+    const cell = cells[i % cells.length]
+    const gx = cell % GRID_W
+    const gy = (cell / GRID_W) | 0
+    const i3 = i * 3
+    output[i3]     = ((gx + 0.5) / GRID_W - 0.5) * worldW
+    output[i3 + 1] = (0.5 - (gy + 0.5) / GRID_H) * worldH
+    output[i3 + 2] = 0
+  }
+
   return output
 }
 
-// Combines a mini version of brain.glb (left) with MetaMinds text only (right).
 function generateLogoPositions(brainGLBScene, logoGLBScene) {
   const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.12)
   const TEXT_COUNT = PARTICLE_COUNT - BRAIN_COUNT
 
-  // Mini brain mark stays; word gets most of the particles.
-  const MINI_BRAIN_SIZE = 0.52
-  const miniScale = MINI_BRAIN_SIZE / BRAIN_SIZE
-  const BRAIN_OFFSET_X = -2.62
+  const pack = collectLogoTextTris(logoGLBScene)
+  consumeLogoSampleRng(pack, TEXT_COUNT)
 
-  const brainOut = new Float32Array(BRAIN_COUNT * 3)
-  for (let i = 0; i < BRAIN_COUNT; i++) {
-    brainOut[i * 3]     = brainPositions[i * 3]     * miniScale + BRAIN_OFFSET_X
-    brainOut[i * 3 + 1] = brainPositions[i * 3 + 1] * miniScale
-    brainOut[i * 3 + 2] = brainPositions[i * 3 + 2] * miniScale * 0.22
-  }
-
-  // MetaMinds text — front faces only, no STEM ACADEMY
-  const textOut = sampleLogoTextOnly(logoGLBScene, TEXT_COUNT)
-
-  const output = new Float32Array(PARTICLE_COUNT * 3)
-  output.set(brainOut, 0)
-  output.set(textOut, BRAIN_COUNT * 3)
-  return output
+  return rasterizeLogoSilhouette(pack, PARTICLE_COUNT)
 }
 
 // ======================================================
@@ -1715,42 +1773,65 @@ let particlesNeedUpdate = true
 let colorsNeedUpdate = true
 
 function setHoldShot(
-  z,
-  fov,
-  x = 0
+  _z,
+  _fov,
+  _x = 0
 ) {
   stageIsTransform = false
   morphLerp =
-    POSITION_LERP * 0.7
+    POSITION_LERP * 0.55
   transformTarget.s = 1
-  cameraTarget.z = z
-  cameraTarget.fov = fov
-  cameraTarget.x = x
-  cameraTarget.y = 0
-  cameraTarget.roll = 0
-  bloomTarget = 0.28
+  bloomTarget = 0.2
 }
 
 function setTransformShot(
-  z,
-  fov,
-  x,
-  roll,
+  _z,
+  _fov,
+  _x,
+  _roll,
   scale = 1.14
 ) {
   stageIsTransform = true
   morphLerp =
-    POSITION_LERP * 1.9
+    POSITION_LERP * 2.05
   transformTarget.s = scale
-  cameraTarget.z = z
-  cameraTarget.fov = fov
-  cameraTarget.x = x
+  bloomTarget = 0.33
+}
+
+function applyScrollCamera(p) {
+  const keys = [
+    { p: 0.00, z: 4.08, fov: 48, x: -0.24 },
+    { p: 0.16, z: 3.72, fov: 52, x: -0.16 },
+    { p: 0.34, z: 2.48, fov: 60, x: -0.04 },
+    { p: 0.52, z: 1.88, fov: 66, x:  0.02 },
+    { p: 0.72, z: 1.62, fov: 70, x:  0.00 },
+    { p: 0.84, z: 2.85, fov: 58, x:  0.00 },
+    { p: 0.91, z: 5.35, fov: 54, x:  0.00 },
+    { p: 1.00, z: 5.42, fov: 52, x:  0.00 },
+  ]
+
+  let a = keys[0]
+  let b = keys[keys.length - 1]
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (p >= keys[i].p && p <= keys[i + 1].p) {
+      a = keys[i]
+      b = keys[i + 1]
+      break
+    }
+  }
+
+  const span = b.p - a.p || 1
+  const t = smoothstep((p - a.p) / span)
+
+  cameraTarget.z = lerp(a.z, b.z, t)
+  cameraTarget.fov = lerp(a.fov, b.fov, t)
+  cameraTarget.x = lerp(a.x, b.x, t)
   cameraTarget.y = 0
-  cameraTarget.roll = roll
-  bloomTarget =
-    0.38 +
-    Math.abs(scale - 1) *
-    0.55
+  cameraTarget.roll = 0
+
+  if (p >= 0.90) {
+    bloomTarget = 0.02
+  }
 }
 
 // ======================================================
@@ -1889,6 +1970,8 @@ function updateStory() {
     updateReducedMotionStory(
       p
     )
+
+    applyScrollCamera(p)
 
     return
   }
@@ -2051,7 +2134,7 @@ function updateStory() {
   // 4. LIGHTBULB FORMS
   // ==================================================
 
-  else if (p < 0.38) {
+  else if (p < 0.34) {
     currentStage =
       'lightbulb-forming'
 
@@ -2060,7 +2143,7 @@ function updateStory() {
         p -
         0.30
       ) /
-      0.08
+      0.04
 
     writeMorphTarget(
       brainExplosion,
@@ -2105,7 +2188,7 @@ function updateStory() {
   // 5. LIGHTBULB HOLD
   // ==================================================
 
-  else if (p < 0.52) {
+  else if (p < 0.54) {
     if (currentStage !== 'lightbulb') {
       writeStaticTarget(
         lightbulbPositions
@@ -2147,9 +2230,9 @@ function updateStory() {
     const t =
       (
         p -
-        0.52
+        0.54
       ) /
-      0.06
+      0.04
 
     writeMorphTarget(
       lightbulbPositions,
@@ -2183,7 +2266,7 @@ function updateStory() {
   // 7. EARTH FORMS
   // ==================================================
 
-  else if (p < 0.66) {
+  else if (p < 0.64) {
     currentStage =
       'earth-forming'
 
@@ -2192,7 +2275,7 @@ function updateStory() {
         p -
         0.58
       ) /
-      0.08
+      0.06
 
     writeMorphTarget(
       lightbulbExplosion,
@@ -2382,8 +2465,7 @@ function updateStory() {
       0
     )
 
-    bloomTarget = 0.07
-    transformTarget.s = 1.08
+    transformTarget.s = 1
 
     transformTarget.x =
       desktopOrMobileX(
@@ -2402,6 +2484,8 @@ function updateStory() {
     transformTarget.ry =
       0
   }
+
+  applyScrollCamera(p)
 }
 
 // ======================================================
@@ -2593,7 +2677,7 @@ function createNavbar() {
         <a href="#team">Team</a>
         <a href="#mentors">Mentors</a>
         <a href="#results">Results</a>
-        <a href="#consultation">Begin</a>
+        <a href="https://www.metamindsstemacademy.com/consultation">Begin</a>
       </div>
       <a
         class="nav-cta nav-panel-cta"
@@ -3398,10 +3482,10 @@ function updateParticleInstances(
         currentStage === 'logo-forming'
 
       if (isLogoStage) {
-        tempColor.lerpColors(
-          ORANGE,
+        tempColor.copy(ORANGE)
+        tempColor.lerp(
           WHITE,
-          0.55
+          0.22
         )
       } else if (isEarthStage) {
         const lat =
@@ -3469,7 +3553,7 @@ function updateParticleInstances(
 
       if (isLogoStage) {
         tempColor.multiplyScalar(
-          1.22
+          1.35
         )
       } else {
         tempColor.multiplyScalar(
@@ -3577,9 +3661,7 @@ function animate() {
   const camChase =
     REDUCED_MOTION
       ? 1
-      : stageIsTransform
-        ? 0.075
-        : 0.022
+      : 0.014
 
   const idleY =
     REDUCED_MOTION
@@ -3636,6 +3718,10 @@ function animate() {
       lastFrameTime *
       0.001
 
+    const idle =
+      1 -
+      logoStill.value
+
     camera.position.z +=
       (
         cameraTarget.z +
@@ -3643,7 +3729,8 @@ function animate() {
           lastFrameTime *
           0.0002
         ) *
-        0.07 -
+        0.05 *
+        idle -
         camera.position.z
       ) *
       camChase
@@ -3655,7 +3742,8 @@ function animate() {
           lastFrameTime *
           0.00016
         ) *
-        0.035 -
+        0.028 *
+        idle -
         camera.position.x
       ) *
       camChase
@@ -3667,7 +3755,8 @@ function animate() {
           lastFrameTime *
           0.00027
         ) *
-        0.045 -
+        0.032 *
+        idle -
         camera.position.y
       ) *
       camChase
@@ -3832,29 +3921,29 @@ function animate() {
       0.14
 
     const fieldAlpha =
-      onLogo ? 0.06 : 0.55
+      onLogo ? 0.02 : 0.55
 
     fieldMaterial.uniforms.uAlpha.value +=
       (
         fieldAlpha -
         fieldMaterial.uniforms.uAlpha.value
       ) *
-      0.08
+      0.1
 
     debrisMaterial.uniforms.uAlpha.value +=
       (
-        (onLogo ? 0.04 : 0.22) -
+        (onLogo ? 0.015 : 0.22) -
         debrisMaterial.uniforms.uAlpha.value
       ) *
-      0.08
+      0.1
 
     if (volumeField) {
       volumeField.material.uniforms.uAlpha.value +=
         (
-          (onLogo ? 0.05 : 0.62) -
+          (onLogo ? 0.02 : 0.62) -
           volumeField.material.uniforms.uAlpha.value
         ) *
-        0.08
+        0.1
     }
 
     particleMaterial.uniforms.uAlpha.value +=
@@ -3862,7 +3951,22 @@ function animate() {
         (onLogo ? 1 : 0.9) -
         particleMaterial.uniforms.uAlpha.value
       ) *
-      0.08
+      0.1
+
+    const logoBlend =
+      onLogo
+        ? THREE.NormalBlending
+        : THREE.AdditiveBlending
+
+    if (
+      particleMaterial.blending !==
+      logoBlend
+    ) {
+      particleMaterial.blending =
+        logoBlend
+      particleMaterial.needsUpdate =
+        true
+    }
   }
 
   const needParticleLoop =
