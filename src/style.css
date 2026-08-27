@@ -435,10 +435,19 @@ button {
 }
 
 .copy-team {
-  width: min(740px, 48vw);
-  max-width: none;
+  left: clamp(36px, 5.2vw, 88px);
   top: 50%;
+  width: min(560px, 40vw);
+  max-width: none;
+  text-align: left;
   transform: translateY(-50%);
+}
+
+.copy-team h2 {
+  font-size: clamp(36px, 4.6vw, 68px);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
 }
 
 .copy-right {
@@ -554,26 +563,6 @@ h2 {
 .primary-button:hover {
   transform: translateY(-2px);
   filter: brightness(1.08);
-}
-
-.tutor-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.tutor-list li {
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: -0.055em;
-  color: #fff;
-  font-size: clamp(32px, 4.1vw, 58px);
-  line-height: 1.08;
-  margin-top: 0.02em;
-}
-
-.tutor-list li:first-child {
-  margin-top: 0;
 }
 
 .scroll-marker {
@@ -702,28 +691,39 @@ h2 {
   .copy,
   .copy-hero,
   .copy-mid,
-  .copy-team,
-  .copy-consult {
-    width: calc(100% - 40px);
-    max-width: none;
+  .copy-team {
     position: fixed;
     left: 20px;
-    right: 20px;
+    right: auto;
+    width: min(78vw, 300px);
+    max-width: none;
     top: 88px;
     transform: none;
+    text-align: left;
   }
 
   .copy-hero {
     top: 88px;
+    width: min(82vw, 320px);
   }
 
   .copy-mid {
-    top: 28vh;
+    top: 16vh;
+    width: min(78vw, 300px);
     text-align: left;
   }
 
   .copy-team {
-    top: 18vh;
+    top: 16vh;
+    width: min(82vw, 320px);
+    transform: none;
+    text-align: left;
+  }
+
+  .copy-team h2 {
+    font-size: clamp(28px, 8vw, 36px);
+    line-height: 0.94;
+    text-wrap: balance;
   }
 
   .copy-consult {
@@ -733,10 +733,11 @@ h2 {
     right: 20px;
     width: calc(100% - 40px);
     text-align: center;
+    transform: none;
   }
 
   h1 {
-    font-size: clamp(44px, 12.5vw, 58px);
+    font-size: clamp(40px, 11.4vw, 52px);
     line-height: 0.94;
   }
 
@@ -744,11 +745,6 @@ h2 {
   .copy-mid h2 {
     font-size: clamp(36px, 10.5vw, 46px);
     line-height: 0.96;
-  }
-
-  .tutor-list li {
-    font-size: clamp(26px, 7.4vw, 34px);
-    line-height: 1.12;
   }
 
   .copy-consult h2 {

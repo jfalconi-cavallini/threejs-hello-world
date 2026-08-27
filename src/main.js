@@ -1742,12 +1742,12 @@ function applyScrollCamera(p) {
     { p: 0.16, z: 4.05, fov: 51, x: -0.30 },
     { p: 0.20, z: 1.85, fov: 68, x: -0.08 },
     { p: 0.27, z: 1.38, fov: 74, x:  0.00 },
-    { p: 0.34, z: 4.15, fov: 52, x:  0.00 },
-    { p: 0.52, z: 4.05, fov: 52, x:  0.00 },
+    { p: 0.34, z: 5.35, fov: 46, x:  0.00 },
+    { p: 0.52, z: 5.20, fov: 46, x:  0.00 },
     { p: 0.56, z: 1.55, fov: 72, x:  0.00 },
     { p: 0.62, z: 1.72, fov: 68, x:  0.00 },
-    { p: 0.66, z: 4.25, fov: 50, x: -0.28 },
-    { p: 0.80, z: 4.10, fov: 50, x: -0.24 },
+    { p: 0.66, z: 4.70, fov: 48, x: -0.42 },
+    { p: 0.80, z: 4.55, fov: 48, x: -0.40 },
     { p: 0.84, z: 1.62, fov: 70, x:  0.00 },
     { p: 0.90, z: 3.55, fov: 48, x:  0.00 },
     { p: 0.93, z: 7.80, fov: 40, x:  0.00 },
@@ -1774,7 +1774,17 @@ function applyScrollCamera(p) {
   cameraTarget.roll = 0
 
   if (isMobile()) {
-    cameraTarget.z *= p >= 0.91 ? 2.05 : 1.28
+    const onLogo = p >= 0.91
+    const onCopyHold =
+      p < 0.18 ||
+      (p >= 0.34 && p < 0.52) ||
+      (p >= 0.64 && p < 0.82)
+
+    cameraTarget.z *= onLogo
+      ? 2.05
+      : onCopyHold
+        ? 2.15
+        : 1.28
   }
 
   if (MOBILE_AT_LOAD || p >= 0.90) {
@@ -1953,8 +1963,11 @@ function updateStory() {
 
     transformTarget.y =
       isMobile()
-        ? -1.25
+        ? -1.85
         : 0
+
+    transformTarget.rx =
+      -0.02
 
     transformTarget.ry =
       0.08
@@ -2682,7 +2695,7 @@ function syncNavHighlight(
 ) {
 }
 
-function beatGate(p, start, end, fade = 0.018) {
+function beatGate(p, start, end, fade = 0.012) {
   if (p < start || p > end) {
     return 0
   }
@@ -2704,8 +2717,8 @@ function beatGate(p, start, end, fade = 0.018) {
 const COPY_BEATS = [
   { selector: '.copy-hero', start: 0.00, end: 0.165 },
   { selector: '.chapter-plan .copy', start: 0.345, end: 0.415 },
-  { selector: '.chapter-notes .copy', start: 0.42, end: 0.485 },
-  { selector: '.chapter-teach .copy', start: 0.486, end: 0.538 },
+  { selector: '.chapter-notes .copy', start: 0.42, end: 0.468 },
+  { selector: '.chapter-teach .copy', start: 0.47, end: 0.52 },
   { selector: '.copy-team', start: 0.66, end: 0.805 },
   { selector: '.copy-consult', start: 0.915, end: 1.05 },
 ]
@@ -2719,7 +2732,14 @@ function syncCopyBeats(p) {
       continue
     }
 
-    const gate = beatGate(p, beat.start, beat.end)
+    const hardOff =
+      beat.selector.indexOf('teach') !== -1 &&
+      p >= 0.52
+
+    const gate =
+      hardOff
+        ? 0
+        : beatGate(p, beat.start, beat.end)
     el.style.opacity = String(gate)
     el.classList.toggle('is-live', gate > 0.04)
   }
@@ -2749,12 +2769,6 @@ function createPage() {
         <h1>
           A mentor who stays with your kid.
         </h1>
-        <a
-          href="https://www.metamindsstemacademy.com/consultation"
-          class="primary-button"
-        >
-          Book Free Consultation
-        </a>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -2798,14 +2812,9 @@ function createPage() {
 
     <section class="chapter chapter-team" id="team">
       <div class="copy copy-left copy-team">
-        <ul class="tutor-list">
-          <li>Jose Falconi-Cavallini</li>
-          <li>Emma Brugman</li>
-          <li>Johan Falconi-Cavallini</li>
-          <li>Roberto Medina</li>
-          <li>Alan Martinez</li>
-          <li>Christian Tapia</li>
-        </ul>
+        <h2>
+          Jose Falconi-Cavallini Emma Brugman Johan Falconi-Cavallini Roberto Medina Alan Martinez Christian Tapia
+        </h2>
       </div>
     </section>
 
