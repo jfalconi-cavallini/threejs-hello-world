@@ -385,7 +385,8 @@ button {
   min-height: 280vh;
   min-height: 280svh;
   align-items: flex-end;
-  padding-bottom: 16vh;
+  padding-bottom: 10vh;
+  padding-top: 42vh;
 }
 
 .copy {

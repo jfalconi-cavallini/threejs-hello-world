@@ -1330,21 +1330,23 @@ function rasterizeLogoSilhouette(pack, count) {
   return output
 }
 
+let wordMark = null
+
 function rasterizeCanvasWord(count) {
   const output = new Float32Array(count * 3)
-  const W = 1800
-  const H = 400
+  const W = 2048
+  const H = 448
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, W, H)
-  ctx.fillStyle = '#ffffff'
+  ctx.fillStyle = '#f3f6f9'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.font = '700 220px Arial, Helvetica, sans-serif'
+  ctx.font = '700 248px Arial, Helvetica, sans-serif'
   const label = 'MetaMinds'
-  const gap = 18
+  const gap = 22
   let total = 0
   const widths = []
   for (let i = 0; i < label.length; i++) {
@@ -1354,33 +1356,71 @@ function rasterizeCanvasWord(count) {
   }
   let pen = W / 2 - total / 2
   for (let i = 0; i < label.length; i++) {
-    ctx.fillText(label[i], pen + widths[i] / 2, H / 2 + 10)
+    ctx.fillText(label[i], pen + widths[i] / 2, H / 2 + 8)
     pen += widths[i] + gap
   }
 
   const pixels = ctx.getImageData(0, 0, W, H).data
   const cells = []
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
+  for (let y = 0; y < H; y += 2) {
+    for (let x = 0; x < W; x += 2) {
       if (pixels[(y * W + x) * 4 + 3] > 40) {
         cells.push(y * W + x)
       }
     }
   }
-  if (!cells.length) return output
 
-  const worldW = 8.4
+  const worldW = 8.6
   const worldH = worldW * (H / W)
 
-  for (let i = 0; i < count; i++) {
-    const cell = cells[i % cells.length]
-    const gx = cell % W
-    const gy = (cell / W) | 0
-    const i3 = i * 3
-    output[i3]     = ((gx + 0.5) / W - 0.5) * worldW
-    output[i3 + 1] = (0.5 - (gy + 0.5) / H) * worldH
-    output[i3 + 2] = 0
+  if (cells.length) {
+    for (let i = 0; i < count; i++) {
+      const cell = cells[i % cells.length]
+      const gx = cell % W
+      const gy = (cell / W) | 0
+      const i3 = i * 3
+      output[i3]     = ((gx + 0.5) / W - 0.5) * worldW
+      output[i3 + 1] = (0.5 - (gy + 0.5) / H) * worldH
+      output[i3 + 2] = 0
+    }
   }
+
+  const texture =
+    new THREE.CanvasTexture(canvas)
+  texture.colorSpace =
+    THREE.SRGBColorSpace
+  texture.needsUpdate = true
+
+  const material =
+    new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      toneMapped: false,
+      side: THREE.DoubleSide,
+    })
+
+  if (wordMark) {
+    particles.remove(wordMark)
+    wordMark.geometry.dispose()
+    if (wordMark.material.map) {
+      wordMark.material.map.dispose()
+    }
+    wordMark.material.dispose()
+  }
+
+  wordMark =
+    new THREE.Mesh(
+      new THREE.PlaneGeometry(
+        worldW,
+        worldH
+      ),
+      material
+    )
+  wordMark.position.z = 0.05
+  wordMark.renderOrder = 2
+  particles.add(wordMark)
 
   return output
 }
@@ -1855,14 +1895,14 @@ function setTransformShot(
 
 function applyScrollCamera(p) {
   const keys = [
-    { p: 0.00, z: 4.08, fov: 48, x: -0.24 },
-    { p: 0.16, z: 3.72, fov: 52, x: -0.16 },
-    { p: 0.34, z: 2.48, fov: 60, x: -0.04 },
-    { p: 0.52, z: 1.88, fov: 66, x:  0.02 },
-    { p: 0.72, z: 1.62, fov: 70, x:  0.00 },
-    { p: 0.84, z: 2.85, fov: 58, x:  0.00 },
-    { p: 0.91, z: 5.35, fov: 54, x:  0.00 },
-    { p: 1.00, z: 5.42, fov: 52, x:  0.00 },
+    { p: 0.00, z: 3.95, fov: 48, x: -0.28 },
+    { p: 0.18, z: 3.15, fov: 56, x: -0.14 },
+    { p: 0.36, z: 2.05, fov: 64, x: -0.02 },
+    { p: 0.54, z: 1.42, fov: 72, x:  0.02 },
+    { p: 0.74, z: 1.22, fov: 76, x:  0.00 },
+    { p: 0.86, z: 3.10, fov: 58, x:  0.00 },
+    { p: 0.93, z: 5.70, fov: 46, x:  0.00 },
+    { p: 1.00, z: 5.85, fov: 44, x:  0.00 },
   ]
 
   let a = keys[0]
@@ -4003,10 +4043,22 @@ function animate() {
 
     particleMaterial.uniforms.uAlpha.value +=
       (
-        (onLogo ? 1 : 0.9) -
+        (onLogo ? 0.22 : 0.9) -
         particleMaterial.uniforms.uAlpha.value
       ) *
       0.1
+
+    if (wordMark) {
+      wordMark.material.opacity +=
+        (
+          (onLogo ? 1 : 0) -
+          wordMark.material.opacity
+        ) *
+        0.12
+
+      wordMark.visible =
+        wordMark.material.opacity > 0.02
+    }
 
     const logoBlend =
       onLogo
