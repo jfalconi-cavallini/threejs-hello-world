@@ -25,13 +25,13 @@ html {
 html,
 body {
   min-height: 100%;
-  overflow-x: hidden;
   font-family: var(--font-body);
 }
 
 body {
   background: var(--mm-void);
   color: var(--mm-ink);
+  overflow-x: hidden;
 }
 
 body.nav-open {

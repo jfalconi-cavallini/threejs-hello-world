@@ -3035,7 +3035,7 @@ function createPage() {
   // MASTER SCROLL
   // ==================================================
 
-  gsap.to(
+  const storyTween = gsap.to(
     story,
     {
       progress: 1,
@@ -3062,6 +3062,8 @@ function createPage() {
       },
     }
   )
+
+  ScrollTrigger.refresh()
 
   // ==================================================
   // COPY MOTION
@@ -3188,7 +3190,9 @@ function createPage() {
   setupVisibilityObserver()
 
   window.__mmSetProgress = (p) => {
-    story.progress = Math.max(0, Math.min(1, Number(p) || 0))
+    const next = Math.max(0, Math.min(1, Number(p) || 0))
+    story.progress = next
+    storyTween.progress(next)
     updateStory()
   }
 }
