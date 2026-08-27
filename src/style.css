@@ -400,10 +400,10 @@ button {
 .logo-hold-chapter {
   min-height: 280vh;
   min-height: 280svh;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding-bottom: 40px;
-  padding-top: 62vh;
+  padding-bottom: 48px;
+  padding-top: 96px;
 }
 
 .copy {
@@ -470,12 +470,23 @@ button {
 
 .copy-consult {
   left: 50%;
-  top: auto;
-  bottom: 7vh;
-  width: min(560px, 86vw);
+  top: 50%;
+  bottom: auto;
+  width: min(640px, 86vw);
   text-align: center;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   text-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.end-mark {
+  width: min(620px, 80vw);
+  height: auto;
+  display: block;
+  margin: 0 0 28px;
+  background: transparent;
 }
 
 .copy-consult h2 {
@@ -708,9 +719,10 @@ h2 {
   .logo-hold-chapter {
     min-height: 160vh;
     min-height: 160svh;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     padding-bottom: 24px;
+    padding-top: 88px;
   }
 
   .copy,
@@ -752,13 +764,18 @@ h2 {
   }
 
   .copy-consult {
-    top: auto;
-    bottom: 24px;
-    left: 20px;
-    right: 20px;
-    width: calc(100% - 40px);
+    top: 50%;
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    width: min(86vw, 340px);
     text-align: center;
-    transform: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .end-mark {
+    width: min(86vw, 320px);
+    margin-bottom: 18px;
   }
 
   h1 {

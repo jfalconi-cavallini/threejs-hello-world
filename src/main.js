@@ -1204,35 +1204,11 @@ function consumeLogoSampleRng(count) {
 
 let wordMark = null
 
-function rasterizeCanvasWord(count) {
+function generateLogoHalo(count) {
   const output = new Float32Array(count * 3)
-  const W = 2048
-  const H = 448
-  const canvas = document.createElement('canvas')
-  canvas.width = W
-  canvas.height = H
-  const ctx = canvas.getContext('2d')
-  ctx.clearRect(0, 0, W, H)
-  ctx.fillStyle = '#f3f6f9'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.font = '700 248px Arial, Helvetica, sans-serif'
-  const label = 'MetaMinds'
-  const gap = 22
-  let total = 0
-  const widths = []
-  for (let i = 0; i < label.length; i++) {
-    const w = ctx.measureText(label[i]).width
-    widths.push(w)
-    total += w + (i < label.length - 1 ? gap : 0)
-  }
-  let pen = W / 2 - total / 2
-  for (let i = 0; i < label.length; i++) {
-    ctx.fillText(label[i], pen + widths[i] / 2, H / 2 + 8)
-    pen += widths[i] + gap
-  }
 
-  // Sparse halo only — do not pack the glyph, do not form a brain.
+  // Sparse halo only — last frame is the locked PNG, not a
+  // canvas / particle word.
   const PHI = 1.618033988749895
   const inner = 3.15
   const outer = 8.1
@@ -1248,46 +1224,6 @@ function rasterizeCanvasWord(count) {
     output[i3 + 2] = Math.sin(angle) * radius * 0.38
   }
 
-  const texture =
-    new THREE.CanvasTexture(canvas)
-  texture.colorSpace =
-    THREE.SRGBColorSpace
-  texture.needsUpdate = true
-
-  const material =
-    new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      opacity: 0,
-      depthWrite: false,
-      toneMapped: false,
-      side: THREE.DoubleSide,
-    })
-
-  if (wordMark) {
-    particles.remove(wordMark)
-    wordMark.geometry.dispose()
-    if (wordMark.material.map) {
-      wordMark.material.map.dispose()
-    }
-    wordMark.material.dispose()
-  }
-
-  const worldW = 5.05
-  const worldH = worldW * (H / W)
-
-  wordMark =
-    new THREE.Mesh(
-      new THREE.PlaneGeometry(
-        worldW,
-        worldH
-      ),
-      material
-    )
-  wordMark.position.z = 0.05
-  wordMark.renderOrder = 2
-  particles.add(wordMark)
-
   return output
 }
 
@@ -1296,7 +1232,7 @@ function generateLogoPositions() {
     PARTICLE_COUNT - Math.floor(PARTICLE_COUNT * 0.12)
   )
 
-  return rasterizeCanvasWord(PARTICLE_COUNT)
+  return generateLogoHalo(PARTICLE_COUNT)
 }
 
 // ======================================================
@@ -2857,6 +2793,11 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
       <div class="copy copy-center copy-consult">
+        <img
+          class="end-mark"
+          src="/metaminds-logo-lock.png"
+          alt="MetaMinds STEM Academy"
+        >
         <h2>
           Let's find the right tutor.
         </h2>
@@ -3715,31 +3656,19 @@ function animate() {
     }
 
     if (onLogoHold) {
-      particleMaterial.uniforms.uAlpha.value = 0.055
+      particleMaterial.uniforms.uAlpha.value = 0
     } else {
       particleMaterial.uniforms.uAlpha.value +=
         (
-          (onLogo ? 0.1 : 0.9) -
+          (onLogo ? 0 : 0.9) -
           particleMaterial.uniforms.uAlpha.value
         ) *
         0.1
     }
 
     if (wordMark) {
-      if (onLogoHold) {
-        wordMark.material.opacity = 1
-        wordMark.visible = true
-      } else {
-        wordMark.material.opacity +=
-          (
-            (onLogo ? 1 : 0) -
-            wordMark.material.opacity
-          ) *
-          0.18
-
-        wordMark.visible =
-          wordMark.material.opacity > 0.02
-      }
+      wordMark.visible = false
+      wordMark.material.opacity = 0
     }
 
     const logoBlend =
