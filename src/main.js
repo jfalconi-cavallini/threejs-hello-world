@@ -2528,7 +2528,7 @@ function updateStory() {
       )
 
     transformTarget.y =
-      0
+      0.92
 
     transformTarget.rx =
       0
