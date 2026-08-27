@@ -20,7 +20,6 @@ html {
   background: var(--mm-void);
   color: var(--mm-ink);
   scroll-behavior: smooth;
-  overflow-x: hidden;
 }
 
 html,
