@@ -326,10 +326,6 @@ button {
   margin-top: 28px;
 }
 
-.nav-links a[href="#consultation"] {
-  color: var(--mm-orange);
-}
-
 /* =========================
    STORY
 ========================= */
@@ -352,8 +348,8 @@ button {
 .chapter-hero {
   min-height: 280vh;
   min-height: 280svh;
-  align-items: center;
-  padding-top: 88px;
+  align-items: flex-start;
+  padding-top: 108px;
 }
 
 .chapter-notes {
@@ -385,8 +381,9 @@ button {
   min-height: 280vh;
   min-height: 280svh;
   align-items: flex-end;
-  padding-bottom: 10vh;
-  padding-top: 42vh;
+  justify-content: center;
+  padding-bottom: clamp(72px, 11vh, 128px);
+  padding-top: 48vh;
 }
 
 .copy {
@@ -398,7 +395,8 @@ button {
 }
 
 .copy-hero {
-  width: min(860px, 68vw);
+  width: min(520px, 40vw);
+  max-width: 520px;
 }
 
 .copy-mentors {
@@ -427,6 +425,29 @@ button {
 .copy-center p {
   margin-left: auto;
   margin-right: auto;
+}
+
+.copy-consult {
+  width: min(560px, 86vw);
+}
+
+.copy-consult h2 {
+  font-family: var(--font-body);
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+}
+
+.copy-consult p {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.copy-consult .primary-button {
+  margin-top: 22px;
 }
 
 .eyebrow {
@@ -715,6 +736,13 @@ h2 {
     min-height: 200vh;
     min-height: 200svh;
     align-items: flex-end;
+    padding-bottom: 96px;
+  }
+
+  .copy-consult {
+    width: 100%;
+    max-width: 420px;
+    text-align: left;
   }
 
   .copy,

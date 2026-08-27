@@ -1167,167 +1167,15 @@ function modelToParticlePositions(
 // LOGO — flat MetaMinds silhouette (no mini-brain, no extrusion)
 // ======================================================
 
-function collectLogoTextTris(model) {
-  model.updateMatrixWorld(true)
-  const tris = []
-  let totalArea = 0
-  const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3()
-  const edge1 = new THREE.Vector3(), edge2 = new THREE.Vector3(), cross = new THREE.Vector3()
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-
-  model.traverse((child) => {
-    if (!child.isMesh) return
-    const geo = child.geometry
-    if (!geo?.attributes?.position) return
-    const pos = geo.attributes.position
-    const idx = geo.index
-    const faceCount = idx ? idx.count / 3 : pos.count / 3
-
-    for (let f = 0; f < faceCount; f++) {
-      const a = idx ? idx.getX(f * 3)     : f * 3
-      const b = idx ? idx.getX(f * 3 + 1) : f * 3 + 1
-      const c = idx ? idx.getX(f * 3 + 2) : f * 3 + 2
-      vA.fromBufferAttribute(pos, a).applyMatrix4(child.matrixWorld)
-      vB.fromBufferAttribute(pos, b).applyMatrix4(child.matrixWorld)
-      vC.fromBufferAttribute(pos, c).applyMatrix4(child.matrixWorld)
-
-      // Filter: MetaMinds text only (not STEM ACADEMY, not logo brain icon)
-      const cx = (vA.x + vB.x + vC.x) / 3
-      const cy = (vA.y + vB.y + vC.y) / 3
-      if (cx < -5 || cy < 0.5) continue
-
-      edge1.subVectors(vB, vA)
-      edge2.subVectors(vC, vA)
-      cross.crossVectors(edge1, edge2)
-
-      const len = cross.length()
-      if (len < 1e-10) continue
-      if (Math.abs(cross.z) / len < 0.7) continue
-
-      const area = len * 0.5
-      tris.push(vA.x, vA.y, vA.z, vB.x, vB.y, vB.z, vC.x, vC.y, vC.z, area)
-      totalArea += area
-      minX = Math.min(minX, vA.x, vB.x, vC.x)
-      maxX = Math.max(maxX, vA.x, vB.x, vC.x)
-      minY = Math.min(minY, vA.y, vB.y, vC.y)
-      maxY = Math.max(maxY, vA.y, vB.y, vC.y)
-    }
-  })
-
-  return { tris, totalArea, minX, maxX, minY, maxY }
-}
-
-function consumeLogoSampleRng(pack, count) {
-  const { tris, totalArea, minX, maxX, minY, maxY } = pack
-  if (!tris.length) {
-    for (let i = 0; i < count; i++) {
-      Math.random()
-      Math.random()
-      Math.random()
-      Math.random()
-    }
-    return
-  }
-
-  const STRIDE = 10
-  const triCount = tris.length / STRIDE
-  const cdf = new Float64Array(triCount)
-  let cumulative = 0
-  for (let t = 0; t < triCount; t++) {
-    cumulative += tris[t * STRIDE + 9] / totalArea
-    cdf[t] = cumulative
-  }
-
-  const centerX = (minX + maxX) / 2
-  const centerY = (minY + maxY) / 2
-  const textHeight = maxY - minY
-  const scale = 1.58 / textHeight
-  const TEXT_OFFSET_X = 0.52
-
+// Four draws per former text sample. Must stay so
+// explosion / globe RNG downstream does not shift.
+function consumeLogoSampleRng(count) {
   for (let i = 0; i < count; i++) {
-    const r = Math.random()
-    let lo = 0, hi = triCount - 1
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1
-      if (cdf[mid] < r) lo = mid + 1
-      else hi = mid
-    }
-    const base = lo * STRIDE
-    let u = Math.random(), v = Math.random()
-    if (u + v > 1) { u = 1 - u; v = 1 - v }
-    const w = 1 - u - v
-    void ((w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale + TEXT_OFFSET_X)
-    void ((w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale)
-    void ((Math.random() - 0.5) * 0.018)
+    Math.random()
+    Math.random()
+    Math.random()
+    Math.random()
   }
-}
-
-function rasterizeLogoSilhouette(pack, count) {
-  const output = new Float32Array(count * 3)
-  const { tris, minX, maxX, minY, maxY } = pack
-  if (!tris.length) return output
-
-  const STRIDE = 10
-  const triCount = tris.length / STRIDE
-  const textW = maxX - minX
-  const textH = maxY - minY
-  const GRID_W = 1600
-  const GRID_H = Math.max(80, Math.round(GRID_W * (textH / textW)))
-  const filled = new Uint8Array(GRID_W * GRID_H)
-
-  const toGX = (x) => ((x - minX) / textW) * (GRID_W - 1)
-  const toGY = (y) => ((maxY - y) / textH) * (GRID_H - 1)
-
-  for (let t = 0; t < triCount; t++) {
-    const base = t * STRIDE
-    const ax = toGX(tris[base]),     ay = toGY(tris[base + 1])
-    const bx = toGX(tris[base + 3]), by = toGY(tris[base + 4])
-    const cx = toGX(tris[base + 6]), cy = toGY(tris[base + 7])
-
-    let minGX = Math.max(0, Math.floor(Math.min(ax, bx, cx)))
-    let maxGX = Math.min(GRID_W - 1, Math.ceil(Math.max(ax, bx, cx)))
-    let minGY = Math.max(0, Math.floor(Math.min(ay, by, cy)))
-    let maxGY = Math.min(GRID_H - 1, Math.ceil(Math.max(ay, by, cy)))
-
-    const v0x = cx - ax, v0y = cy - ay
-    const v1x = bx - ax, v1y = by - ay
-    const den = v0x * v1y - v1x * v0y
-    if (Math.abs(den) < 1e-8) continue
-    const inv = 1 / den
-
-    for (let gy = minGY; gy <= maxGY; gy++) {
-      for (let gx = minGX; gx <= maxGX; gx++) {
-        const px = gx + 0.5 - ax
-        const py = gy + 0.5 - ay
-        const u = (px * v1y - v1x * py) * inv
-        const v = (v0x * py - px * v0y) * inv
-        if (u >= 0 && v >= 0 && u + v <= 1) {
-          filled[gy * GRID_W + gx] = 1
-        }
-      }
-    }
-  }
-
-  const cells = []
-  for (let i = 0; i < filled.length; i++) {
-    if (filled[i]) cells.push(i)
-  }
-  if (!cells.length) return output
-
-  const worldW = 8.6
-  const worldH = worldW * (textH / textW)
-
-  for (let i = 0; i < count; i++) {
-    const cell = cells[i % cells.length]
-    const gx = cell % GRID_W
-    const gy = (cell / GRID_W) | 0
-    const i3 = i * 3
-    output[i3]     = ((gx + 0.5) / GRID_W - 0.5) * worldW
-    output[i3 + 1] = (0.5 - (gy + 0.5) / GRID_H) * worldH
-    output[i3 + 2] = 0
-  }
-
-  return output
 }
 
 let wordMark = null
@@ -1425,12 +1273,10 @@ function rasterizeCanvasWord(count) {
   return output
 }
 
-function generateLogoPositions(brainGLBScene, logoGLBScene) {
-  const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.12)
-  const TEXT_COUNT = PARTICLE_COUNT - BRAIN_COUNT
-
-  const pack = collectLogoTextTris(logoGLBScene)
-  consumeLogoSampleRng(pack, TEXT_COUNT)
+function generateLogoPositions() {
+  consumeLogoSampleRng(
+    PARTICLE_COUNT - Math.floor(PARTICLE_COUNT * 0.12)
+  )
 
   return rasterizeCanvasWord(PARTICLE_COUNT)
 }
@@ -2567,8 +2413,7 @@ function updateStory() {
         LOGO_X
       )
 
-    transformTarget.y =
-      0.92
+    transformTarget.y = 0
 
     transformTarget.rx =
       0
@@ -2627,10 +2472,7 @@ Promise.all([
         generateGlobePositions(landGeoJSON)
 
       logoPositions =
-        generateLogoPositions(
-          brainGLB.scene,
-          logoGLB.scene
-        )
+        generateLogoPositions()
 
       if (
         !brainPositions ||
@@ -2772,7 +2614,6 @@ function createNavbar() {
         <a href="#team">Team</a>
         <a href="#mentors">Mentors</a>
         <a href="#results">Results</a>
-        <a href="https://www.metamindsstemacademy.com/consultation">Begin</a>
       </div>
       <a
         class="nav-cta nav-panel-cta"
@@ -3149,7 +2990,7 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
 
-      <div class="copy copy-center">
+      <div class="copy copy-center copy-consult">
 
         <h2>
           Let's find the right tutor for your kid.
