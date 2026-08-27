@@ -118,7 +118,7 @@ console.log({
 // VISUAL SETTINGS
 // ======================================================
 
-const BRAIN_SIZE = 3.55
+const BRAIN_SIZE = 3.2
 const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
@@ -173,7 +173,7 @@ const camera =
     1000
   )
 
-camera.position.z = 4.2
+camera.position.z = 4.55
 camera.position.x = -0.68
 
 // ======================================================
@@ -1690,7 +1690,7 @@ const transformTarget = {
 }
 
 const cameraTarget = {
-  z: 4.20,
+  z: 4.55,
   fov: 50,
   x: -0.68,
   y: 0,
@@ -1739,8 +1739,8 @@ function applyScrollCamera(p) {
   // Copy holds stay OUT so type sits in a dark lane or over a
   // distant silhouette. Dolly IN only during morphs — no copy.
   const keys = [
-    { p: 0.00, z: 4.20, fov: 50, x: -0.68 },
-    { p: 0.16, z: 4.05, fov: 51, x: -0.62 },
+    { p: 0.00, z: 4.55, fov: 50, x: -0.68 },
+    { p: 0.16, z: 4.40, fov: 51, x: -0.62 },
     { p: 0.20, z: 1.85, fov: 68, x: -0.08 },
     { p: 0.27, z: 1.38, fov: 74, x:  0.00 },
     { p: 0.34, z: 5.35, fov: 46, x:  0.00 },
@@ -2493,7 +2493,7 @@ Promise.all([
         modelToParticlePositions(
           brainGLB.scene,
           BRAIN_SIZE,
-          0.55
+          0.4
         )
 
       lightbulbPositions =
