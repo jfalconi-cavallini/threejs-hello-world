@@ -123,7 +123,7 @@ const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
-const RIGHT_X = 2.08
+const RIGHT_X = 3.22
 const LEFT_X = -1.25
 const CENTER_X = 0.35
 const LOGO_X = 0
@@ -174,7 +174,7 @@ const camera =
   )
 
 camera.position.z = 4.2
-camera.position.x = -0.34
+camera.position.x = -0.68
 
 // ======================================================
 // RENDERER
@@ -1691,7 +1691,7 @@ const transformTarget = {
 const cameraTarget = {
   z: 4.20,
   fov: 50,
-  x: -0.34,
+  x: -0.68,
   y: 0,
   roll: 0,
 }
@@ -1738,16 +1738,16 @@ function applyScrollCamera(p) {
   // Copy holds stay OUT so type sits in a dark lane or over a
   // distant silhouette. Dolly IN only during morphs — no copy.
   const keys = [
-    { p: 0.00, z: 4.20, fov: 50, x: -0.34 },
-    { p: 0.16, z: 4.05, fov: 51, x: -0.30 },
+    { p: 0.00, z: 4.20, fov: 50, x: -0.68 },
+    { p: 0.16, z: 4.05, fov: 51, x: -0.62 },
     { p: 0.20, z: 1.85, fov: 68, x: -0.08 },
     { p: 0.27, z: 1.38, fov: 74, x:  0.00 },
     { p: 0.34, z: 5.35, fov: 46, x:  0.00 },
     { p: 0.52, z: 5.20, fov: 46, x:  0.00 },
     { p: 0.56, z: 1.55, fov: 72, x:  0.00 },
     { p: 0.62, z: 1.72, fov: 68, x:  0.00 },
-    { p: 0.66, z: 4.70, fov: 48, x: -0.42 },
-    { p: 0.80, z: 4.55, fov: 48, x: -0.40 },
+    { p: 0.66, z: 4.70, fov: 48, x: -0.72 },
+    { p: 0.80, z: 4.55, fov: 48, x: -0.68 },
     { p: 0.84, z: 1.62, fov: 70, x:  0.00 },
     { p: 0.90, z: 3.55, fov: 48, x:  0.00 },
     { p: 0.93, z: 7.80, fov: 40, x:  0.00 },
@@ -2813,7 +2813,7 @@ function createPage() {
     <section class="chapter chapter-team" id="team">
       <div class="copy copy-left copy-team">
         <h2>
-          Jose Falconi-Cavallini Emma Brugman Johan Falconi-Cavallini Roberto Medina Alan Martinez Christian Tapia
+          Mentors who stay.
         </h2>
       </div>
     </section>

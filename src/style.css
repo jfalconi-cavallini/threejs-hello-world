@@ -20,6 +20,7 @@ html {
   background: var(--mm-void);
   color: var(--mm-ink);
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 html,
@@ -437,17 +438,17 @@ button {
 .copy-team {
   left: clamp(36px, 5.2vw, 88px);
   top: 50%;
-  width: min(560px, 40vw);
+  width: min(760px, 52vw);
   max-width: none;
   text-align: left;
   transform: translateY(-50%);
 }
 
 .copy-team h2 {
-  font-size: clamp(36px, 4.6vw, 68px);
-  line-height: 0.94;
-  letter-spacing: -0.055em;
-  text-wrap: balance;
+  font-size: clamp(64px, 7.5vw, 108px);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+  text-wrap: pretty;
 }
 
 .copy-right {
@@ -721,9 +722,9 @@ h2 {
   }
 
   .copy-team h2 {
-    font-size: clamp(28px, 8vw, 36px);
+    font-size: clamp(40px, 11.4vw, 52px);
     line-height: 0.94;
-    text-wrap: balance;
+    text-wrap: pretty;
   }
 
   .copy-consult {
