@@ -332,49 +332,60 @@ button {
 
 .experience {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
 }
 
 .chapter {
   position: relative;
-  min-height: 160vh;
-  min-height: 160svh;
+  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
-  padding: 120px clamp(28px, 8vw, 120px);
+  padding: 120px clamp(36px, 5.2vw, 88px);
 }
 
 .chapter-hero {
-  min-height: 280vh;
-  min-height: 280svh;
+  min-height: 270vh;
+  min-height: 270svh;
   align-items: flex-start;
-  padding-top: 108px;
+  padding-top: 118px;
 }
 
-.chapter-notes {
-  min-height: 220vh;
-  min-height: 220svh;
+.chapter-morph {
+  min-height: 160vh;
+  min-height: 160svh;
+  padding: 0;
+  pointer-events: none;
 }
 
+.chapter-morph-a {
+  min-height: 250vh;
+  min-height: 250svh;
+}
+
+.chapter-morph-b {
+  min-height: 325vh;
+  min-height: 325svh;
+}
+
+.chapter-morph-c {
+  min-height: 140vh;
+  min-height: 140svh;
+}
+
+.chapter-plan,
+.chapter-notes,
 .chapter-teach {
-  min-height: 200vh;
-  min-height: 200svh;
+  min-height: 100vh;
+  min-height: 100svh;
+  justify-content: center;
 }
 
 .chapter-team {
-  min-height: 200vh;
-  min-height: 200svh;
-}
-
-.chapter-mentors {
-  min-height: 260vh;
-  min-height: 260svh;
-}
-
-.chapter-results {
-  min-height: 180vh;
-  min-height: 180svh;
+  min-height: 270vh;
+  min-height: 270svh;
+  align-items: center;
 }
 
 .logo-hold-chapter {
@@ -387,27 +398,47 @@ button {
 }
 
 .copy {
-  width: min(680px, 54vw);
-  position: relative;
+  width: min(760px, 52vw);
+  position: fixed;
+  left: clamp(36px, 5.2vw, 88px);
+  top: 118px;
   z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  filter: none;
+  mix-blend-mode: normal;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.55);
+}
+
+.copy.is-live {
+  visibility: visible;
   pointer-events: auto;
-  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.55);
 }
 
 .copy-hero {
-  width: min(340px, 26vw);
-  max-width: 340px;
-  text-shadow:
-    0 2px 22px rgba(0, 0, 0, 0.88),
-    0 0 18px rgba(0, 0, 0, 0.72);
-}
-
-.copy-mentors {
-  width: min(920px, 78vw);
-}
-
-.copy-mentors p {
+  width: min(760px, 52vw);
   max-width: none;
+  top: 118px;
+  text-shadow: none;
+}
+
+.copy-mid {
+  left: 50%;
+  top: 50%;
+  width: min(1180px, 86vw);
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.copy-team {
+  width: min(740px, 48vw);
+  max-width: none;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .copy-right {
@@ -415,63 +446,48 @@ button {
   text-align: right;
 }
 
-.copy-right p {
-  margin-left: auto;
-}
-
 .copy-center {
-  margin-left: auto;
-  margin-right: auto;
   text-align: center;
 }
 
-.copy-center p {
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .copy-consult {
+  left: 50%;
+  top: auto;
+  bottom: 7vh;
   width: min(560px, 86vw);
+  text-align: center;
+  transform: translateX(-50%);
+  text-shadow: none;
 }
 
 .copy-consult h2 {
   font-family: var(--font-body);
-  font-size: clamp(16px, 1.6vw, 20px);
+  font-size: clamp(15px, 1.35vw, 20px);
   font-weight: 500;
   letter-spacing: 0.01em;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .copy-consult p {
-  margin-top: 10px;
-  font-size: 15px;
+  margin-top: 8px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .copy-consult .primary-button {
-  margin-top: 18px;
-}
-
-.chapter-hero h1 {
-  font-size: clamp(32px, 3.4vw, 46px);
-  line-height: 1.08;
-  letter-spacing: -0.045em;
-}
-
-.chapter-hero .copy-hero p {
   margin-top: 16px;
-  font-size: 16px;
-  line-height: 1.5;
-  max-width: 340px;
+  padding: 12px 20px;
+  font-size: 12px;
 }
 
 .eyebrow {
-  margin-bottom: 22px;
-  font-size: 13px;
-  letter-spacing: 0.28em;
+  margin-bottom: 18px;
+  font-size: 11px;
+  letter-spacing: 0.32em;
   font-weight: 700;
-  color: var(--mm-ink);
+  text-transform: uppercase;
+  color: var(--mm-orange);
 }
 
 h1,
@@ -479,20 +495,27 @@ h2 {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 0.98;
+  letter-spacing: -0.055em;
+  line-height: 0.94;
   text-wrap: balance;
-  color: var(--mm-ink);
+  color: #fff;
 }
 
 h1 {
-  font-size: clamp(52px, 7.6vw, 124px);
-  line-height: 0.96;
+  font-size: clamp(64px, 7.5vw, 108px);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+  text-wrap: pretty;
 }
 
 h2 {
-  font-size: clamp(44px, 6vw, 92px);
-  line-height: 1.04;
+  font-size: clamp(48px, 6.6vw, 96px);
+  line-height: 0.96;
+}
+
+.copy-mid h2 {
+  font-size: clamp(48px, 6.8vw, 100px);
+  letter-spacing: -0.06em;
 }
 
 .copy p {
@@ -507,7 +530,7 @@ h2 {
 .logo-hold-chapter .copy-consult p {
   margin-top: 8px;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .primary-button {
@@ -515,15 +538,16 @@ h2 {
   align-items: center;
   gap: 18px;
   margin-top: 36px;
-  padding: 18px 28px;
+  padding: 16px 24px;
   border-radius: 999px;
   background: var(--mm-orange);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-shadow: none;
+  filter: none;
   transition: transform 0.2s ease, filter 0.2s ease;
 }
 
@@ -532,88 +556,24 @@ h2 {
   filter: brightness(1.08);
 }
 
-.tier-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 48px;
-  margin-top: 48px;
-  align-items: start;
-}
-
-.tier-name {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mm-ink);
-  margin-bottom: 8px;
-}
-
-.tier-tag {
-  margin-top: 0;
-  font-size: 15px;
-  line-height: 1.5;
-  letter-spacing: 0.04em;
-  color: var(--mm-ink);
-}
-
-.tier-line p {
-  margin-top: 0;
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-.tier-line p + p,
-.tier-rate {
-  margin-top: 10px;
-}
-
-.tier-rate {
-  font-size: 16px;
-  color: var(--mm-mute);
-}
-
-.teach-list,
 .tutor-list {
   list-style: none;
-  margin-top: 28px;
+  margin: 0;
   padding: 0;
 }
 
-.teach-list li,
 .tutor-list li {
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.04em;
-  color: var(--mm-ink);
+  letter-spacing: -0.055em;
+  color: #fff;
+  font-size: clamp(32px, 4.1vw, 58px);
+  line-height: 1.08;
+  margin-top: 0.02em;
 }
 
-.teach-list li {
-  font-size: clamp(28px, 3.6vw, 48px);
-  line-height: 1.2;
-  margin-top: 8px;
-}
-
-.tutor-list li {
-  font-size: clamp(26px, 3.2vw, 44px);
-  line-height: 1.25;
-  margin-top: 10px;
-}
-
-.score-line {
-  margin-top: 18px !important;
-  font-family: var(--font-display);
-  font-size: clamp(42px, 5.2vw, 76px);
-  font-weight: 700;
-  letter-spacing: -0.045em;
-  line-height: 1.05;
-  color: var(--mm-ink);
-}
-
-.score-note {
-  margin-top: 28px;
-  font-size: 18px;
+.tutor-list li:first-child {
+  margin-top: 0;
 }
 
 .scroll-marker {
@@ -688,142 +648,128 @@ h2 {
 
 @media (max-width: 767px) {
   .metaminds-nav {
-    height: 70px;
+    height: 64px;
     padding: 0 16px 0 20px;
   }
 
-    .metaminds-nav > .nav-cta,
-    .metaminds-nav > .nav-signin,
-    .nav-inline {
-      display: none;
-    }
-
-    .menu-button {
-      display: block;
-    }
-
-    .nav-panel-cta {
-      display: inline-flex;
-      margin-top: 32px;
-    }
+  .nav-cta {
+    padding: 8px 12px;
+    font-size: 10px;
+  }
 
   .brand-logo {
-    height: 30px;
-  }
-
-  .nav-panel {
-    justify-content: flex-start;
-    padding: 96px 22px 48px;
-    background: rgba(0, 0, 0, 0.96);
-  }
-
-  .nav-links {
-    align-items: flex-start;
-  }
-
-  .nav-links a {
-    font-size: 28px;
-  }
-
-  .nav-links a:hover {
-    transform: none;
+    height: 26px;
   }
 
   .chapter {
-    min-height: 155vh;
-    min-height: 155svh;
-    padding: 108px 22px 88px;
+    min-height: 140vh;
+    min-height: 140svh;
+    padding: 96px 20px 72px;
     align-items: flex-start;
   }
 
   .chapter-hero {
     min-height: 190vh;
     min-height: 190svh;
+    padding-top: 96px;
   }
 
+  .chapter-morph {
+    min-height: 120vh;
+    min-height: 120svh;
+  }
+
+  .chapter-plan,
   .chapter-notes,
-  .chapter-teach,
-  .chapter-team,
-  .chapter-mentors {
-    min-height: 175vh;
-    min-height: 175svh;
+  .chapter-teach {
+    min-height: 120vh;
+    min-height: 120svh;
   }
 
-  .chapter-results {
-    min-height: 145vh;
-    min-height: 145svh;
+  .chapter-team {
+    min-height: 180vh;
+    min-height: 180svh;
   }
 
   .logo-hold-chapter {
-    min-height: 200vh;
-    min-height: 200svh;
+    min-height: 160vh;
+    min-height: 160svh;
     align-items: flex-end;
+    justify-content: center;
     padding-bottom: 24px;
-  }
-
-  .copy-consult {
-    width: 100%;
-    max-width: 420px;
-    text-align: left;
   }
 
   .copy,
   .copy-hero,
-  .copy-mentors {
-    width: 100%;
-    max-width: 420px;
+  .copy-mid,
+  .copy-team,
+  .copy-consult {
+    width: calc(100% - 40px);
+    max-width: none;
+    position: fixed;
+    left: 20px;
+    right: 20px;
+    top: 88px;
+    transform: none;
   }
 
-  .copy-right,
-  .copy-center {
-    margin-left: 0;
-    margin-right: 0;
+  .copy-hero {
+    top: 88px;
+  }
+
+  .copy-mid {
+    top: 28vh;
     text-align: left;
   }
 
-  .copy-right p,
-  .copy-center p {
-    margin-left: 0;
-    margin-right: 0;
+  .copy-team {
+    top: 18vh;
+  }
+
+  .copy-consult {
+    top: auto;
+    bottom: 24px;
+    left: 20px;
+    right: 20px;
+    width: calc(100% - 40px);
+    text-align: center;
   }
 
   h1 {
-    font-size: clamp(40px, 11vw, 56px);
+    font-size: clamp(44px, 12.5vw, 58px);
+    line-height: 0.94;
   }
 
-  h2 {
-    font-size: clamp(34px, 8.8vw, 46px);
+  h2,
+  .copy-mid h2 {
+    font-size: clamp(36px, 10.5vw, 46px);
+    line-height: 0.96;
   }
 
-  .copy p {
-    max-width: 420px;
-    font-size: 18px;
-  }
-
-  .teach-list li,
   .tutor-list li {
-    font-size: clamp(24px, 7vw, 34px);
+    font-size: clamp(26px, 7.4vw, 34px);
+    line-height: 1.12;
   }
 
-  .tier-row {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .copy-consult h2 {
+    font-size: 16px;
   }
 
-  .chapter:nth-child(even) {
-    align-items: flex-end;
-    padding-bottom: 118px;
+  .primary-button {
+    margin-top: 28px;
+    padding: 14px 20px;
+    font-size: 12px;
   }
 
   .scroll-marker {
-    left: 22px;
+    left: 20px;
     bottom: 6svh;
   }
 
   .sketch-footer {
     flex-direction: column;
     align-items: flex-start;
-    padding: 24px 22px 32px;
+    padding: 24px 20px 32px;
   }
 }
 

@@ -166,14 +166,15 @@ scene.fog = null
 
 const camera =
   new THREE.PerspectiveCamera(
-    62,
+    50,
     window.innerWidth /
       window.innerHeight,
     0.1,
     1000
   )
 
-camera.position.z = 7.4
+camera.position.z = 4.2
+camera.position.x = -0.34
 
 // ======================================================
 // RENDERER
@@ -242,9 +243,9 @@ const bloomPass =
       window.innerWidth,
       window.innerHeight
     ),
-    0.36, // strength
-    0.24, // radius
-    0.42  // threshold
+    MOBILE_AT_LOAD ? 0 : 0.36,
+    MOBILE_AT_LOAD ? 0 : 0.24,
+    MOBILE_AT_LOAD ? 1 : 0.42
   )
 
 composer.addPass(
@@ -1688,9 +1689,9 @@ const transformTarget = {
 }
 
 const cameraTarget = {
-  z: 5.55,
-  fov: 58,
-  x: 0,
+  z: 4.20,
+  fov: 50,
+  x: -0.34,
   y: 0,
   roll: 0,
 }
@@ -1699,7 +1700,7 @@ const lookTarget =
   new THREE.Vector3()
 
 let cameraRoll = 0
-let bloomTarget = 0.32
+let bloomTarget = MOBILE_AT_LOAD ? 0 : 0.32
 
 let currentStage = 'brain'
 let stageIsTransform = false
@@ -1716,7 +1717,7 @@ function setHoldShot(
   morphLerp =
     POSITION_LERP * 0.55
   transformTarget.s = 1
-  bloomTarget = 0.2
+  bloomTarget = MOBILE_AT_LOAD ? 0 : 0.2
 }
 
 function setTransformShot(
@@ -1730,17 +1731,25 @@ function setTransformShot(
   morphLerp =
     POSITION_LERP * 2.05
   transformTarget.s = scale
-  bloomTarget = 0.33
+  bloomTarget = MOBILE_AT_LOAD ? 0 : 0.33
 }
 
 function applyScrollCamera(p) {
+  // Copy holds stay OUT so type sits in a dark lane or over a
+  // distant silhouette. Dolly IN only during morphs — no copy.
   const keys = [
-    { p: 0.00, z: 3.95, fov: 48, x: -0.28 },
-    { p: 0.18, z: 3.15, fov: 56, x: -0.14 },
-    { p: 0.36, z: 2.05, fov: 64, x: -0.02 },
-    { p: 0.54, z: 1.42, fov: 72, x:  0.02 },
-    { p: 0.74, z: 1.22, fov: 76, x:  0.00 },
-    { p: 0.86, z: 3.10, fov: 58, x:  0.00 },
+    { p: 0.00, z: 4.20, fov: 50, x: -0.34 },
+    { p: 0.16, z: 4.05, fov: 51, x: -0.30 },
+    { p: 0.20, z: 1.85, fov: 68, x: -0.08 },
+    { p: 0.27, z: 1.38, fov: 74, x:  0.00 },
+    { p: 0.34, z: 4.15, fov: 52, x:  0.00 },
+    { p: 0.52, z: 4.05, fov: 52, x:  0.00 },
+    { p: 0.56, z: 1.55, fov: 72, x:  0.00 },
+    { p: 0.62, z: 1.72, fov: 68, x:  0.00 },
+    { p: 0.66, z: 4.25, fov: 50, x: -0.28 },
+    { p: 0.80, z: 4.10, fov: 50, x: -0.24 },
+    { p: 0.84, z: 1.62, fov: 70, x:  0.00 },
+    { p: 0.90, z: 3.55, fov: 48, x:  0.00 },
     { p: 0.93, z: 7.80, fov: 40, x:  0.00 },
     { p: 1.00, z: 9.35, fov: 34, x:  0.00 },
   ]
@@ -1764,7 +1773,11 @@ function applyScrollCamera(p) {
   cameraTarget.y = 0
   cameraTarget.roll = 0
 
-  if (p >= 0.90) {
+  if (isMobile()) {
+    cameraTarget.z *= p >= 0.91 ? 2.05 : 1.28
+  }
+
+  if (MOBILE_AT_LOAD || p >= 0.90) {
     bloomTarget = 0
   }
 }
@@ -1828,7 +1841,7 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        RIGHT_X
+        CENTER_X
       )
   }
 
@@ -1841,7 +1854,7 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        CENTER_X
+        RIGHT_X
       )
   }
 
@@ -1876,10 +1889,10 @@ function updateReducedMotionStory(
 // 0.16 - 0.22 Brain moves
 // 0.22 - 0.28 Brain explosion
 // 0.28 - 0.36 Lightbulb formation
-// 0.36 - 0.52 Lightbulb hold         notes / team
+// 0.36 - 0.52 Lightbulb hold         plan / notes / teach
 // 0.52 - 0.58 Lightbulb explosion
 // 0.58 - 0.66 Earth formation
-// 0.66 - 0.84 Earth hold             mentors / results
+// 0.66 - 0.84 Earth hold             team
 // 0.82 - 0.87 Earth explosion
 // 0.87 - 0.91 Logo formation
 // 0.91 - 1.00 Logo hold              consultation
@@ -1900,6 +1913,8 @@ function updateStory() {
   }
 
   syncNavHighlight(p)
+
+  syncCopyBeats(p)
 
   if (REDUCED_MOTION) {
     updateReducedMotionStory(
@@ -1936,10 +1951,10 @@ function updateStory() {
         RIGHT_X
       )
 
-    transformTarget.y = 0
-
-    transformTarget.rx =
-      -0.02
+    transformTarget.y =
+      isMobile()
+        ? -1.25
+        : 0
 
     transformTarget.ry =
       0.08
@@ -2097,7 +2112,7 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        RIGHT_X
+        CENTER_X
       )
 
     transformTarget.y = 0
@@ -2141,7 +2156,7 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        RIGHT_X
+        CENTER_X
       )
 
     transformTarget.y = 0
@@ -2229,7 +2244,7 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        CENTER_X
+        RIGHT_X
       )
 
     transformTarget.y = 0
@@ -2273,7 +2288,7 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        CENTER_X
+        RIGHT_X
       )
 
     transformTarget.y = 0
@@ -2584,48 +2599,12 @@ function createNavbar() {
       >
     </a>
 
-    <div class="nav-inline">
-      <a href="#notes">How it works</a>
-      <a href="#teach">Programs</a>
-      <a href="#team">Team</a>
-      <a href="#mentors">Mentors</a>
-      <a href="#results">Results</a>
-    </div>
-
     <a
       class="nav-cta"
       href="https://www.metamindsstemacademy.com/consultation"
     >
       Book Free Consultation
     </a>
-
-    <button
-      class="menu-button"
-      type="button"
-      aria-label="Open chapters"
-      aria-expanded="false"
-      aria-controls="nav-panel"
-    >
-      <span></span>
-      <span></span>
-    </button>
-
-    <div class="nav-panel" id="nav-panel">
-      <div class="nav-links">
-        <a href="#s1">Home</a>
-        <a href="#notes">How it works</a>
-        <a href="#teach">Programs</a>
-        <a href="#team">Team</a>
-        <a href="#mentors">Mentors</a>
-        <a href="#results">Results</a>
-      </div>
-      <a
-        class="nav-cta nav-panel-cta"
-        href="https://www.metamindsstemacademy.com/consultation"
-      >
-        Book Free Consultation
-      </a>
-    </div>
   `
 
   document.body.appendChild(
@@ -2679,59 +2658,6 @@ function setupNav() {
     return
   }
 
-  const button =
-    nav.querySelector(
-      '.menu-button'
-    )
-
-  const panel =
-    nav.querySelector(
-      '.nav-panel'
-    )
-
-  navLinks =
-    Array.from(
-      nav.querySelectorAll(
-        '.nav-inline a, .nav-links a'
-      )
-    )
-
-  button.addEventListener(
-    'click',
-    () => {
-      const open =
-        nav.classList.toggle(
-          'is-open'
-        )
-
-      document.body.classList.toggle(
-        'nav-open',
-        open
-      )
-
-      button.setAttribute(
-        'aria-expanded',
-        String(open)
-      )
-
-      button.setAttribute(
-        'aria-label',
-        open
-          ? 'Close chapters'
-          : 'Open chapters'
-      )
-    }
-  )
-
-  navLinks.forEach(
-    (link) => {
-      link.addEventListener(
-        'click',
-        closeNav
-      )
-    }
-  )
-
   nav.querySelector(
     '.brand'
   )?.addEventListener(
@@ -2749,60 +2675,54 @@ function setupNav() {
       )
     }
   )
-
-  panel.addEventListener(
-    'click',
-    (event) => {
-      if (event.target === panel) {
-        closeNav()
-      }
-    }
-  )
-
-  document.addEventListener(
-    'keydown',
-    (event) => {
-      if (event.key === 'Escape') {
-        closeNav()
-      }
-    }
-  )
 }
 
 function syncNavHighlight(
-  progress
+  _progress
 ) {
-  if (!navLinks.length) {
-    return
+}
+
+function beatGate(p, start, end, fade = 0.018) {
+  if (p < start || p > end) {
+    return 0
   }
 
-  let active = '#s1'
+  const distIn = p - start
+  const distOut = end - p
 
-  if (progress >= 0.90) {
-    active = '#consultation'
-  } else if (progress >= 0.76) {
-    active = '#results'
-  } else if (progress >= 0.58) {
-    active = '#mentors'
-  } else if (progress >= 0.44) {
-    active = '#team'
-  } else if (progress >= 0.30) {
-    active = '#teach'
-  } else if (progress >= 0.18) {
-    active = '#notes'
+  if (distIn < fade && start > 0) {
+    return smootherstep(distIn / fade)
   }
 
-  navLinks.forEach(
-    (link) => {
-      link.classList.toggle(
-        'is-active',
-        link.getAttribute(
-          'href'
-        ) ===
-          active
-      )
+  if (distOut < fade) {
+    return smootherstep(distOut / fade)
+  }
+
+  return 1
+}
+
+const COPY_BEATS = [
+  { selector: '.copy-hero', start: 0.00, end: 0.165 },
+  { selector: '.chapter-plan .copy', start: 0.345, end: 0.415 },
+  { selector: '.chapter-notes .copy', start: 0.42, end: 0.485 },
+  { selector: '.chapter-teach .copy', start: 0.486, end: 0.538 },
+  { selector: '.copy-team', start: 0.66, end: 0.805 },
+  { selector: '.copy-consult', start: 0.915, end: 1.05 },
+]
+
+function syncCopyBeats(p) {
+  for (let i = 0; i < COPY_BEATS.length; i++) {
+    const beat = COPY_BEATS[i]
+    const el = document.querySelector(beat.selector)
+
+    if (!el) {
+      continue
     }
-  )
+
+    const gate = beatGate(p, beat.start, beat.end)
+    el.style.opacity = String(gate)
+    el.classList.toggle('is-live', gate > 0.04)
+  }
 }
 
 // ======================================================
@@ -2825,106 +2745,59 @@ function createPage() {
   main.innerHTML = `
 
     <section class="chapter chapter-hero" id="s1">
-
       <div class="copy copy-left copy-hero">
-
-        <div class="eyebrow">
-          ONE DEDICATED MENTOR · A PLAN YOU CAN SEE
-        </div>
-
         <h1>
-          A mentor who stays with your kid,
-          and a plan you can actually see.
+          A mentor who stays with your kid.
         </h1>
-
-        <p>
-          MetaMinds pairs your child with one dedicated mentor who builds a personalized plan, sends session notes after every session, and tracks skill growth you can actually see. SAT &amp; ACT, AP classes, K–12 math, coding, and robotics. Every tier runs on the same system. The difference is who sits with your child.
-        </p>
-
         <a
           href="https://www.metamindsstemacademy.com/consultation"
           class="primary-button"
         >
           Book Free Consultation
         </a>
-
       </div>
-
       <div class="scroll-marker">
         SCROLL
         <span></span>
       </div>
-
     </section>
 
+    <section
+      class="chapter chapter-morph chapter-morph-a"
+      aria-hidden="true"
+    ></section>
+
+    <section class="chapter chapter-plan" id="plan">
+      <div class="copy copy-center copy-mid">
+        <h2>
+          A plan you can actually see.
+        </h2>
+      </div>
+    </section>
 
     <section class="chapter chapter-notes" id="notes">
-
-      <div class="copy copy-center">
-
-        <div class="eyebrow">
-          SESSION NOTES
-        </div>
-
-        <p>
-          After every session, the tutor who taught writes notes for you and your child. No exceptions.
-        </p>
-
-        <p>
-          Session notes and parent updates included with every tutoring package
-        </p>
-
-        <p>
-          skill tracking you can follow over time
-        </p>
-
-        <p>
-          homework with real feedback
-        </p>
-
-        <p>
-          one mentor, not a rotation
-        </p>
-
-        <p>
-          K–12 through college
-        </p>
-
+      <div class="copy copy-center copy-mid">
+        <h2>
+          Notes after every session.
+        </h2>
       </div>
-
     </section>
-
 
     <section class="chapter chapter-teach" id="teach">
-
-      <div class="copy copy-left">
-
-        <div class="eyebrow">
-          WHAT WE TEACH
-        </div>
-
-        <ul class="teach-list">
-          <li>SAT &amp; ACT</li>
-          <li>AP</li>
-          <li>K–12 math</li>
-          <li>coding (Python/Java/JS)</li>
-          <li>robotics (VEX)</li>
-          <li>3D printing/CAD</li>
-        </ul>
-
+      <div class="copy copy-center copy-mid">
+        <h2>
+          SAT. ACT. AP. Math. Coding.
+        </h2>
       </div>
-
     </section>
 
+    <section
+      class="chapter chapter-morph chapter-morph-b"
+      aria-hidden="true"
+    ></section>
 
     <section class="chapter chapter-team" id="team">
-
-      <div class="copy copy-left">
-
-        <div class="eyebrow">
-          TEAM
-        </div>
-
+      <div class="copy copy-left copy-team">
         <ul class="tutor-list">
           <li>Jose Falconi-Cavallini</li>
           <li>Emma Brugman</li>
@@ -2933,86 +2806,32 @@ function createPage() {
           <li>Alan Martinez</li>
           <li>Christian Tapia</li>
         </ul>
-
       </div>
-
     </section>
 
-
-    <section class="chapter chapter-mentors" id="mentors">
-
-      <div class="copy copy-mentors">
-
-        <div class="eyebrow">
-          MENTORS
-        </div>
-
-        <div class="tier-row">
-          <div class="tier-line">
-            <div class="tier-name">Premium Mentoring</div>
-            <p class="tier-tag">SAT/ACT · AP Courses · Advanced Coursework</p>
-            <p>Our most experienced tutors — practicing engineers, scientists, and subject specialists who've taught this exact material for years.</p>
-            <p class="tier-rate">From $70/hr</p>
-            <p class="tier-rate">Single session through 20-hour packages</p>
-          </div>
-          <div class="tier-line">
-            <div class="tier-name">College Mentor</div>
-            <p class="tier-tag">High School · Middle School · Elementary</p>
-            <p>High-achieving college students, carefully selected and supervised by MetaMinds. The full MetaMinds system — session notes, homework, parent updates, skill tracking — at a more accessible rate.</p>
-            <p class="tier-rate">From $50/hr</p>
-            <p class="tier-rate">Single session through 20-hour packages</p>
-          </div>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <section class="chapter chapter-results" id="results">
-
-      <div class="copy copy-left">
-
-        <div class="eyebrow">
-          RESULTS
-        </div>
-
-        <p class="score-line">SAT 950→1110</p>
-        <p class="score-line">SAT Math 370→590</p>
-
-        <p class="score-note">
-          Individual results vary. Examples, not guarantees.
-        </p>
-
-      </div>
-
-    </section>
-
+    <section
+      class="chapter chapter-morph chapter-morph-c"
+      aria-hidden="true"
+    ></section>
 
     <section
       id="consultation"
       class="chapter logo-hold-chapter"
     >
-
       <div class="copy copy-center copy-consult">
-
         <h2>
-          Let's find the right tutor for your kid.
+          Let's find the right tutor.
         </h2>
-
         <p>
-          Free, 30 minutes, no obligation.
+          Free. 30 minutes.
         </p>
-
         <a
           href="https://www.metamindsstemacademy.com/consultation"
           class="primary-button"
         >
           Book Free Consultation
         </a>
-
       </div>
-
     </section>
 
     <footer class="sketch-footer">
@@ -3069,131 +2888,74 @@ function createPage() {
   // COPY MOTION
   // ==================================================
 
-  const chapters =
-    document.querySelectorAll(
-      '.chapter'
+  const heroChapter =
+    document.querySelector(
+      '.chapter-hero'
     )
 
-  chapters.forEach(
-    (
-      chapter,
-      index
-    ) => {
-      const copy =
-        chapter.querySelector(
-          '.copy'
-        )
+  if (
+    heroChapter &&
+    !REDUCED_MOTION
+  ) {
+    const marker =
+      heroChapter.querySelector(
+        '.scroll-marker'
+      )
 
-      if (
-        !copy
-      ) {
-        return
-      }
+    if (marker) {
+      gsap.to(
+        marker,
+        {
+          opacity: 0,
 
-      if (
-        REDUCED_MOTION
-      ) {
-        return
-      }
+          scrollTrigger: {
+            trigger:
+              heroChapter,
 
-      if (
-        index === 0
-      ) {
-        const marker =
-          chapter.querySelector(
-            '.scroll-marker'
-          )
+            start:
+              '20% top',
 
-        if (marker) {
-          gsap.to(
-            marker,
-            {
-              opacity: 0,
+            end:
+              '55% top',
 
-              scrollTrigger: {
-                trigger:
-                  chapter,
-
-                start:
-                  '20% top',
-
-                end:
-                  '55% top',
-
-                scrub:
-                  true,
-              },
-            }
-          )
-        }
-      }
-
-      if (
-        index !== 0
-      ) {
-        gsap.fromTo(
-          copy,
-          {
-            opacity: 0,
-            y: 24,
+            scrub:
+              true,
           },
-          {
-            opacity: 1,
-            y: 0,
-
-            scrollTrigger: {
-              trigger:
-                chapter,
-
-              start:
-                'top 82%',
-
-              end:
-                '38% center',
-
-              scrub:
-                true,
-            },
-          }
-        )
-      }
-
-      if (
-        index <
-        chapters.length - 1
-      ) {
-        gsap.to(
-          copy,
-          {
-            opacity: 0,
-            y: -22,
-
-            scrollTrigger: {
-              trigger:
-                chapter,
-
-              start:
-                '68% center',
-
-              end:
-                'bottom 12%',
-
-              scrub:
-                true,
-            },
-          }
-        )
-      }
+        }
+      )
     }
-  )
+  }
 
   setupVisibilityObserver()
+
+  syncCopyBeats(story.progress)
 
   window.__mmSetProgress = (p) => {
     const next = Math.max(0, Math.min(1, Number(p) || 0))
     story.progress = next
+    const st = storyTween.scrollTrigger
+    if (st) {
+      st.scroll(st.start + (st.end - st.start) * next)
+    }
     storyTween.progress(next)
+    const prevLerp = morphLerp
+    morphLerp = 1
     updateStory()
+    currentPositions.set(storyTargetPositions)
+    displayPositions.set(storyTargetPositions)
+    particleGeometry.attributes.position.needsUpdate = true
+    particles.position.x = transformTarget.x
+    particles.position.y = transformTarget.y
+    particles.scale.setScalar(transformTarget.s)
+    camera.position.z = cameraTarget.z
+    camera.position.x = cameraTarget.x
+    camera.position.y = cameraTarget.y
+    camera.fov = cameraTarget.fov
+    camera.updateProjectionMatrix()
+    bloomPass.strength = bloomTarget
+    morphLerp = prevLerp
+    updateParticleInstances(true)
+    ScrollTrigger.update()
   }
 }
 
