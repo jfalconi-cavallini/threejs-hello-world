@@ -118,7 +118,7 @@ console.log({
 // VISUAL SETTINGS
 // ======================================================
 
-const BRAIN_SIZE = 5.35
+const BRAIN_SIZE = 3.55
 const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
@@ -1053,7 +1053,8 @@ function loadGLB(url) {
 
 function modelToParticlePositions(
   model,
-  desiredSize
+  desiredSize,
+  puffScale = 1
 ) {
   model.updateMatrixWorld(true)
 
@@ -1155,7 +1156,7 @@ function modelToParticlePositions(
     const py = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
     const pz = (w * tris[base + 2] + u * tris[base + 5] + v * tris[base + 8] - centerZ) * scale
     const plen = Math.sqrt(px * px + py * py + pz * pz) || 1
-    const puff = (Math.random() - 0.22) * 0.22
+    const puff = (Math.random() - 0.22) * 0.22 * puffScale
     output[i3]     = px + (px / plen) * puff
     output[i3 + 1] = py + (py / plen) * puff
     output[i3 + 2] = pz + (pz / plen) * puff
@@ -2491,7 +2492,8 @@ Promise.all([
       brainPositions =
         modelToParticlePositions(
           brainGLB.scene,
-          BRAIN_SIZE
+          BRAIN_SIZE,
+          0.55
         )
 
       lightbulbPositions =
@@ -2802,6 +2804,9 @@ function createPage() {
         <h2>
           SAT. ACT. AP. Math. Coding.
         </h2>
+        <p>
+          K–12 through college.
+        </p>
       </div>
     </section>
 
@@ -2833,6 +2838,9 @@ function createPage() {
         </h2>
         <p>
           Free. 30 minutes.
+        </p>
+        <p>
+          DFW. Zoom.
         </p>
         <a
           href="https://www.metamindsstemacademy.com/consultation"
