@@ -389,8 +389,8 @@ function createPointMaterial({
           float dist = max(0.42, -mvPosition.z);
           float atten = mix(12.4 / dist, 3.1, uLogoStill);
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, mix(58.0, 3.4, uLogoStill));
-          gl_PointSize = max(sz, mix(1.15, 2.1, uLogoStill));
+          sz = min(sz, mix(58.0, 1.65, uLogoStill));
+          gl_PointSize = max(sz, mix(1.15, 1.45, uLogoStill));
           gl_Position = projectionMatrix * mvPosition;
           vAlpha = mix(0.78, 1.0, uLogoStill);
         }
@@ -406,7 +406,7 @@ function createPointMaterial({
           float d = length(c);
           if (d > 0.5) discard;
           float soft = smoothstep(0.5, 0.10, d);
-          float hard = 1.0 - smoothstep(0.32, 0.48, d);
+          float hard = 1.0 - smoothstep(0.22, 0.40, d);
           float core = mix(soft, hard, uLogoStill);
           float hot = mix(smoothstep(0.22, 0.0, d), 1.0, uLogoStill);
           vec3 rgb = vColor * mix(0.72 + hot * 0.55, 1.18, uLogoStill);
@@ -1342,8 +1342,21 @@ function rasterizeCanvasWord(count) {
   ctx.fillStyle = '#ffffff'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.font = '700 236px Arial, Helvetica, sans-serif'
-  ctx.fillText('MetaMinds', W / 2, H / 2 + 8)
+  ctx.font = '700 220px Arial, Helvetica, sans-serif'
+  const label = 'MetaMinds'
+  const gap = 18
+  let total = 0
+  const widths = []
+  for (let i = 0; i < label.length; i++) {
+    const w = ctx.measureText(label[i]).width
+    widths.push(w)
+    total += w + (i < label.length - 1 ? gap : 0)
+  }
+  let pen = W / 2 - total / 2
+  for (let i = 0; i < label.length; i++) {
+    ctx.fillText(label[i], pen + widths[i] / 2, H / 2 + 10)
+    pen += widths[i] + gap
+  }
 
   const pixels = ctx.getImageData(0, 0, W, H).data
   const cells = []
@@ -1872,7 +1885,7 @@ function applyScrollCamera(p) {
   cameraTarget.roll = 0
 
   if (p >= 0.90) {
-    bloomTarget = 0.02
+    bloomTarget = 0
   }
 }
 
@@ -3963,7 +3976,7 @@ function animate() {
       0.14
 
     const fieldAlpha =
-      onLogo ? 0.02 : 0.55
+      onLogo ? 0 : 0.55
 
     fieldMaterial.uniforms.uAlpha.value +=
       (
@@ -3974,7 +3987,7 @@ function animate() {
 
     debrisMaterial.uniforms.uAlpha.value +=
       (
-        (onLogo ? 0.015 : 0.22) -
+        (onLogo ? 0 : 0.22) -
         debrisMaterial.uniforms.uAlpha.value
       ) *
       0.1
@@ -3982,7 +3995,7 @@ function animate() {
     if (volumeField) {
       volumeField.material.uniforms.uAlpha.value +=
         (
-          (onLogo ? 0.02 : 0.62) -
+          (onLogo ? 0 : 0.62) -
           volumeField.material.uniforms.uAlpha.value
         ) *
         0.1
