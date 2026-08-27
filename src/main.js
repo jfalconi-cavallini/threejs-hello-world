@@ -1330,6 +1330,48 @@ function rasterizeLogoSilhouette(pack, count) {
   return output
 }
 
+function rasterizeCanvasWord(count) {
+  const output = new Float32Array(count * 3)
+  const W = 1800
+  const H = 400
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, W, H)
+  ctx.fillStyle = '#ffffff'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = '700 236px Arial, Helvetica, sans-serif'
+  ctx.fillText('MetaMinds', W / 2, H / 2 + 8)
+
+  const pixels = ctx.getImageData(0, 0, W, H).data
+  const cells = []
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (pixels[(y * W + x) * 4 + 3] > 40) {
+        cells.push(y * W + x)
+      }
+    }
+  }
+  if (!cells.length) return output
+
+  const worldW = 8.4
+  const worldH = worldW * (H / W)
+
+  for (let i = 0; i < count; i++) {
+    const cell = cells[i % cells.length]
+    const gx = cell % W
+    const gy = (cell / W) | 0
+    const i3 = i * 3
+    output[i3]     = ((gx + 0.5) / W - 0.5) * worldW
+    output[i3 + 1] = (0.5 - (gy + 0.5) / H) * worldH
+    output[i3 + 2] = 0
+  }
+
+  return output
+}
+
 function generateLogoPositions(brainGLBScene, logoGLBScene) {
   const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.12)
   const TEXT_COUNT = PARTICLE_COUNT - BRAIN_COUNT
@@ -1337,7 +1379,7 @@ function generateLogoPositions(brainGLBScene, logoGLBScene) {
   const pack = collectLogoTextTris(logoGLBScene)
   consumeLogoSampleRng(pack, TEXT_COUNT)
 
-  return rasterizeLogoSilhouette(pack, PARTICLE_COUNT)
+  return rasterizeCanvasWord(PARTICLE_COUNT)
 }
 
 // ======================================================
