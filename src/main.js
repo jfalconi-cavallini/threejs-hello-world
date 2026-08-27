@@ -387,12 +387,12 @@ function createPointMaterial({
           ) * driftAmt;
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
           float dist = max(0.42, -mvPosition.z);
-          float atten = mix(12.4 / dist, 3.1, uLogoStill);
+          float atten = mix(12.4 / dist, 2.2, uLogoStill);
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, mix(58.0, 1.65, uLogoStill));
-          gl_PointSize = max(sz, mix(1.15, 1.45, uLogoStill));
+          sz = min(sz, mix(58.0, 1.15, uLogoStill));
+          gl_PointSize = max(sz, mix(1.15, 0.9, uLogoStill));
           gl_Position = projectionMatrix * mvPosition;
-          vAlpha = mix(0.78, 1.0, uLogoStill);
+          vAlpha = mix(0.78, 0.42, uLogoStill);
         }
       `,
       fragmentShader: `
@@ -407,9 +407,9 @@ function createPointMaterial({
           if (d > 0.5) discard;
           float soft = smoothstep(0.5, 0.10, d);
           float hard = 1.0 - smoothstep(0.22, 0.40, d);
-          float core = mix(soft, hard, uLogoStill);
-          float hot = mix(smoothstep(0.22, 0.0, d), 1.0, uLogoStill);
-          vec3 rgb = vColor * mix(0.72 + hot * 0.55, 1.18, uLogoStill);
+          float core = mix(soft, hard * 0.55, uLogoStill);
+          float hot = mix(smoothstep(0.22, 0.0, d), 0.35, uLogoStill);
+          vec3 rgb = vColor * mix(0.72 + hot * 0.55, 0.62, uLogoStill);
           gl_FragColor = vec4(rgb, core * vAlpha * uAlpha);
         }
       `,
@@ -1208,29 +1208,20 @@ function rasterizeCanvasWord(count) {
     pen += widths[i] + gap
   }
 
-  const pixels = ctx.getImageData(0, 0, W, H).data
-  const cells = []
-  for (let y = 0; y < H; y += 2) {
-    for (let x = 0; x < W; x += 2) {
-      if (pixels[(y * W + x) * 4 + 3] > 40) {
-        cells.push(y * W + x)
-      }
-    }
-  }
-
-  const worldW = 8.6
-  const worldH = worldW * (H / W)
-
-  if (cells.length) {
-    for (let i = 0; i < count; i++) {
-      const cell = cells[i % cells.length]
-      const gx = cell % W
-      const gy = (cell / W) | 0
-      const i3 = i * 3
-      output[i3]     = ((gx + 0.5) / W - 0.5) * worldW
-      output[i3 + 1] = (0.5 - (gy + 0.5) / H) * worldH
-      output[i3 + 2] = 0
-    }
+  // Sparse halo only — do not pack the glyph, do not form a brain.
+  const PHI = 1.618033988749895
+  const inner = 3.15
+  const outer = 8.1
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3
+    const g = (i * PHI) % 1
+    const g2 = (i * PHI * PHI) % 1
+    const g3 = (i * 0.7548776662466927) % 1
+    const radius = inner + g * (outer - inner)
+    const angle = g2 * Math.PI * 2
+    output[i3]     = Math.cos(angle) * radius
+    output[i3 + 1] = (g3 - 0.5) * 0.82
+    output[i3 + 2] = Math.sin(angle) * radius * 0.38
   }
 
   const texture =
@@ -1257,6 +1248,9 @@ function rasterizeCanvasWord(count) {
     }
     wordMark.material.dispose()
   }
+
+  const worldW = 5.05
+  const worldH = worldW * (H / W)
 
   wordMark =
     new THREE.Mesh(
@@ -1747,8 +1741,8 @@ function applyScrollCamera(p) {
     { p: 0.54, z: 1.42, fov: 72, x:  0.02 },
     { p: 0.74, z: 1.22, fov: 76, x:  0.00 },
     { p: 0.86, z: 3.10, fov: 58, x:  0.00 },
-    { p: 0.93, z: 5.70, fov: 46, x:  0.00 },
-    { p: 1.00, z: 5.85, fov: 44, x:  0.00 },
+    { p: 0.93, z: 7.80, fov: 40, x:  0.00 },
+    { p: 1.00, z: 9.35, fov: 34, x:  0.00 },
   ]
 
   let a = keys[0]
@@ -2395,6 +2389,14 @@ function updateStory() {
       writeStaticTarget(
         logoPositions
       )
+      currentPositions.set(
+        logoPositions
+      )
+      displayPositions.set(
+        logoPositions
+      )
+      particleGeometry.attributes.position.needsUpdate =
+        true
     }
 
     currentStage =
@@ -2405,6 +2407,8 @@ function updateStory() {
       38,
       0
     )
+
+    morphLerp = 1
 
     transformTarget.s = 1
 
@@ -3418,10 +3422,10 @@ function updateParticleInstances(
         currentStage === 'logo-forming'
 
       if (isLogoStage) {
-        tempColor.copy(ORANGE)
+        tempColor.copy(WHITE)
         tempColor.lerp(
-          WHITE,
-          0.22
+          INK,
+          0.18
         )
       } else if (isEarthStage) {
         const lat =
@@ -3489,7 +3493,7 @@ function updateParticleInstances(
 
       if (isLogoStage) {
         tempColor.multiplyScalar(
-          1.35
+          0.48
         )
       } else {
         tempColor.multiplyScalar(
@@ -3597,7 +3601,12 @@ function animate() {
   const camChase =
     REDUCED_MOTION
       ? 1
-      : 0.014
+      : (
+          currentStage === 'logo' ||
+          currentStage === 'logo-forming'
+        )
+        ? 0.22
+        : 0.014
 
   const idleY =
     REDUCED_MOTION
@@ -3845,16 +3854,23 @@ function animate() {
         camera.position.y * 0.12
     }
 
+    const onLogoHold =
+      currentStage === 'logo'
+
     const onLogo =
-      currentStage === 'logo' ||
+      onLogoHold ||
       currentStage === 'logo-forming'
 
-    logoStill.value +=
-      (
-        (onLogo ? 1 : 0) -
-        logoStill.value
-      ) *
-      0.14
+    if (onLogoHold) {
+      logoStill.value = 1
+    } else {
+      logoStill.value +=
+        (
+          (onLogo ? 1 : 0) -
+          logoStill.value
+        ) *
+        0.14
+    }
 
     const fieldAlpha =
       onLogo ? 0 : 0.55
@@ -3882,29 +3898,36 @@ function animate() {
         0.1
     }
 
-    particleMaterial.uniforms.uAlpha.value +=
-      (
-        (onLogo ? 0.22 : 0.9) -
-        particleMaterial.uniforms.uAlpha.value
-      ) *
-      0.1
+    if (onLogoHold) {
+      particleMaterial.uniforms.uAlpha.value = 0.055
+    } else {
+      particleMaterial.uniforms.uAlpha.value +=
+        (
+          (onLogo ? 0.1 : 0.9) -
+          particleMaterial.uniforms.uAlpha.value
+        ) *
+        0.1
+    }
 
     if (wordMark) {
-      wordMark.material.opacity +=
-        (
-          (onLogo ? 1 : 0) -
-          wordMark.material.opacity
-        ) *
-        0.12
+      if (onLogoHold) {
+        wordMark.material.opacity = 1
+        wordMark.visible = true
+      } else {
+        wordMark.material.opacity +=
+          (
+            (onLogo ? 1 : 0) -
+            wordMark.material.opacity
+          ) *
+          0.18
 
-      wordMark.visible =
-        wordMark.material.opacity > 0.02
+        wordMark.visible =
+          wordMark.material.opacity > 0.02
+      }
     }
 
     const logoBlend =
-      onLogo
-        ? THREE.NormalBlending
-        : THREE.AdditiveBlending
+      THREE.AdditiveBlending
 
     if (
       particleMaterial.blending !==
