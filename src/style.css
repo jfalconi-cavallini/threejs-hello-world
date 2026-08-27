@@ -129,7 +129,7 @@ button {
 }
 
 .boot-logo {
-  height: 42px;
+  height: 68px;
   width: auto;
   opacity: 0.92;
 }
@@ -151,7 +151,7 @@ button {
   left: 0;
   right: 0;
   z-index: 100;
-  height: 80px;
+  height: 88px;
   display: flex;
   align-items: center;
   gap: 18px;
@@ -168,7 +168,7 @@ button {
 }
 
 .brand-logo {
-  height: 52px;
+  height: 68px;
   width: auto;
   display: block;
 }
@@ -349,7 +349,7 @@ button {
   min-height: 270vh;
   min-height: 270svh;
   align-items: flex-start;
-  padding-top: 128px;
+  padding-top: 136px;
 }
 
 .chapter-morph {
@@ -401,7 +401,7 @@ button {
   width: min(760px, 52vw);
   position: fixed;
   left: clamp(36px, 5.2vw, 88px);
-  top: 128px;
+  top: 136px;
   z-index: 10;
   pointer-events: none;
   opacity: 0;
@@ -419,7 +419,7 @@ button {
 .copy-hero {
   width: min(760px, 52vw);
   max-width: none;
-  top: 128px;
+  top: 136px;
   text-shadow: none;
 }
 
@@ -648,7 +648,7 @@ h2 {
 
 @media (max-width: 767px) {
   .metaminds-nav {
-    height: 64px;
+    height: 72px;
     padding: 0 16px 0 20px;
   }
 
@@ -658,7 +658,7 @@ h2 {
   }
 
   .brand-logo {
-    height: 38px;
+    height: 46px;
   }
 
   .chapter {

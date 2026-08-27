@@ -68,7 +68,7 @@ function mountChrome() {
   boot.innerHTML = `
     <div class="boot-screen-inner">
       <img
-        src="/metaminds-logo.png"
+        src="/metaminds-logo-lock.png"
         alt="MetaMinds STEM Academy"
         class="boot-logo"
       >
@@ -2608,7 +2608,7 @@ function createNavbar() {
   nav.innerHTML = `
     <a class="brand" href="#s1">
       <img
-        src="/metaminds-logo.png"
+        src="/metaminds-logo-lock.png"
         alt="MetaMinds STEM Academy"
         class="brand-logo"
       >
