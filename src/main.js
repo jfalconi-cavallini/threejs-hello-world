@@ -3186,6 +3186,11 @@ function createPage() {
   )
 
   setupVisibilityObserver()
+
+  window.__mmSetProgress = (p) => {
+    story.progress = Math.max(0, Math.min(1, Number(p) || 0))
+    updateStory()
+  }
 }
 
 
