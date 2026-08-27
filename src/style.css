@@ -463,25 +463,15 @@ button {
 
 .copy-consult {
   left: 50%;
-  top: 50%;
-  bottom: auto;
+  top: auto;
+  bottom: 8vh;
   width: min(760px, 90vw);
   text-align: center;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   text-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.end-mark {
-  width: 640px;
-  max-width: min(640px, 78vw);
-  height: auto;
-  display: block;
-  margin: 0 0 28px;
-  background: transparent;
-  image-rendering: pixelated;
 }
 
 .copy-consult h2 {
@@ -754,19 +744,13 @@ h2 {
   }
 
   .copy-consult {
-    top: 50%;
-    bottom: auto;
+    top: auto;
+    bottom: 24px;
     left: 50%;
     right: auto;
     width: min(92vw, 360px);
     text-align: center;
-    transform: translate(-50%, -50%);
-  }
-
-  .end-mark {
-    width: 320px;
-    max-width: min(82vw, 320px);
-    margin: 0 0 18px;
+    transform: translateX(-50%);
   }
 
   h1 {

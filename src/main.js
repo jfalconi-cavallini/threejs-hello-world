@@ -1190,7 +1190,7 @@ function modelToParticlePositions(
 }
 
 // ======================================================
-// LOGO — flat MetaMinds silhouette (no mini-brain, no extrusion)
+// LOGO — mini first-page brain + particle "MetaMinds" word
 // ======================================================
 
 // Four draws per former text sample. Must stay so
@@ -1205,36 +1205,114 @@ function consumeLogoSampleRng(count) {
 }
 
 let wordMark = null
+let logoBrainCount = 0
+let logoBrainLocalX = null
 
-function generateLogoHalo(count) {
+function rasterizeCanvasWord(count) {
   const output = new Float32Array(count * 3)
+  const W = 1800
+  const H = 400
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, W, H)
+  ctx.fillStyle = '#ffffff'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = '700 236px Syne, Arial, Helvetica, sans-serif'
+  ctx.fillText('MetaMinds', W / 2, H / 2 + 8)
 
-  // Sparse halo only — last frame is the locked PNG, not a
-  // canvas / particle word.
-  const PHI = 1.618033988749895
-  const inner = 3.15
-  const outer = 8.1
+  const pixels = ctx.getImageData(0, 0, W, H).data
+  const cells = []
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (pixels[(y * W + x) * 4 + 3] > 40) {
+        cells.push(y * W + x)
+      }
+    }
+  }
+  if (!cells.length) return output
+
+  const worldW = 5.35
+  const worldH = worldW * (H / W)
+
   for (let i = 0; i < count; i++) {
+    const cell = cells[i % cells.length]
+    const gx = cell % W
+    const gy = (cell / W) | 0
     const i3 = i * 3
-    const g = (i * PHI) % 1
-    const g2 = (i * PHI * PHI) % 1
-    const g3 = (i * 0.7548776662466927) % 1
-    const radius = inner + g * (outer - inner)
-    const angle = g2 * Math.PI * 2
-    output[i3]     = Math.cos(angle) * radius
-    output[i3 + 1] = (g3 - 0.5) * 0.82
-    output[i3 + 2] = Math.sin(angle) * radius * 0.38
+    output[i3]     = ((gx + 0.5) / W - 0.5) * worldW
+    output[i3 + 1] = (0.5 - (gy + 0.5) / H) * worldH
+    output[i3 + 2] = ((i % 5) - 2) * 0.055
   }
 
   return output
 }
 
-function generateLogoPositions() {
+function generateLogoPositions(brainSource) {
   consumeLogoSampleRng(
     PARTICLE_COUNT - Math.floor(PARTICLE_COUNT * 0.12)
   )
 
-  return generateLogoHalo(PARTICLE_COUNT)
+  const output = new Float32Array(PARTICLE_COUNT * 3)
+  const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.40)
+  const TEXT_COUNT = PARTICLE_COUNT - BRAIN_COUNT
+  const miniScale = 0.50
+
+  logoBrainCount = BRAIN_COUNT
+  logoBrainLocalX = new Float32Array(PARTICLE_COUNT)
+
+  for (let i = 0; i < BRAIN_COUNT; i++) {
+    const srcI = Math.floor(i * PARTICLE_COUNT / BRAIN_COUNT)
+    const s3 = srcI * 3
+    const i3 = i * 3
+    output[i3]     = brainSource[s3] * miniScale
+    output[i3 + 1] = brainSource[s3 + 1] * miniScale
+    output[i3 + 2] = brainSource[s3 + 2] * miniScale
+    logoBrainLocalX[i] = brainSource[s3]
+  }
+
+  let brainMinX = Infinity
+  let brainMaxX = -Infinity
+  for (let i = 0; i < BRAIN_COUNT; i++) {
+    const x = output[i * 3]
+    if (x < brainMinX) brainMinX = x
+    if (x > brainMaxX) brainMaxX = x
+  }
+
+  const text = rasterizeCanvasWord(TEXT_COUNT)
+  let textMinX = Infinity
+  for (let i = 0; i < TEXT_COUNT; i++) {
+    const x = text[i * 3]
+    if (x < textMinX) textMinX = x
+  }
+
+  const gap = 0.42
+  const textShift = brainMaxX + gap - textMinX
+
+  for (let i = 0; i < TEXT_COUNT; i++) {
+    const dest = BRAIN_COUNT + i
+    const i3 = dest * 3
+    const t3 = i * 3
+    output[i3]     = text[t3] + textShift
+    output[i3 + 1] = text[t3 + 1]
+    output[i3 + 2] = text[t3 + 2]
+  }
+
+  let minX = Infinity
+  let maxX = -Infinity
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const x = output[i * 3]
+    if (x < minX) minX = x
+    if (x > maxX) maxX = x
+  }
+  const mid = (minX + maxX) / 2
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    output[i * 3] -= mid
+  }
+
+  return output
 }
 
 // ======================================================
@@ -2466,7 +2544,9 @@ Promise.all([
         generateGlobePositions(landGeoJSON)
 
       logoPositions =
-        generateLogoPositions()
+        generateLogoPositions(
+          brainPositions
+        )
 
       if (
         !brainPositions ||
@@ -2795,13 +2875,6 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
       <div class="copy copy-center copy-consult">
-        <img
-          class="end-mark"
-          src="/metaminds-logo-pixel.png"
-          alt="MetaMinds STEM Academy"
-          width="160"
-          height="40"
-        >
         <h2>
           Let's find the right tutor.
         </h2>
@@ -3179,11 +3252,40 @@ function updateParticleInstances(
         currentStage === 'logo-forming'
 
       if (isLogoStage) {
-        tempColor.copy(WHITE)
-        tempColor.lerp(
-          INK,
-          0.18
-        )
+        if (i < logoBrainCount && logoBrainLocalX) {
+          const normalizedX =
+            THREE.MathUtils.clamp(
+              (logoBrainLocalX[i] + 2.6) / 5.2,
+              0,
+              1
+            )
+
+          if (normalizedX < 0.45) {
+            tempColor.lerpColors(
+              ORANGE,
+              BURNT_ORANGE,
+              normalizedX / 0.45
+            )
+          } else if (normalizedX < 0.72) {
+            tempColor.lerpColors(
+              NAVY,
+              BLUE,
+              (normalizedX - 0.45) / 0.27
+            )
+          } else {
+            tempColor.lerpColors(
+              BLUE,
+              MUTE,
+              (normalizedX - 0.72) / 0.28
+            )
+          }
+        } else {
+          tempColor.copy(WHITE)
+          tempColor.lerp(
+            INK,
+            0.10
+          )
+        }
       } else if (isEarthStage) {
         const lat =
           earthParticleLatLon[i * 2]
@@ -3248,9 +3350,9 @@ function updateParticleInstances(
         }
       }
 
-      if (isLogoStage) {
+      if (isLogoStage && i >= logoBrainCount) {
         tempColor.multiplyScalar(
-          0.48
+          0.88
         )
       } else {
         tempColor.multiplyScalar(
@@ -3621,11 +3723,16 @@ function animate() {
       currentStage === 'logo-forming'
 
     if (onLogoHold) {
-      logoStill.value = 1
+      logoStill.value +=
+        (
+          0.08 -
+          logoStill.value
+        ) *
+        0.14
     } else {
       logoStill.value +=
         (
-          (onLogo ? 1 : 0) -
+          0 -
           logoStill.value
         ) *
         0.14
@@ -3659,16 +3766,12 @@ function animate() {
         0.1
     }
 
-    if (onLogoHold) {
-      particleMaterial.uniforms.uAlpha.value = 0
-    } else {
-      particleMaterial.uniforms.uAlpha.value +=
-        (
-          (onLogo ? 0 : 0.9) -
-          particleMaterial.uniforms.uAlpha.value
-        ) *
-        0.1
-    }
+    particleMaterial.uniforms.uAlpha.value +=
+      (
+        0.9 -
+        particleMaterial.uniforms.uAlpha.value
+      ) *
+      0.1
 
     if (wordMark) {
       wordMark.visible = false
