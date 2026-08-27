@@ -2,9 +2,8 @@
   --mm-orange: #d65108;
   --mm-navy: #00205b;
   --mm-blue: #2a4f91;
-  --mm-primary: #2563eb;
-  --mm-ink: #f7f9fc;
-  --mm-mute: #c5d0dc;
+  --mm-ink: #f3f6f9;
+  --mm-mute: #7f91a8;
   --mm-line: #2e3543;
   --mm-void: #000000;
   --font-display: "Syne", Arial, Helvetica, sans-serif;
@@ -195,18 +194,9 @@ button {
   filter: brightness(1.08);
 }
 
-.nav-signin {
-  position: relative;
-  z-index: 102;
-  background: none;
-  border: 0;
-  padding: 8px 4px;
-  color: var(--mm-mute);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  cursor: pointer;
+.nav-signin,
+.nav-panel-signin {
+  display: none !important;
 }
 
 .nav-inline {
@@ -411,7 +401,7 @@ button {
 }
 
 .copy-mentors {
-  width: min(1120px, 88vw);
+  width: min(920px, 78vw);
 }
 
 .copy-mentors p {
@@ -443,7 +433,7 @@ button {
   font-size: 13px;
   letter-spacing: 0.28em;
   font-weight: 700;
-  color: #dbe3ec;
+  color: var(--mm-ink);
 }
 
 h1,
@@ -500,8 +490,8 @@ h2 {
 
 .tier-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 48px;
   margin-top: 48px;
   align-items: start;
 }
@@ -671,10 +661,6 @@ h2 {
     .nav-panel-cta {
       display: inline-flex;
       margin-top: 32px;
-    }
-
-    .nav-panel-signin {
-      display: block;
     }
 
   .brand-logo {

@@ -118,12 +118,12 @@ console.log({
 // VISUAL SETTINGS
 // ======================================================
 
-const BRAIN_SIZE = 4.7
+const BRAIN_SIZE = 5.35
 const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
-const RIGHT_X = 1.45
+const RIGHT_X = 1.72
 const LEFT_X = -1.25
 const CENTER_X = 0.45
 const LOGO_X = 0
@@ -158,11 +158,7 @@ const scene =
 scene.background =
   new THREE.Color(0x000000)
 
-scene.fog =
-  new THREE.FogExp2(
-    0x000000,
-    0.03
-  )
+scene.fog = null
 
 // ======================================================
 // CAMERA
@@ -177,7 +173,7 @@ const camera =
     1000
   )
 
-camera.position.z = 5.9
+camera.position.z = 7.4
 
 // ======================================================
 // RENDERER
@@ -279,14 +275,9 @@ const BLUE =
     0x2a4f91
   )
 
-const MINDS_BLUE =
+const MUTE =
   new THREE.Color(
-    0x5D8EE6
-  )
-
-const HOT_BLUE =
-  new THREE.Color(
-    0xA9B7C9
+    0x7f91a8
   )
 
 const WHITE =
@@ -294,9 +285,9 @@ const WHITE =
     0xffffff
   )
 
-const EARTH_ICE =
+const INK =
   new THREE.Color(
-    0xc8e0ff
+    0xf3f6f9
   )
 
 const tempColor =
@@ -330,32 +321,14 @@ const currentPositions =
     PARTICLE_COUNT * 3
   )
 
-// ======================================================
-// PARTICLE GEOMETRY
-// ======================================================
-
-const particleGeometry =
-  new THREE.TetrahedronGeometry(
-    MOBILE_AT_LOAD
-      ? 0.016
-      : 0.011,
-    0
+const displayPositions =
+  new Float32Array(
+    PARTICLE_COUNT * 3
   )
 
-const particleMaterial =
-  new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-
-    wireframe: true,
-
-    transparent: true,
-
-    opacity: 0.7,
-
-    toneMapped: false,
-
-    fog: true,
-  })
+// ======================================================
+// VOLUMETRIC POINT FIELD
+// ======================================================
 
 const ambientTime =
   { value: 0 }
@@ -363,88 +336,142 @@ const ambientTime =
 const logoStill =
   { value: 0 }
 
-function attachAmbientShader(
-  material,
-  drift = 0.05
-) {
-  if (REDUCED_MOTION) {
-    return
+const pointMaterials = []
+
+function createPointMaterial({
+  size,
+  drift,
+  alpha,
+  additive = true,
+}) {
+  const uniforms = {
+    uTime: ambientTime,
+    uLogoStill: logoStill,
+    uPixelRatio: {
+      value: renderer.getPixelRatio(),
+    },
+    uSize: { value: size },
+    uDrift: { value: drift },
+    uAlpha: { value: alpha },
   }
 
-  material.onBeforeCompile =
-    (shader) => {
-      shader.uniforms.uTime =
-        ambientTime
+  const material =
+    new THREE.ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: additive
+        ? THREE.AdditiveBlending
+        : THREE.NormalBlending,
+      toneMapped: false,
+      vertexShader: `
+        uniform float uTime;
+        uniform float uLogoStill;
+        uniform float uPixelRatio;
+        uniform float uSize;
+        uniform float uDrift;
+        attribute float aScale;
+        attribute vec3 color;
+        varying vec3 vColor;
+        varying float vAlpha;
 
-      shader.uniforms.uDrift =
-        { value: drift }
-
-      shader.uniforms.uLogoStill =
-        logoStill
-
-      shader.vertexShader =
-        'uniform float uTime;\n' +
-        'uniform float uDrift;\n' +
-        'uniform float uLogoStill;\n' +
-        shader.vertexShader
-
-      shader.vertexShader =
-        shader.vertexShader.replace(
-          '#include <project_vertex>',
-          `
-          vec4 mvPosition = vec4( transformed, 1.0 );
-          #ifdef USE_BATCHING
-            mvPosition = batchingMatrix * mvPosition;
-          #endif
-          #ifdef USE_INSTANCING
-            mvPosition = instanceMatrix * mvPosition;
-          #endif
-          float seed = mvPosition.x * 1.73 + mvPosition.y * 2.11 + mvPosition.z * 1.37;
-          float pulse = sin(uTime * 0.33 + seed) * 0.5 + 0.5;
-          float driftAmt = uDrift * mix(1.0, 0.08, uLogoStill);
-          mvPosition.xyz += vec3(
+        void main() {
+          vColor = color;
+          float seed = position.x * 1.73 + position.y * 2.11 + position.z * 1.37;
+          vec3 pos = position;
+          float driftAmt = uDrift * mix(1.0, 0.0, uLogoStill);
+          pos += vec3(
             sin(uTime * 0.53 + seed) * 1.15,
             cos(uTime * 0.41 + seed * 1.2) * 0.88,
             sin(uTime * 0.47 + seed * 0.8) * 1.02
-          ) * driftAmt * (0.55 + pulse * 0.85);
-          mvPosition = modelViewMatrix * mvPosition;
+          ) * driftAmt;
+          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+          float dist = max(1.15, -mvPosition.z);
+          float logoSize = mix(1.0, 0.78, uLogoStill);
+          gl_PointSize = uSize * aScale * logoSize * uPixelRatio * (7.4 / dist);
           gl_Position = projectionMatrix * mvPosition;
-          `
-        )
-    }
+          vAlpha = mix(0.82, 1.0, uLogoStill);
+        }
+      `,
+      fragmentShader: `
+        uniform float uAlpha;
+        varying vec3 vColor;
+        varying float vAlpha;
 
-  material.customProgramCacheKey =
-    () => `mm-ambient-drift-${drift}`
+        void main() {
+          vec2 c = gl_PointCoord - vec2(0.5);
+          float d = length(c);
+          if (d > 0.5) discard;
+          float core = smoothstep(0.5, 0.12, d);
+          float hot = smoothstep(0.22, 0.0, d);
+          vec3 rgb = vColor * (0.72 + hot * 0.55);
+          gl_FragColor = vec4(rgb, core * vAlpha * uAlpha);
+        }
+      `,
+    })
+
+  pointMaterials.push(material)
+  return material
 }
 
-attachAmbientShader(
-  particleMaterial,
-  0.048
-)
+const particleColors =
+  new Float32Array(
+    PARTICLE_COUNT * 3
+  )
 
-const particles =
-  new THREE.InstancedMesh(
-    particleGeometry,
-    particleMaterial,
+const particleSizeAttr =
+  new Float32Array(
     PARTICLE_COUNT
   )
 
-// Important performance hints.
-particles.instanceMatrix.setUsage(
-  THREE.DynamicDrawUsage
+particleSizeAttr.fill(1)
+
+const particleGeometry =
+  new THREE.BufferGeometry()
+
+particleGeometry.setAttribute(
+  'position',
+  new THREE.BufferAttribute(
+    displayPositions,
+    3
+  ).setUsage(
+    THREE.DynamicDrawUsage
+  )
 )
 
-particles.instanceColor =
-  new THREE.InstancedBufferAttribute(
-    new Float32Array(
-      PARTICLE_COUNT * 3
-    ),
+particleGeometry.setAttribute(
+  'color',
+  new THREE.BufferAttribute(
+    particleColors,
     3
+  ).setUsage(
+    THREE.DynamicDrawUsage
+  )
+)
+
+particleGeometry.setAttribute(
+  'aScale',
+  new THREE.BufferAttribute(
+    particleSizeAttr,
+    1
+  )
+)
+
+const particleMaterial =
+  createPointMaterial({
+    size: MOBILE_AT_LOAD ? 4.6 : 3.15,
+    drift: REDUCED_MOTION ? 0 : 0.042,
+    alpha: 0.9,
+    additive: true,
+  })
+
+const particles =
+  new THREE.Points(
+    particleGeometry,
+    particleMaterial
   )
 
-particles.instanceColor.setUsage(
-  THREE.DynamicDrawUsage
-)
+particles.frustumCulled = false
 
 scene.add(particles)
 
@@ -457,81 +484,46 @@ const DEBRIS_COUNT =
     ? 28
     : 84
 
-const debrisGeometry =
-  new THREE.TetrahedronGeometry(
-    MOBILE_AT_LOAD
-      ? 0.11
-      : 0.15,
-    0
+const debrisPositions =
+  new Float32Array(
+    DEBRIS_COUNT * 3
   )
 
-const debrisMaterial =
-  new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.2,
-    toneMapped: false,
-    fog: true,
-  })
+const debrisColors =
+  new Float32Array(
+    DEBRIS_COUNT * 3
+  )
 
-attachAmbientShader(
-  debrisMaterial,
-  0.11
-)
-
-const debris =
-  new THREE.InstancedMesh(
-    debrisGeometry,
-    debrisMaterial,
+const debrisSizes =
+  new Float32Array(
     DEBRIS_COUNT
   )
 
-debris.instanceColor =
-  new THREE.InstancedBufferAttribute(
-    new Float32Array(
-      DEBRIS_COUNT * 3
-    ),
-    3
-  )
-
 {
-  const debrisDummy =
-    new THREE.Object3D()
-
   for (
     let i = 0;
     i < DEBRIS_COUNT;
     i++
   ) {
-    debrisDummy.position.set(
-      (Math.random() - 0.5) * 16,
-      (Math.random() - 0.5) * 11,
+    const i3 = i * 3
+
+    debrisPositions[i3] =
+      (Math.random() - 0.5) * 16
+
+    debrisPositions[i3 + 1] =
+      (Math.random() - 0.5) * 11
+
+    debrisPositions[i3 + 2] =
       (Math.random() - 0.5) * 14
-    )
 
-    debrisDummy.rotation.set(
-      Math.random() * Math.PI,
-      Math.random() * Math.PI,
-      Math.random() * Math.PI
-    )
+    Math.random()
+    Math.random()
+    Math.random()
 
-    const s =
+    debrisSizes[i] =
       0.35 +
       Math.random() *
       2.1
-
-    debrisDummy.scale.set(
-      s,
-      s,
-      s
-    )
-
-    debrisDummy.updateMatrix()
-    debris.setMatrixAt(
-      i,
-      debrisDummy.matrix
-    )
 
     if (i % 3 === 0) {
       tempColor.copy(ORANGE)
@@ -547,18 +539,54 @@ debris.instanceColor =
       0.45
     )
 
-    debris.setColorAt(
-      i,
-      tempColor
-    )
+    debrisColors[i3] = tempColor.r
+    debrisColors[i3 + 1] = tempColor.g
+    debrisColors[i3 + 2] = tempColor.b
   }
-
-  debris.instanceMatrix.needsUpdate =
-    true
-
-  debris.instanceColor.needsUpdate =
-    true
 }
+
+const debrisGeometry =
+  new THREE.BufferGeometry()
+
+debrisGeometry.setAttribute(
+  'position',
+  new THREE.BufferAttribute(
+    debrisPositions,
+    3
+  )
+)
+
+debrisGeometry.setAttribute(
+  'color',
+  new THREE.BufferAttribute(
+    debrisColors,
+    3
+  )
+)
+
+debrisGeometry.setAttribute(
+  'aScale',
+  new THREE.BufferAttribute(
+    debrisSizes,
+    1
+  )
+)
+
+const debrisMaterial =
+  createPointMaterial({
+    size: MOBILE_AT_LOAD ? 18 : 22,
+    drift: REDUCED_MOTION ? 0 : 0.11,
+    alpha: 0.22,
+    additive: true,
+  })
+
+const debris =
+  new THREE.Points(
+    debrisGeometry,
+    debrisMaterial
+  )
+
+debris.frustumCulled = false
 
 scene.add(debris)
 
@@ -571,53 +599,29 @@ const FIELD_COUNT =
     ? 2200
     : 8000
 
-const fieldGeometry =
-  new THREE.TetrahedronGeometry(
-    MOBILE_AT_LOAD
-      ? 0.012
-      : 0.008,
-    0
+const fieldPositions =
+  new Float32Array(
+    FIELD_COUNT * 3
   )
 
-const fieldMaterial =
-  new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.22,
-    toneMapped: false,
-    fog: true,
-  })
+const fieldColors =
+  new Float32Array(
+    FIELD_COUNT * 3
+  )
 
-attachAmbientShader(
-  fieldMaterial,
-  0.16
-)
-
-const field =
-  new THREE.InstancedMesh(
-    fieldGeometry,
-    fieldMaterial,
+const fieldSizes =
+  new Float32Array(
     FIELD_COUNT
   )
 
-field.instanceColor =
-  new THREE.InstancedBufferAttribute(
-    new Float32Array(
-      FIELD_COUNT * 3
-    ),
-    3
-  )
-
 {
-  const fieldDummy =
-    new THREE.Object3D()
-
   for (
     let i = 0;
     i < FIELD_COUNT;
     i++
   ) {
+    const i3 = i * 3
+
     const radius =
       Math.pow(
         Math.random(),
@@ -637,40 +641,29 @@ field.instanceColor =
         1
       )
 
-    fieldDummy.position.set(
+    fieldPositions[i3] =
       radius *
         Math.sin(phi) *
-        Math.cos(theta),
+        Math.cos(theta)
+
+    fieldPositions[i3 + 1] =
       radius *
         Math.sin(phi) *
         Math.sin(theta) *
-        0.7,
+        0.7
+
+    fieldPositions[i3 + 2] =
       radius *
         Math.cos(phi)
-    )
 
-    fieldDummy.rotation.set(
-      Math.random() * Math.PI,
-      Math.random() * Math.PI,
-      Math.random() * Math.PI
-    )
+    Math.random()
+    Math.random()
+    Math.random()
 
-    const s =
+    fieldSizes[i] =
       0.45 +
       Math.random() *
       1.8
-
-    fieldDummy.scale.set(
-      s,
-      s,
-      s
-    )
-
-    fieldDummy.updateMatrix()
-    field.setMatrixAt(
-      i,
-      fieldDummy.matrix
-    )
 
     if (i % 2 === 0) {
       tempColor.lerpColors(
@@ -692,18 +685,54 @@ field.instanceColor =
       0.5
     )
 
-    field.setColorAt(
-      i,
-      tempColor
-    )
+    fieldColors[i3] = tempColor.r
+    fieldColors[i3 + 1] = tempColor.g
+    fieldColors[i3 + 2] = tempColor.b
   }
-
-  field.instanceMatrix.needsUpdate =
-    true
-
-  field.instanceColor.needsUpdate =
-    true
 }
+
+const fieldGeometry =
+  new THREE.BufferGeometry()
+
+fieldGeometry.setAttribute(
+  'position',
+  new THREE.BufferAttribute(
+    fieldPositions,
+    3
+  )
+)
+
+fieldGeometry.setAttribute(
+  'color',
+  new THREE.BufferAttribute(
+    fieldColors,
+    3
+  )
+)
+
+fieldGeometry.setAttribute(
+  'aScale',
+  new THREE.BufferAttribute(
+    fieldSizes,
+    1
+  )
+)
+
+const fieldMaterial =
+  createPointMaterial({
+    size: MOBILE_AT_LOAD ? 2.4 : 1.85,
+    drift: REDUCED_MOTION ? 0 : 0.16,
+    alpha: 0.55,
+    additive: true,
+  })
+
+const field =
+  new THREE.Points(
+    fieldGeometry,
+    fieldMaterial
+  )
+
+field.frustumCulled = false
 
 scene.add(field)
 
@@ -762,6 +791,131 @@ for (
   noiseSeeds[i] =
     Math.random() *
     100
+}
+
+particleSizeAttr.set(scales)
+particleGeometry.attributes.aScale.needsUpdate =
+  true
+
+let volumeField = null
+
+// Extra volumetric dust — golden-ratio sphere, no Math.random
+// so the existing RNG stream for forms/explosions stays intact.
+const VOLUME_COUNT =
+  MOBILE_AT_LOAD
+    ? 9000
+    : 32000
+
+{
+  const volumePositions =
+    new Float32Array(
+      VOLUME_COUNT * 3
+    )
+
+  const volumeColors =
+    new Float32Array(
+      VOLUME_COUNT * 3
+    )
+
+  const volumeSizes =
+    new Float32Array(
+      VOLUME_COUNT
+    )
+
+  const PHI = 1.618033988749895
+
+  for (
+    let i = 0;
+    i < VOLUME_COUNT;
+    i++
+  ) {
+    const i3 = i * 3
+    const t = (i + 0.5) / VOLUME_COUNT
+    const y = 1 - 2 * t
+    const r = Math.sqrt(Math.max(0, 1 - y * y))
+    const theta = 2 * Math.PI * i * PHI
+    const radius =
+      1.6 +
+      ((i * PHI) % 1) * 10.5
+
+    volumePositions[i3] =
+      radius * r * Math.cos(theta)
+    volumePositions[i3 + 1] =
+      radius * y * 0.72
+    volumePositions[i3 + 2] =
+      radius * r * Math.sin(theta)
+
+    volumeSizes[i] =
+      0.4 +
+      ((i * 0.37) % 1) * 1.4
+
+    if (i % 2 === 0) {
+      tempColor.lerpColors(
+        ORANGE,
+        BURNT_ORANGE,
+        (i * 0.13) % 1
+      )
+    } else {
+      tempColor.lerpColors(
+        NAVY,
+        BLUE,
+        (i * 0.19) % 1
+      )
+    }
+
+    tempColor.multiplyScalar(
+      0.22 +
+      ((i * 0.29) % 1) * 0.4
+    )
+
+    volumeColors[i3] = tempColor.r
+    volumeColors[i3 + 1] = tempColor.g
+    volumeColors[i3 + 2] = tempColor.b
+  }
+
+  const volumeGeometry =
+    new THREE.BufferGeometry()
+
+  volumeGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(
+      volumePositions,
+      3
+    )
+  )
+
+  volumeGeometry.setAttribute(
+    'color',
+    new THREE.BufferAttribute(
+      volumeColors,
+      3
+    )
+  )
+
+  volumeGeometry.setAttribute(
+    'aScale',
+    new THREE.BufferAttribute(
+      volumeSizes,
+      1
+    )
+  )
+
+  const volumeMaterial =
+    createPointMaterial({
+      size: MOBILE_AT_LOAD ? 2.1 : 1.55,
+      drift: REDUCED_MOTION ? 0 : 0.09,
+      alpha: 0.62,
+      additive: true,
+    })
+
+  volumeField =
+    new THREE.Points(
+      volumeGeometry,
+      volumeMaterial
+    )
+
+  volumeField.frustumCulled = false
+  scene.add(volumeField)
 }
 
 // ======================================================
@@ -1078,8 +1232,8 @@ function sampleLogoTextOnly(model, count) {
   const centerY = (minY + maxY) / 2
   const textHeight = maxY - minY
   // Tall enough that META MINDS reads as a word at the logo hold.
-  const scale = 1.22 / textHeight
-  const TEXT_OFFSET_X = 0.42
+  const scale = 1.58 / textHeight
+  const TEXT_OFFSET_X = 0.52
 
   const output = new Float32Array(count * 3)
   for (let i = 0; i < count; i++) {
@@ -1108,9 +1262,9 @@ function generateLogoPositions(brainGLBScene, logoGLBScene) {
   const TEXT_COUNT = PARTICLE_COUNT - BRAIN_COUNT
 
   // Mini brain mark stays; word gets most of the particles.
-  const MINI_BRAIN_SIZE = 0.78
+  const MINI_BRAIN_SIZE = 0.52
   const miniScale = MINI_BRAIN_SIZE / BRAIN_SIZE
-  const BRAIN_OFFSET_X = -2.35
+  const BRAIN_OFFSET_X = -2.62
 
   const brainOut = new Float32Array(BRAIN_COUNT * 3)
   for (let i = 0; i < BRAIN_COUNT; i++) {
@@ -1754,9 +1908,9 @@ function updateStory() {
       'brain'
 
     setHoldShot(
-      5.28,
-      52,
-      0.1
+      4.38,
+      47,
+      0.04
     )
 
     transformTarget.x =
@@ -2186,11 +2340,11 @@ function updateStory() {
     )
 
     setTransformShot(
-      4.35,
-      44,
+      4.28,
+      42,
       0,
       0,
-      1.02
+      1.04
     )
 
     transformTarget.x =
@@ -2223,13 +2377,13 @@ function updateStory() {
       'logo'
 
     setHoldShot(
-      4.05,
-      42,
+      3.28,
+      38,
       0
     )
 
-    bloomTarget = 0.14
-    transformTarget.s = 1.05
+    bloomTarget = 0.07
+    transformTarget.s = 1.08
 
     transformTarget.x =
       desktopOrMobileX(
@@ -2406,23 +2560,16 @@ function createNavbar() {
     </a>
 
     <div class="nav-inline">
-      <a href="#notes">Notes</a>
-      <a href="#teach">Teach</a>
+      <a href="#notes">How it works</a>
+      <a href="#teach">Programs</a>
       <a href="#team">Team</a>
       <a href="#mentors">Mentors</a>
       <a href="#results">Results</a>
     </div>
 
-    <button
-      class="nav-signin"
-      type="button"
-    >
-      Sign In
-    </button>
-
     <a
       class="nav-cta"
-      href="#consultation"
+      href="https://www.metamindsstemacademy.com/consultation"
     >
       Book Free Consultation
     </a>
@@ -2441,22 +2588,16 @@ function createNavbar() {
     <div class="nav-panel" id="nav-panel">
       <div class="nav-links">
         <a href="#s1">Home</a>
-        <a href="#notes">Notes</a>
-        <a href="#teach">Teach</a>
+        <a href="#notes">How it works</a>
+        <a href="#teach">Programs</a>
         <a href="#team">Team</a>
         <a href="#mentors">Mentors</a>
         <a href="#results">Results</a>
         <a href="#consultation">Begin</a>
       </div>
-      <button
-        class="nav-signin nav-panel-signin"
-        type="button"
-      >
-        Sign In
-      </button>
       <a
         class="nav-cta nav-panel-cta"
-        href="#consultation"
+        href="https://www.metamindsstemacademy.com/consultation"
       >
         Book Free Consultation
       </a>
@@ -2585,17 +2726,6 @@ function setupNav() {
     }
   )
 
-  nav.querySelectorAll(
-    '.nav-signin'
-  ).forEach(
-    (button) => {
-      button.addEventListener(
-        'click',
-        closeNav
-      )
-    }
-  )
-
   panel.addEventListener(
     'click',
     (event) => {
@@ -2688,7 +2818,7 @@ function createPage() {
         </p>
 
         <a
-          href="#consultation"
+          href="https://www.metamindsstemacademy.com/consultation"
           class="primary-button"
         >
           Book Free Consultation
@@ -2808,12 +2938,6 @@ function createPage() {
             <p class="tier-rate">From $50/hr</p>
             <p class="tier-rate">Single session through 20-hour packages</p>
           </div>
-          <div class="tier-line">
-            <div class="tier-name">Junior College Mentor</div>
-            <p class="tier-tag">Foundational Support · Homework Help · Younger Students</p>
-            <p>Focused support for foundational learning, homework help, and younger students. A natural entry point for building consistent study habits from an early age.</p>
-            <p class="tier-rate">Book a consultation to discuss rates</p>
-          </div>
         </div>
 
       </div>
@@ -2857,7 +2981,7 @@ function createPage() {
         </p>
 
         <a
-          href="mailto:metamindsstemacademy@gmail.com"
+          href="https://www.metamindsstemacademy.com/consultation"
           class="primary-button"
         >
           Book Free Consultation
@@ -3043,11 +3167,8 @@ function createPage() {
 
 
 // ======================================================
-// INSTANCE UPDATE
+// POINT UPDATE
 // ======================================================
-
-const dummy =
-  new THREE.Object3D()
 
 function updateParticleInstances(
   forceColors = false
@@ -3245,24 +3366,8 @@ function updateParticleInstances(
     }
 
     // ----------------------------------
-    // MATRIX
+    // WRITE POINT POSITION
     // ----------------------------------
-
-    dummy.position.set(
-      x,
-      y,
-      z
-    )
-
-    dummy.rotation.set(
-      rotations[i3],
-      rotations[
-        i3 + 1
-      ],
-      rotations[
-        i3 + 2
-      ]
-    )
 
     const depth =
       THREE.MathUtils.clamp(
@@ -3271,31 +3376,9 @@ function updateParticleInstances(
         1
       )
 
-    const scale =
-      scales[i] *
-      (
-        0.42 +
-        depth *
-        0.72
-      ) *
-      (
-        1 +
-        influence *
-          0.30
-      )
-
-    dummy.scale.set(
-      scale,
-      scale,
-      scale
-    )
-
-    dummy.updateMatrix()
-
-    particles.setMatrixAt(
-      i,
-      dummy.matrix
-    )
+    displayPositions[i3] = x
+    displayPositions[i3 + 1] = y
+    displayPositions[i3 + 2] = z
 
     // ----------------------------------
     // COLOR
@@ -3318,7 +3401,7 @@ function updateParticleInstances(
         tempColor.lerpColors(
           ORANGE,
           WHITE,
-          0.42
+          0.55
         )
       } else if (isEarthStage) {
         const lat =
@@ -3329,7 +3412,7 @@ function updateParticleInstances(
         if (absLat > 70) {
           tempColor.lerpColors(
             BLUE,
-            EARTH_ICE,
+            INK,
             (absLat - 70) / 20
           )
         } else if (earthParticleLand[i] === 1) {
@@ -3343,7 +3426,7 @@ function updateParticleInstances(
           if (oceanT < 0.5) {
             tempColor.lerpColors(NAVY, BLUE, oceanT * 2)
           } else {
-            tempColor.lerpColors(BLUE, MINDS_BLUE, (oceanT - 0.5) * 2)
+            tempColor.lerpColors(BLUE, MUTE, (oceanT - 0.5) * 2)
           }
         }
       } else {
@@ -3369,7 +3452,7 @@ function updateParticleInstances(
         } else {
           tempColor.lerpColors(
             BLUE,
-            MINDS_BLUE,
+            MUTE,
             (normalizedX - 0.72) / 0.28
           )
         }
@@ -3377,7 +3460,7 @@ function updateParticleInstances(
         if (influence > 0) {
           tempColor.lerp(
             normalizedX > 0.5
-              ? MINDS_BLUE
+              ? INK
               : WHITE,
             influence * 0.35
           )
@@ -3386,28 +3469,27 @@ function updateParticleInstances(
 
       if (isLogoStage) {
         tempColor.multiplyScalar(
-          1.08
+          1.22
         )
       } else {
         tempColor.multiplyScalar(
-          0.38 +
+          0.55 +
           depth *
-          0.72
+          0.7
         )
       }
 
-      particles.setColorAt(
-        i,
-        tempColor
-      )
+      particleColors[i3] = tempColor.r
+      particleColors[i3 + 1] = tempColor.g
+      particleColors[i3 + 2] = tempColor.b
     }
   }
 
-  particles.instanceMatrix.needsUpdate =
+  particleGeometry.attributes.position.needsUpdate =
     true
 
   if (updateColors) {
-    particles.instanceColor.needsUpdate =
+    particleGeometry.attributes.color.needsUpdate =
       true
 
     colorsNeedUpdate =
@@ -3479,10 +3561,10 @@ function animate() {
   // ----------------------------------
 
   /*
-    This does NOT rebuild 26k matrices.
+    This does NOT rebuild 38k instance matrices.
 
     We are rotating / moving the
-    InstancedMesh as a single object.
+    Points cloud as a single object.
   */
 
   const chase =
@@ -3727,6 +3809,17 @@ function animate() {
     debris.position.y =
       camera.position.y * 0.07
 
+    if (volumeField) {
+      volumeField.rotation.y -=
+        dt * 0.011
+
+      volumeField.position.x =
+        camera.position.x * 0.16
+
+      volumeField.position.y =
+        camera.position.y * 0.12
+    }
+
     const onLogo =
       currentStage === 'logo' ||
       currentStage === 'logo-forming'
@@ -3736,19 +3829,38 @@ function animate() {
         (onLogo ? 1 : 0) -
         logoStill.value
       ) *
-      0.1
+      0.14
 
-    field.material.opacity +=
+    const fieldAlpha =
+      onLogo ? 0.06 : 0.55
+
+    fieldMaterial.uniforms.uAlpha.value +=
       (
-        (onLogo ? 0.06 : 0.22) -
-        field.material.opacity
+        fieldAlpha -
+        fieldMaterial.uniforms.uAlpha.value
       ) *
       0.08
 
-    particleMaterial.opacity +=
+    debrisMaterial.uniforms.uAlpha.value +=
       (
-        (onLogo ? 0.92 : 0.7) -
-        particleMaterial.opacity
+        (onLogo ? 0.04 : 0.22) -
+        debrisMaterial.uniforms.uAlpha.value
+      ) *
+      0.08
+
+    if (volumeField) {
+      volumeField.material.uniforms.uAlpha.value +=
+        (
+          (onLogo ? 0.05 : 0.62) -
+          volumeField.material.uniforms.uAlpha.value
+        ) *
+        0.08
+    }
+
+    particleMaterial.uniforms.uAlpha.value +=
+      (
+        (onLogo ? 1 : 0.9) -
+        particleMaterial.uniforms.uAlpha.value
       ) *
       0.08
   }
@@ -3915,6 +4027,15 @@ window.addEventListener(
     composer.setPixelRatio(
       ratio
     )
+
+    for (
+      let i = 0;
+      i < pointMaterials.length;
+      i++
+    ) {
+      pointMaterials[i].uniforms.uPixelRatio.value =
+        ratio
+    }
 
     /*
       Mobile browser chrome frequently
