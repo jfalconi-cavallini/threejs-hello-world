@@ -1218,7 +1218,7 @@ function rasterizeCanvasWord(count) {
     }
   }
 
-  const worldW = 6.4
+  const worldW = 8.6
   const worldH = worldW * (H / W)
 
   if (cells.length) {
