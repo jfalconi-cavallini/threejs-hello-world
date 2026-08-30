@@ -68,11 +68,9 @@ function mountChrome() {
   boot.innerHTML = `
     <div class="boot-screen-inner">
       <img
-        src="/metaminds-logo-pixel.png"
+        src="/metaminds-lockup.png"
         alt="MetaMinds STEM Academy"
         class="boot-logo"
-        width="160"
-        height="40"
       >
       <p>Loading</p>
     </div>
@@ -1071,6 +1069,16 @@ function loadGLB(url) {
   )
 }
 
+function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () =>
+      reject(new Error('Could not load ' + url))
+    img.src = url
+  })
+}
+
 // ======================================================
 // MODEL -> PARTICLES
 // ======================================================
@@ -1206,10 +1214,71 @@ function consumeLogoSampleRng(count) {
 
 let wordMark = null
 let logoBrainCount = 0
-let logoBrainLocalX = null
+let logoColors = null
 
-function rasterizeCanvasWord(count) {
-  const output = new Float32Array(count * 3)
+function sampleColoredSilhouette(img, count, worldWidth, zDepth) {
+  const srcW = img.naturalWidth
+  const srcH = img.naturalHeight
+  const canvas = document.createElement('canvas')
+  canvas.width = srcW
+  canvas.height = srcH
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  ctx.drawImage(img, 0, 0)
+  const data = ctx.getImageData(0, 0, srcW, srcH).data
+
+  const cells = []
+  for (let y = 0; y < srcH; y++) {
+    for (let x = 0; x < srcW; x++) {
+      const i = (y * srcW + x) * 4
+      if (data[i + 3] < 40) continue
+      const r = data[i]
+      const g = data[i + 1]
+      const b = data[i + 2]
+      cells.push(x, y, r, g, b)
+      const isFill =
+        (Math.abs(r - 11) < 18 && Math.abs(g - 168) < 18 && Math.abs(b - 230) < 18) ||
+        (Math.abs(r - 24) < 18 && Math.abs(g - 34) < 18 && Math.abs(b - 49) < 18)
+      if (!isFill) {
+        cells.push(x, y, r, g, b)
+        cells.push(x, y, r, g, b)
+      }
+    }
+  }
+
+  const cellCount = cells.length / 5
+  const positions = new Float32Array(count * 3)
+  const colors = new Float32Array(count * 3)
+  if (!cellCount) return { positions, colors }
+
+  const worldHeight = worldWidth * (srcH / srcW)
+  const PHI = 0.618033988749895
+  const layers = 7
+
+  for (let i = 0; i < count; i++) {
+    const idx = Math.floor(((i * PHI) % 1) * cellCount)
+    const x = cells[idx * 5]
+    const y = cells[idx * 5 + 1]
+    const layer = i % layers
+    const zt = layers === 1 ? 0.5 : layer / (layers - 1)
+    const puff = 1 - 0.10 * Math.abs(zt - 0.5) * 2
+    const i3 = i * 3
+    positions[i3] =
+      ((x + 0.5) / srcW - 0.5) * worldWidth * puff
+    positions[i3 + 1] =
+      (0.5 - (y + 0.5) / srcH) * worldHeight * puff
+    positions[i3 + 2] =
+      (zt - 0.5) * zDepth
+    colors[i3]     = cells[idx * 5 + 2] / 255
+    colors[i3 + 1] = cells[idx * 5 + 3] / 255
+    colors[i3 + 2] = cells[idx * 5 + 4] / 255
+  }
+
+  return { positions, colors }
+}
+
+function rasterizeMetaMindsWord(count) {
+  const positions = new Float32Array(count * 3)
+  const colors = new Float32Array(count * 3)
   const W = 1800
   const H = 400
   const canvas = document.createElement('canvas')
@@ -1217,87 +1286,103 @@ function rasterizeCanvasWord(count) {
   canvas.height = H
   const ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, W, H)
-  ctx.fillStyle = '#ffffff'
-  ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.font = '700 236px Syne, Arial, Helvetica, sans-serif'
-  ctx.fillText('MetaMinds', W / 2, H / 2 + 8)
+  const metaW = ctx.measureText('Meta').width
+  const mindsW = ctx.measureText('Minds').width
+  const total = metaW + mindsW
+  const left = (W - total) / 2
+  ctx.fillStyle = '#ffffff'
+  ctx.fillText('Meta', left, H / 2 + 8)
+  ctx.fillStyle = '#0BA8E6'
+  ctx.fillText('Minds', left + metaW, H / 2 + 8)
 
   const pixels = ctx.getImageData(0, 0, W, H).data
   const cells = []
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
-      if (pixels[(y * W + x) * 4 + 3] > 40) {
-        cells.push(y * W + x)
+      const i = (y * W + x) * 4
+      if (pixels[i + 3] > 40) {
+        cells.push(x, y, pixels[i], pixels[i + 1], pixels[i + 2])
       }
     }
   }
-  if (!cells.length) return output
+  if (!cells.length) return { positions, colors }
 
+  const cellCount = cells.length / 5
   const worldW = 5.35
   const worldH = worldW * (H / W)
 
   for (let i = 0; i < count; i++) {
-    const cell = cells[i % cells.length]
-    const gx = cell % W
-    const gy = (cell / W) | 0
+    const idx = i % cellCount
     const i3 = i * 3
-    output[i3]     = ((gx + 0.5) / W - 0.5) * worldW
-    output[i3 + 1] = (0.5 - (gy + 0.5) / H) * worldH
-    output[i3 + 2] = ((i % 5) - 2) * 0.055
+    const x = cells[idx * 5]
+    const y = cells[idx * 5 + 1]
+    positions[i3]     = ((x + 0.5) / W - 0.5) * worldW
+    positions[i3 + 1] = (0.5 - (y + 0.5) / H) * worldH
+    positions[i3 + 2] = ((i % 5) - 2) * 0.055
+    colors[i3]     = cells[idx * 5 + 2] / 255
+    colors[i3 + 1] = cells[idx * 5 + 3] / 255
+    colors[i3 + 2] = cells[idx * 5 + 4] / 255
   }
 
-  return output
+  return { positions, colors }
 }
 
-function generateLogoPositions(brainSource) {
+function generateLogoPositions(brainImg) {
   consumeLogoSampleRng(
     PARTICLE_COUNT - Math.floor(PARTICLE_COUNT * 0.12)
   )
 
   const output = new Float32Array(PARTICLE_COUNT * 3)
-  const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.40)
+  const colors = new Float32Array(PARTICLE_COUNT * 3)
+  const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.42)
   const TEXT_COUNT = PARTICLE_COUNT - BRAIN_COUNT
-  const miniScale = 0.50
 
   logoBrainCount = BRAIN_COUNT
-  logoBrainLocalX = new Float32Array(PARTICLE_COUNT)
+
+  const brain = sampleColoredSilhouette(
+    brainImg,
+    BRAIN_COUNT,
+    1.92,
+    0.62
+  )
 
   for (let i = 0; i < BRAIN_COUNT; i++) {
-    const srcI = Math.floor(i * PARTICLE_COUNT / BRAIN_COUNT)
-    const s3 = srcI * 3
     const i3 = i * 3
-    output[i3]     = brainSource[s3] * miniScale
-    output[i3 + 1] = brainSource[s3 + 1] * miniScale
-    output[i3 + 2] = brainSource[s3 + 2] * miniScale
-    logoBrainLocalX[i] = brainSource[s3]
+    output[i3]     = brain.positions[i3]
+    output[i3 + 1] = brain.positions[i3 + 1]
+    output[i3 + 2] = brain.positions[i3 + 2]
+    colors[i3]     = brain.colors[i3]
+    colors[i3 + 1] = brain.colors[i3 + 1]
+    colors[i3 + 2] = brain.colors[i3 + 2]
   }
 
-  let brainMinX = Infinity
   let brainMaxX = -Infinity
   for (let i = 0; i < BRAIN_COUNT; i++) {
     const x = output[i * 3]
-    if (x < brainMinX) brainMinX = x
     if (x > brainMaxX) brainMaxX = x
   }
 
-  const text = rasterizeCanvasWord(TEXT_COUNT)
+  const text = rasterizeMetaMindsWord(TEXT_COUNT)
   let textMinX = Infinity
   for (let i = 0; i < TEXT_COUNT; i++) {
-    const x = text[i * 3]
+    const x = text.positions[i * 3]
     if (x < textMinX) textMinX = x
   }
 
-  const gap = 0.42
+  const gap = 0.38
   const textShift = brainMaxX + gap - textMinX
 
   for (let i = 0; i < TEXT_COUNT; i++) {
-    const dest = BRAIN_COUNT + i
-    const i3 = dest * 3
+    const dest = (BRAIN_COUNT + i) * 3
     const t3 = i * 3
-    output[i3]     = text[t3] + textShift
-    output[i3 + 1] = text[t3 + 1]
-    output[i3 + 2] = text[t3 + 2]
+    output[dest]     = text.positions[t3] + textShift
+    output[dest + 1] = text.positions[t3 + 1]
+    output[dest + 2] = text.positions[t3 + 2]
+    colors[dest]     = text.colors[t3]
+    colors[dest + 1] = text.colors[t3 + 1]
+    colors[dest + 2] = text.colors[t3 + 2]
   }
 
   let minX = Infinity
@@ -1312,6 +1397,7 @@ function generateLogoPositions(brainSource) {
     output[i * 3] -= mid
   }
 
+  logoColors = colors
   return output
 }
 
@@ -2519,6 +2605,10 @@ Promise.all([
   loadGLB(
     '/models/metaminds-logo.glb'
   ),
+
+  loadImage(
+    '/metaminds-brain.png'
+  ),
 ])
   .then(
     ([
@@ -2526,6 +2616,7 @@ Promise.all([
       bulbGLB,
       landGeoJSON,
       logoGLB,
+      lockedBrainImg,
     ]) => {
       brainPositions =
         modelToParticlePositions(
@@ -2545,7 +2636,7 @@ Promise.all([
 
       logoPositions =
         generateLogoPositions(
-          brainPositions
+          lockedBrainImg
         )
 
       if (
@@ -2648,11 +2739,9 @@ function createNavbar() {
   nav.innerHTML = `
     <a class="brand" href="#s1">
       <img
-        src="/metaminds-logo-pixel.png"
+        src="/metaminds-lockup.png"
         alt="MetaMinds STEM Academy"
         class="brand-logo"
-        width="160"
-        height="40"
       >
     </a>
 
@@ -3251,41 +3340,18 @@ function updateParticleInstances(
         currentStage === 'logo' ||
         currentStage === 'logo-forming'
 
-      if (isLogoStage) {
-        if (i < logoBrainCount && logoBrainLocalX) {
-          const normalizedX =
-            THREE.MathUtils.clamp(
-              (logoBrainLocalX[i] + 2.6) / 5.2,
-              0,
-              1
-            )
-
-          if (normalizedX < 0.45) {
-            tempColor.lerpColors(
-              ORANGE,
-              BURNT_ORANGE,
-              normalizedX / 0.45
-            )
-          } else if (normalizedX < 0.72) {
-            tempColor.lerpColors(
-              NAVY,
-              BLUE,
-              (normalizedX - 0.45) / 0.27
-            )
-          } else {
-            tempColor.lerpColors(
-              BLUE,
-              MUTE,
-              (normalizedX - 0.72) / 0.28
-            )
-          }
-        } else {
-          tempColor.copy(WHITE)
-          tempColor.lerp(
-            INK,
-            0.10
-          )
-        }
+      if (isLogoStage && logoColors) {
+        tempColor.setRGB(
+          logoColors[i3],
+          logoColors[i3 + 1],
+          logoColors[i3 + 2]
+        )
+      } else if (isLogoStage) {
+        tempColor.copy(WHITE)
+        tempColor.lerp(
+          INK,
+          0.10
+        )
       } else if (isEarthStage) {
         const lat =
           earthParticleLatLon[i * 2]
@@ -3350,9 +3416,9 @@ function updateParticleInstances(
         }
       }
 
-      if (isLogoStage && i >= logoBrainCount) {
+      if (isLogoStage) {
         tempColor.multiplyScalar(
-          0.88
+          0.92
         )
       } else {
         tempColor.multiplyScalar(

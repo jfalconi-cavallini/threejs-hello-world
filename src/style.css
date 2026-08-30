@@ -129,10 +129,9 @@ button {
 }
 
 .boot-logo {
-  height: 40px;
+  height: 48px;
   width: auto;
   opacity: 0.92;
-  image-rendering: pixelated;
 }
 
 .boot-screen p {
@@ -169,10 +168,9 @@ button {
 }
 
 .brand-logo {
-  height: 40px;
+  height: 48px;
   width: auto;
   display: block;
-  image-rendering: pixelated;
 }
 
 .nav-cta {
