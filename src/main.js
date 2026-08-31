@@ -3250,11 +3250,7 @@ function syncNavHighlight(
 
 function liveCopy(el) {
   const opacity = Number(gsap.getProperty(el, 'opacity')) || 0
-  el.classList.toggle('is-live', opacity > 0)
-}
-
-function syncCopyLive() {
-  document.querySelectorAll('.copy').forEach(liveCopy)
+  el.classList.toggle('is-live', opacity > 0.25)
 }
 
 function copyAnchor(el, desktop) {
@@ -3270,51 +3266,79 @@ function copyAnchor(el, desktop) {
   }
 }
 
-// One 100vh page per beat. Fade in and out share the same scroll
-// distance and ease. Outgoing fade-out starts when the next beat
-// starts, so the slot crossfades instead of going empty.
-const COPY_PAGE = 100
-const COPY_FADE = 20
+// Same page-turn on every beat (b0009d9): incoming eases up from
+// below, outgoing keeps traveling up. Next beat starts at tExit so
+// the handoff overlaps — no empty stall, no sequential dead zone.
+const PAGE_TURN = { enter: 0.04, hold: 0.14, exit: 0.06 }
 
-function addFadeBeat(tl, el, t) {
-  tl.to(el, { opacity: 1, duration: COPY_FADE, ease: 'none' }, t)
-  tl.to(el, { opacity: 0, duration: COPY_FADE, ease: 'none' }, t + COPY_PAGE)
-  return t + COPY_PAGE
+function addPageTurnBeat(tl, el, t, enter, hold, exit, stay) {
+  if (REDUCED_MOTION) {
+    tl.to(el, { autoAlpha: 1, duration: enter, ease: 'none' }, t)
+    tl.to(el, { duration: hold, ease: 'none' }, t + enter)
+    if (!stay) {
+      tl.to(el, { autoAlpha: 0, duration: exit, ease: 'none' }, t + enter + hold)
+    }
+    return t + enter + hold
+  }
+
+  const tHold = t + enter
+  const tExit = tHold + hold
+
+  tl.to(el, { y: 10, duration: enter, ease: 'power1.out' }, t)
+  tl.to(el, {
+    autoAlpha: 1,
+    duration: enter * 0.5,
+    ease: 'power2.in',
+  }, t + enter * 0.35)
+  tl.to(el, { y: -24, duration: hold, ease: 'none' }, tHold)
+
+  if (stay) {
+    return tExit
+  }
+
+  tl.to(el, { y: -220, duration: exit, ease: 'power1.in' }, tExit)
+  tl.to(el, {
+    autoAlpha: 0,
+    duration: exit * 0.5,
+    ease: 'power1.out',
+  }, tExit)
+
+  return tExit
 }
 
-function wireCopyCluster(desktop, selectors, scroll) {
+function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
   const els = selectors.map((selector) => document.querySelector(selector))
 
-  if (els.some((el) => !el) || !scroll.trigger) {
+  if (els.some((el) => !el) || !scroll.trigger || (scroll.endTrigger === null)) {
     return
   }
 
   els.forEach((el) => {
     gsap.set(el, {
       ...copyAnchor(el, desktop),
-      opacity: 0,
+      y: REDUCED_MOTION ? 0 : 200,
+      autoAlpha: 0,
     })
   })
 
   const tl = gsap.timeline({
-    defaults: { force3D: true, ease: 'none' },
+    defaults: { force3D: true },
     scrollTrigger: {
-      trigger: scroll.trigger,
-      endTrigger: scroll.endTrigger || scroll.trigger,
-      start: 'top top',
-      end: `bottom+=${COPY_FADE}vh top`,
-      scrub: true,
-      onUpdate: syncCopyLive,
+      ...scroll,
+      scrub: REDUCED_MOTION ? true : copyScrub,
+      onUpdate: () => els.forEach(liveCopy),
     },
   })
 
   let t = 0
-  els.forEach((el) => {
-    t = addFadeBeat(tl, el, t)
+  els.forEach((el, i) => {
+    const beat = beats[i] || PAGE_TURN
+    t = addPageTurnBeat(tl, el, t, beat.enter, beat.hold, beat.exit, beat.stay)
   })
 }
 
 function setupCopyTravel() {
+  const copyScrub = REDUCED_MOTION ? false : 1.15
   const mm = gsap.matchMedia()
 
   const wire = (desktop) => {
@@ -3324,32 +3348,63 @@ function setupCopyTravel() {
     const morphA = document.querySelector('.chapter-morph-a')
     const morphB = document.querySelector('.chapter-morph-b')
     const morphC = document.querySelector('.chapter-morph-c')
-    const lbItems = [...document.querySelectorAll('.chapter-lb-hold-item')]
+    const lbChapter = document.querySelector('.chapter-lb-hold-item')
     const teamChapter = document.querySelector('.chapter-team')
 
     if (hero && heroChapter) {
       const base = copyAnchor(hero, desktop)
+      const vh = window.innerHeight
 
-      gsap.set(hero, { ...base, opacity: 1 })
-      hero.classList.add('is-live')
-      gsap.timeline({
-        defaults: { force3D: true, ease: 'none' },
-        scrollTrigger: {
-          trigger: heroChapter,
-          start: 'top top',
-          end: `bottom+=${COPY_FADE}vh top`,
-          scrub: true,
-          onUpdate: syncCopyLive,
-        },
-      })
-        .to(hero, { opacity: 1, duration: COPY_PAGE })
-        .to(hero, { opacity: 0, duration: COPY_FADE })
+      if (REDUCED_MOTION) {
+        gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
+        gsap.to(hero, {
+          autoAlpha: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: heroChapter,
+            start: 'top top',
+            end: '+=170%',
+            scrub: true,
+          },
+        })
+      } else {
+        gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
+        hero.classList.add('is-live')
+        // Y travel matches b0009d9. Fade starts as page 2 enters
+        // (morph-a top 82% ≈ 0.10 of this 170% range) so the slot
+        // is never empty and never holds two full-opacity headlines.
+        gsap.timeline({
+          defaults: { force3D: true },
+          scrollTrigger: {
+            trigger: heroChapter,
+            start: 'top top',
+            end: '+=170%',
+            scrub: copyScrub,
+            onUpdate: () => liveCopy(hero),
+          },
+        })
+          .to(hero, { y: vh * -0.42, duration: 0.64, ease: 'none' })
+          .to(hero, { y: -(vh + 80), duration: 0.36, ease: 'power1.in' })
+          .to(hero, { autoAlpha: 0, duration: 0.14, ease: 'power1.out' }, 0.10)
+      }
     }
 
     wireCopyCluster(
       desktop,
       ['.t2-block', '.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
-      { trigger: morphA }
+      {
+        trigger: morphA,
+        start: 'top 82%',
+        end: 'bottom 18%',
+      },
+      [
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+      ],
+      copyScrub
     )
 
     wireCopyCluster(
@@ -3362,15 +3417,34 @@ function setupCopyTravel() {
         '.lb-feature-4',
       ],
       {
-        trigger: lbItems[0],
-        endTrigger: lbItems[lbItems.length - 1],
-      }
+        trigger: lbChapter,
+        endTrigger: morphB,
+        start: 'top 88%',
+        end: '40% top',
+      },
+      [
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+      ],
+      copyScrub
     )
 
     wireCopyCluster(
       desktop,
       ['.t5-main', '.t5-caveat'],
-      { trigger: morphB }
+      {
+        trigger: morphB,
+        start: '38% top',
+        end: 'bottom 14%',
+      },
+      [
+        PAGE_TURN,
+        PAGE_TURN,
+      ],
+      copyScrub
     )
 
     wireCopyCluster(
@@ -3385,7 +3459,22 @@ function setupCopyTravel() {
         '.earth-phil-para',
         '.earth-phil-close',
       ],
-      { trigger: teamChapter }
+      {
+        trigger: teamChapter,
+        start: 'top bottom',
+        end: 'bottom top',
+      },
+      [
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+        PAGE_TURN,
+      ],
+      copyScrub
     )
 
     if (consult && morphC) {
@@ -3393,20 +3482,30 @@ function setupCopyTravel() {
 
       gsap.set(consult, {
         ...base,
-        opacity: 0,
+        y: REDUCED_MOTION ? 0 : 200,
+        autoAlpha: 0,
       })
-      gsap.to(consult, {
-        opacity: 1,
-        ease: 'none',
-        force3D: true,
+
+      const tl = gsap.timeline({
+        defaults: { force3D: true },
         scrollTrigger: {
           trigger: morphC,
-          start: 'top top',
-          end: `top+=${COPY_FADE}vh top`,
-          scrub: true,
-          onUpdate: syncCopyLive,
+          start: 'top 24%',
+          end: 'top+=22% top',
+          scrub: REDUCED_MOTION ? true : copyScrub,
+          onUpdate: () => liveCopy(consult),
         },
       })
+
+      addPageTurnBeat(
+        tl,
+        consult,
+        0,
+        PAGE_TURN.enter,
+        PAGE_TURN.hold,
+        PAGE_TURN.exit,
+        true
+      )
     }
   }
 
