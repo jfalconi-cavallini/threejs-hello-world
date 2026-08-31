@@ -3253,6 +3253,32 @@ function liveCopy(el) {
   el.classList.toggle('is-live', opacity > 0.25)
 }
 
+// Visibility only — does not touch Y, opacity tweens, scrub, or durations.
+// One readable .copy in the fixed slot. Incoming (later in DOM) wins so
+// two headlines cannot sit at full opacity on top of each other.
+function syncCopySlot() {
+  const copies = [...document.querySelectorAll('.copy')]
+  const readable = copies.filter((el) => {
+    return (Number(gsap.getProperty(el, 'opacity')) || 0) > 0.55
+  })
+
+  if (readable.length <= 1) {
+    copies.forEach((el) => {
+      const opacity = Number(gsap.getProperty(el, 'opacity')) || 0
+      el.classList.toggle('is-live', opacity > 0.25)
+      el.style.visibility = opacity > 0 ? 'visible' : 'hidden'
+    })
+    return
+  }
+
+  const winner = readable[readable.length - 1]
+  copies.forEach((el) => {
+    const on = el === winner
+    el.classList.toggle('is-live', on)
+    el.style.visibility = on ? 'visible' : 'hidden'
+  })
+}
+
 function copyAnchor(el, desktop) {
   const mid = desktop && el.classList.contains('copy-mid')
   const team = desktop && el.classList.contains('copy-team')
@@ -3326,7 +3352,7 @@ function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
     scrollTrigger: {
       ...scroll,
       scrub: REDUCED_MOTION ? true : copyScrub,
-      onUpdate: () => els.forEach(liveCopy),
+      onUpdate: syncCopySlot,
     },
   })
 
@@ -3380,7 +3406,7 @@ function setupCopyTravel() {
             start: 'top top',
             end: '+=170%',
             scrub: copyScrub,
-            onUpdate: () => liveCopy(hero),
+            onUpdate: syncCopySlot,
           },
         })
           .to(hero, { y: vh * -0.42, duration: 0.64, ease: 'none' })
@@ -3493,7 +3519,7 @@ function setupCopyTravel() {
           start: 'top 24%',
           end: 'top+=22% top',
           scrub: REDUCED_MOTION ? true : copyScrub,
-          onUpdate: () => liveCopy(consult),
+          onUpdate: syncCopySlot,
         },
       })
 
