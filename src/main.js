@@ -1972,16 +1972,16 @@ function setTransformShot(
 }
 
 const STAGE = {
-  brainHold: 0.067,
-  brainMove: 0.200,
-  brainExplode: 0.248,
-  bulbForm: 0.296,
-  bulbHold: 0.432,
-  bulbExplode: 0.495,
-  earthForm: 0.575,
-  earthHold: 0.773,
-  earthExplode: 0.832,
-  logoForm: 0.891,
+  brainHold: 0.040,
+  brainMove: 0.080,
+  brainExplode: 0.120,
+  bulbForm: 0.160,
+  bulbHold: 0.440,
+  bulbExplode: 0.480,
+  earthForm: 0.520,
+  earthHold: 0.840,
+  earthExplode: 0.880,
+  logoForm: 0.920,
 }
 
 function applyScrollCamera(p) {
@@ -3250,7 +3250,26 @@ function syncNavHighlight(
 
 function liveCopy(el) {
   const opacity = Number(gsap.getProperty(el, 'opacity')) || 0
-  el.classList.toggle('is-live', opacity > 0.25)
+  el.classList.toggle('is-live', opacity > 0.12)
+}
+
+function enforceOneCopy() {
+  const copies = [...document.querySelectorAll('.copy')]
+  const scored = copies.map((el, i) => ({
+    el,
+    i,
+    op: Number(gsap.getProperty(el, 'opacity')) || 0,
+  }))
+  const visible = scored.filter((item) => item.op > 0.12)
+
+  if (visible.length > 1) {
+    visible.sort((a, b) => b.op - a.op || b.i - a.i)
+    visible.slice(1).forEach(({ el }) => {
+      gsap.set(el, { autoAlpha: 0 })
+    })
+  }
+
+  copies.forEach(liveCopy)
 }
 
 function copyAnchor(el, desktop) {
@@ -3266,38 +3285,44 @@ function copyAnchor(el, desktop) {
   }
 }
 
-function addPageTurnBeat(tl, el, t, enter, hold, exit) {
+function addPageTurnBeat(tl, el, t, slot) {
+  // 8% of each 100vh page stays empty so the outgoing line is
+  // fully off (and hidden) before the next page becomes readable.
+  const enter = slot * 0.15
+  const hold = slot * 0.62
+  const exit = slot * 0.15
+
   if (REDUCED_MOTION) {
     tl.to(el, { autoAlpha: 1, duration: enter, ease: 'none' }, t)
     tl.to(el, { duration: hold, ease: 'none' }, t + enter)
     tl.to(el, { autoAlpha: 0, duration: exit, ease: 'none' }, t + enter + hold)
-    return t + enter + hold
+    return t + slot
   }
 
   const tHold = t + enter
   const tExit = tHold + hold
 
-  tl.to(el, { y: 10, duration: enter, ease: 'power1.out' }, t)
+  tl.to(el, { y: 12, duration: enter, ease: 'power1.out' }, t)
   tl.to(el, {
     autoAlpha: 1,
-    duration: enter * 0.5,
+    duration: enter * 0.45,
     ease: 'power2.in',
-  }, t + enter * 0.35)
-  tl.to(el, { y: -24, duration: hold, ease: 'none' }, tHold)
-  tl.to(el, { y: -220, duration: exit, ease: 'power1.in' }, tExit)
+  }, t + enter * 0.4)
+  tl.to(el, { y: -20, duration: hold, ease: 'none' }, tHold)
+  tl.to(el, { y: -260, duration: exit, ease: 'power1.in' }, tExit)
   tl.to(el, {
     autoAlpha: 0,
-    duration: exit * 0.5,
+    duration: exit * 0.55,
     ease: 'power1.out',
   }, tExit)
 
-  return tExit
+  return t + slot
 }
 
-function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
+function wireCopyCluster(desktop, selectors, scroll, copyScrub) {
   const els = selectors.map((selector) => document.querySelector(selector))
 
-  if (els.some((el) => !el) || !scroll.trigger || (scroll.endTrigger === null)) {
+  if (els.some((el) => !el) || !scroll.trigger) {
     return
   }
 
@@ -3309,24 +3334,29 @@ function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
     })
   })
 
+  const slot = 1 / els.length
   const tl = gsap.timeline({
     defaults: { force3D: true },
     scrollTrigger: {
-      ...scroll,
+      trigger: scroll.trigger,
+      endTrigger: scroll.endTrigger || scroll.trigger,
+      start: 'top+=12vh top',
+      end: 'bottom top',
       scrub: REDUCED_MOTION ? true : copyScrub,
-      onUpdate: () => els.forEach(liveCopy),
+      onUpdate: enforceOneCopy,
     },
   })
 
   let t = 0
-  els.forEach((el, i) => {
-    const beat = beats[i]
-    t = addPageTurnBeat(tl, el, t, beat.enter, beat.hold, beat.exit)
+  els.forEach((el) => {
+    t = addPageTurnBeat(tl, el, t, slot)
   })
 }
 
 function setupCopyTravel() {
-  const copyScrub = REDUCED_MOTION ? false : 1.15
+  // No numeric scrub — lag was stacking two pages in the same slot.
+  // Smoothness comes from the 100vh Y travel, not from tween delay.
+  const copyScrub = REDUCED_MOTION ? false : true
   const mm = gsap.matchMedia()
 
   const wire = (desktop) => {
@@ -3336,7 +3366,7 @@ function setupCopyTravel() {
     const consultChapter = document.querySelector('.logo-hold-chapter')
     const morphA = document.querySelector('.chapter-morph-a')
     const morphB = document.querySelector('.chapter-morph-b')
-    const lbChapter = document.querySelector('.chapter-lb-hold-item')
+    const lbItems = [...document.querySelectorAll('.chapter-lb-hold-item')]
     const teamChapter = document.querySelector('.chapter-team')
 
     if (hero && heroChapter) {
@@ -3351,8 +3381,9 @@ function setupCopyTravel() {
           scrollTrigger: {
             trigger: heroChapter,
             start: 'top top',
-            end: '+=170%',
+            end: '80% top',
             scrub: true,
+            onUpdate: enforceOneCopy,
           },
         })
       } else {
@@ -3362,39 +3393,24 @@ function setupCopyTravel() {
           scrollTrigger: {
             trigger: heroChapter,
             start: 'top top',
-            end: '+=170%',
+            end: '80% top',
             scrub: copyScrub,
-            onUpdate: () => liveCopy(hero),
+            onUpdate: enforceOneCopy,
           },
         })
-          .to(hero, { y: vh * -0.42, duration: 0.64, ease: 'none' })
-          .to(hero, { y: -(vh + 80), duration: 0.36, ease: 'power1.in' })
-          .to(hero, { autoAlpha: 0, duration: 0.2, ease: 'none' }, '<0.16')
+          .to(hero, { y: vh * -0.45, duration: 0.55, ease: 'none' })
+          .to(hero, { y: -(vh + 80), duration: 0.45, ease: 'power1.in' })
+          .to(hero, { autoAlpha: 0, duration: 0.28, ease: 'none' }, '<')
       }
     }
 
-    // Chapter 2 landing + chapter 3 punch lines live in morph-a (700vh).
     wireCopyCluster(
       desktop,
       ['.t2-block', '.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
-      {
-        trigger: morphA,
-        start: 'top 82%',
-        end: 'bottom 18%',
-      },
-      [
-        { enter: 0.04, hold: 0.18, exit: 0.06 },
-        { enter: 0.04, hold: 0.15, exit: 0.06 },
-        { enter: 0.04, hold: 0.14, exit: 0.06 },
-        { enter: 0.04, hold: 0.14, exit: 0.06 },
-        { enter: 0.04, hold: 0.14, exit: 0.06 },
-      ],
+      { trigger: morphA },
       copyScrub
     )
 
-    // Chapter 4 lightbulb hold items are only ~100vh each. One timeline
-    // across the five items plus a slice of morph-b so each beat gets a
-    // full page before the next takes over, with extra middle dwell.
     wireCopyCluster(
       desktop,
       [
@@ -3405,39 +3421,19 @@ function setupCopyTravel() {
         '.lb-feature-4',
       ],
       {
-        trigger: lbChapter,
-        endTrigger: morphB,
-        start: 'top 88%',
-        end: '40% top',
+        trigger: lbItems[0],
+        endTrigger: lbItems[lbItems.length - 1],
       },
-      [
-        { enter: 0.04, hold: 0.13, exit: 0.06 },
-        { enter: 0.04, hold: 0.14, exit: 0.06 },
-        { enter: 0.04, hold: 0.14, exit: 0.06 },
-        { enter: 0.04, hold: 0.14, exit: 0.06 },
-        { enter: 0.04, hold: 0.15, exit: 0.06 },
-      ],
       copyScrub
     )
 
-    // Chapter 5 virtual-first copy, after the lightbulb lines finish.
     wireCopyCluster(
       desktop,
       ['.t5-main', '.t5-caveat'],
-      {
-        trigger: morphB,
-        start: '38% top',
-        end: 'bottom 14%',
-      },
-      [
-        { enter: 0.08, hold: 0.46, exit: 0.1 },
-        { enter: 0.08, hold: 0.32, exit: 0.08 },
-      ],
+      { trigger: morphB },
       copyScrub
     )
 
-    // Chapters 6–7 earth hold. Extra dwell on the program paths and
-    // the long philosophy paragraph.
     wireCopyCluster(
       desktop,
       [
@@ -3450,21 +3446,7 @@ function setupCopyTravel() {
         '.earth-phil-para',
         '.earth-phil-close',
       ],
-      {
-        trigger: teamChapter,
-        start: 'top bottom',
-        end: 'bottom top',
-      },
-      [
-        { enter: 0.02, hold: 0.09, exit: 0.04 },
-        { enter: 0.02, hold: 0.09, exit: 0.04 },
-        { enter: 0.02, hold: 0.11, exit: 0.04 },
-        { enter: 0.02, hold: 0.11, exit: 0.04 },
-        { enter: 0.02, hold: 0.09, exit: 0.04 },
-        { enter: 0.02, hold: 0.1, exit: 0.04 },
-        { enter: 0.02, hold: 0.12, exit: 0.04 },
-        { enter: 0.02, hold: 0.09, exit: 0.04 },
-      ],
+      { trigger: teamChapter },
       copyScrub
     )
 
@@ -3483,10 +3465,10 @@ function setupCopyTravel() {
         force3D: true,
         scrollTrigger: {
           trigger: consultChapter,
-          start: 'top 72%',
-          end: 'top 40%',
+          start: 'top top',
+          end: 'top 55%',
           scrub: REDUCED_MOTION ? true : copyScrub,
-          onUpdate: () => liveCopy(consult),
+          onUpdate: enforceOneCopy,
         },
       })
     }
