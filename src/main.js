@@ -11,9 +11,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './style.css'
 
 gsap.registerPlugin(ScrollTrigger)
-ScrollTrigger.config({
-  ignoreMobileResize: true,
-})
 
 let scrollProgressBar = null
 let bootScreen = null
@@ -71,7 +68,7 @@ function mountChrome() {
   boot.innerHTML = `
     <div class="boot-screen-inner">
       <img
-        src="/metaminds-lockup.png"
+        src="/metaminds-logo.png"
         alt="MetaMinds STEM Academy"
         class="boot-logo"
       >
@@ -82,24 +79,6 @@ function mountChrome() {
   document.body.appendChild(
     boot
   )
-
-  document.documentElement.classList.add(
-    'is-booting'
-  )
-
-  if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual'
-  }
-
-  if (location.hash) {
-    history.replaceState(
-      null,
-      '',
-      location.pathname + location.search
-    )
-  }
-
-  window.scrollTo(0, 0)
 
   bootScreen =
     boot
@@ -125,8 +104,25 @@ const REDUCED_MOTION =
 // Phone-first 60fps-class budget. Density is secondary.
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
-    ? 4000
-    : 10000
+    ? 1800
+    : 4200
+
+// Extra, dedicated fill just for the closing MetaMinds mark — never
+// drawn until the final hold, so it costs nothing during the rest of
+// the scroll. This is what makes the wordmark actually read as text.
+const LOGO_DETAIL_COUNT =
+  MOBILE_AT_LOAD
+    ? 4200
+    : 9500
+
+// Same idea for the opening hero shot — the shared morph budget
+// alone reads as a fuzzy blob at a glance, so a dedicated dense
+// layer fades in just for the brain hold, then back out before it
+// explodes into the lightbulb.
+const HERO_BRAIN_DETAIL_COUNT =
+  MOBILE_AT_LOAD
+    ? 2200
+    : 4800
 
 const PIXEL_RATIO_CAP =
   MOBILE_AT_LOAD
@@ -161,6 +157,7 @@ const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
 const RIGHT_X = 3.22
+const HERO_BRAIN_X = 2.45
 const LEFT_X = -1.25
 const CENTER_X = 0.35
 const LOGO_X = 0
@@ -381,7 +378,6 @@ function createPointMaterial({
 }) {
   const uniforms = {
     uTime: ambientTime,
-    uLogoStill: logoStill,
     uPixelRatio: {
       value: renderer.getPixelRatio(),
     },
@@ -401,51 +397,70 @@ function createPointMaterial({
       toneMapped: false,
       vertexShader: `
         uniform float uTime;
-        uniform float uLogoStill;
         uniform float uPixelRatio;
         uniform float uSize;
         uniform float uDrift;
         attribute float aScale;
         attribute vec3 color;
         varying vec3 vColor;
-        varying float vAlpha;
+        varying float vAngle;
 
         void main() {
           vColor = color;
           float seed = position.x * 1.73 + position.y * 2.11 + position.z * 1.37;
           vec3 pos = position;
-          float driftAmt = uDrift * mix(1.0, 0.0, uLogoStill);
           pos += vec3(
             sin(uTime * 0.53 + seed) * 1.15,
             cos(uTime * 0.41 + seed * 1.2) * 0.88,
             sin(uTime * 0.47 + seed * 0.8) * 1.02
-          ) * driftAmt;
+          ) * uDrift;
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
           float dist = max(0.42, -mvPosition.z);
-          float atten = mix(12.4 / dist, 5.4, uLogoStill);
+          float atten = 12.4 / dist;
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, mix(58.0, 7.2, uLogoStill));
-          gl_PointSize = max(sz, mix(1.15, 2.4, uLogoStill));
+          sz = min(sz, 33.0);
+          gl_PointSize = max(sz, 1.4);
           gl_Position = projectionMatrix * mvPosition;
-          vAlpha = mix(0.78, 0.94, uLogoStill);
+          // Slow tumble, unique per particle so the field doesn't
+          // read as a uniform grid of identical facets.
+          vAngle = uTime * (0.16 + fract(seed * 4.37) * 0.34) + seed * 6.2831853;
         }
       `,
       fragmentShader: `
         uniform float uAlpha;
-        uniform float uLogoStill;
         varying vec3 vColor;
-        varying float vAlpha;
+        varying float vAngle;
+
+        // iq's equilateral-triangle SDF — draws each particle as a
+        // faceted wireframe triangle instead of a soft round blob.
+        float sdEquilateralTriangle(vec2 p, float r) {
+          const float k = 1.7320508;
+          p.x = abs(p.x) - r;
+          p.y = p.y + r / k;
+          if (p.x + k * p.y > 0.0) {
+            p = vec2(p.x - k * p.y, -k * p.x - p.y) * 0.5;
+          }
+          p.x -= clamp(p.x, -2.0 * r, 0.0);
+          return -length(p) * sign(p.y);
+        }
 
         void main() {
-          vec2 c = gl_PointCoord - vec2(0.5);
-          float d = length(c);
-          if (d > 0.5) discard;
-          float soft = smoothstep(0.5, 0.10, d);
-          float hard = 1.0 - smoothstep(0.22, 0.40, d);
-          float core = mix(soft, hard * 0.92, uLogoStill);
-          float hot = mix(smoothstep(0.22, 0.0, d), 0.55, uLogoStill);
-          vec3 rgb = vColor * mix(0.72 + hot * 0.55, 1.08, uLogoStill);
-          gl_FragColor = vec4(rgb, core * vAlpha * uAlpha);
+          vec2 c = (gl_PointCoord - vec2(0.5)) * 2.2;
+          float ca = cos(vAngle);
+          float sa = sin(vAngle);
+          vec2 rc = vec2(ca * c.x - sa * c.y, sa * c.x + ca * c.y);
+
+          float d = sdEquilateralTriangle(rc, 0.62);
+
+          float lw = 0.07;
+          float aa = 0.05;
+          float edge = 1.0 - smoothstep(lw - aa, lw + aa, abs(d));
+          float fill = smoothstep(0.0, -0.55, d) * 0.16;
+          float core = clamp(edge + fill, 0.0, 1.0);
+
+          if (core < 0.02) discard;
+
+          gl_FragColor = vec4(vColor * 1.1, core * uAlpha);
         }
       `,
     })
@@ -499,7 +514,7 @@ particleGeometry.setAttribute(
 
 const particleMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 5.6 : 4.4,
+    size: MOBILE_AT_LOAD ? 8.5 : 7,
     drift: REDUCED_MOTION ? 0 : 0.042,
     alpha: 0.9,
     additive: true,
@@ -521,8 +536,8 @@ scene.add(particles)
 
 const DEBRIS_COUNT =
   MOBILE_AT_LOAD
-    ? 14
-    : 42
+    ? 10
+    : 28
 
 const debrisPositions =
   new Float32Array(
@@ -614,7 +629,7 @@ debrisGeometry.setAttribute(
 
 const debrisMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 18 : 22,
+    size: MOBILE_AT_LOAD ? 20 : 26,
     drift: REDUCED_MOTION ? 0 : 0.11,
     alpha: 0.22,
     additive: true,
@@ -637,7 +652,7 @@ scene.add(debris)
 const FIELD_COUNT =
   MOBILE_AT_LOAD
     ? 0
-    : 2000
+    : 900
 
 const fieldPositions =
   new Float32Array(
@@ -760,7 +775,7 @@ fieldGeometry.setAttribute(
 
 const fieldMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 2.4 : 1.85,
+    size: MOBILE_AT_LOAD ? 4 : 3.4,
     drift: REDUCED_MOTION ? 0 : 0.16,
     alpha: 0.55,
     additive: true,
@@ -840,13 +855,15 @@ particleGeometry.attributes.aScale.needsUpdate =
   true
 
 let volumeField = null
+let logoDetail = null
+let heroBrainDetail = null
 
 // Extra volumetric dust — golden-ratio sphere, no Math.random
 // so the existing RNG stream for forms/explosions stays intact.
 const VOLUME_COUNT =
   MOBILE_AT_LOAD
     ? 0
-    : 2500
+    : 1150
 
 console.log({
   FIELD_COUNT,
@@ -951,7 +968,7 @@ if (VOLUME_COUNT > 0)
 
   const volumeMaterial =
     createPointMaterial({
-      size: MOBILE_AT_LOAD ? 2.1 : 1.55,
+      size: MOBILE_AT_LOAD ? 3.6 : 3,
       drift: REDUCED_MOTION ? 0 : 0.09,
       alpha: 0.62,
       additive: true,
@@ -1090,16 +1107,6 @@ function loadGLB(url) {
   )
 }
 
-function loadImage(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = () =>
-      reject(new Error('Could not load ' + url))
-    img.src = url
-  })
-}
-
 // ======================================================
 // MODEL -> PARTICLES
 // ======================================================
@@ -1107,7 +1114,8 @@ function loadImage(url) {
 function modelToParticlePositions(
   model,
   desiredSize,
-  puffScale = 1
+  puffScale = 1,
+  count = PARTICLE_COUNT
 ) {
   model.updateMatrixWorld(true)
 
@@ -1186,9 +1194,9 @@ function modelToParticlePositions(
   const centerZ = (minZ + maxZ) / 2
   const scale = desiredSize / Math.max(maxX - minX, maxY - minY, maxZ - minZ)
 
-  const output = new Float32Array(PARTICLE_COUNT * 3)
+  const output = new Float32Array(count * 3)
 
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
+  for (let i = 0; i < count; i++) {
     // Binary search: pick a triangle weighted by surface area
     const r = Math.random()
     let lo = 0, hi = triCount - 1
@@ -1208,210 +1216,301 @@ function modelToParticlePositions(
     const px = (w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale
     const py = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
     const pz = (w * tris[base + 2] + u * tris[base + 5] + v * tris[base + 8] - centerZ) * scale
-    const plen = Math.sqrt(px * px + py * py + pz * pz) || 1
+
+    // Puff along the triangle's own face normal, not the vector from
+    // the model's bounding-box center. A center-relative puff smears
+    // points sideways across whatever is laid out along that axis —
+    // fatal for a wide horizontal wordmark, where it blurs letters
+    // into their neighbors instead of just thickening each stroke.
+    const e1x = tris[base + 3] - tris[base]
+    const e1y = tris[base + 4] - tris[base + 1]
+    const e1z = tris[base + 5] - tris[base + 2]
+    const e2x = tris[base + 6] - tris[base]
+    const e2y = tris[base + 7] - tris[base + 1]
+    const e2z = tris[base + 8] - tris[base + 2]
+    let nx = e1y * e2z - e1z * e2y
+    let ny = e1z * e2x - e1x * e2z
+    let nz = e1x * e2y - e1y * e2x
+    const nlen = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1
+    nx /= nlen
+    ny /= nlen
+    nz /= nlen
+
     const puff = (Math.random() - 0.22) * 0.22 * puffScale
-    output[i3]     = px + (px / plen) * puff
-    output[i3 + 1] = py + (py / plen) * puff
-    output[i3 + 2] = pz + (pz / plen) * puff
+    output[i3]     = px + nx * puff
+    output[i3 + 1] = py + ny * puff
+    output[i3 + 2] = pz + nz * puff
   }
 
   return output
 }
 
 // ======================================================
-// LOGO — locked brain icon as the assembled 3D mark
+// LOGO — sampled straight off the metaminds-logo.glb mesh,
+// same area-weighted random fill as the brain / lightbulb.
+// No grid, no glyph raster — just scatter within the model.
 // ======================================================
 
-// Four draws per former text sample. Must stay so
-// explosion / globe RNG downstream does not shift.
-function consumeLogoSampleRng(count) {
-  for (let i = 0; i < count; i++) {
-    Math.random()
-    Math.random()
-    Math.random()
-    Math.random()
-  }
+function generateLogoPositions(logoScene) {
+  return modelToParticlePositions(
+    logoScene,
+    LOGO_SIZE,
+    0.25
+  )
 }
 
-let wordMark = null
-let logoBrainCount = 0
-let logoColors = null
+// Same trick as the logo hold below: a dedicated, denser sample of
+// brain.glb, added as a child of `particles` (so it inherits the
+// same transform as the sparse morph copy sitting underneath it),
+// invisible except during the opening brain hold.
+function buildHeroBrainDetail(brainScene) {
+  const positions = modelToParticlePositions(
+    brainScene,
+    BRAIN_SIZE,
+    0.25,
+    HERO_BRAIN_DETAIL_COUNT
+  )
 
-function sampleColoredSilhouette(img, count, worldWidth, zDepth) {
-  const srcW = img.naturalWidth
-  const srcH = img.naturalHeight
-  const canvas = document.createElement('canvas')
-  canvas.width = srcW
-  canvas.height = srcH
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  ctx.drawImage(img, 0, 0)
-  const data = ctx.getImageData(0, 0, srcW, srcH).data
-
-  // Locked mark: cyan left #0BA8E6 + white traces,
-  // navy right #182231 + orange #FF8A00 traces.
-  // The crop is RGB (no alpha); black padding is empty space.
-  const CYAN = [0x0b / 255, 0xa8 / 255, 0xe6 / 255]
-  const NAVY = [0x18 / 255, 0x22 / 255, 0x31 / 255]
-  const WHITE = [1, 1, 1]
-  const ORANGE = [1, 0x8a / 255, 0]
-  const PALETTE = [null, WHITE, ORANGE, CYAN, NAVY]
-
-  const kindOf = (r, g, b) => {
-    const sum = r + g + b
-    if (sum < 22) return 0
-    if (r > 190 && g > 200 && b > 200) return 1
-    if (r > 160 && g > 70 && g < 185 && b < 55) return 2
-    if (b > 145 && g > 90 && r < 90) return 3
-    if (b >= 14 && b < 110 && r < 60 && g < 70) return 4
-    if (sum < 28) return 0
-    if (r > b + 40 && r > 120) return 2
-    if (b > 130) return 3
-    return 4
+  if (!positions) {
+    return null
   }
 
-  const isBg = new Uint8Array(srcW * srcH)
-  for (let p = 0, i = 0; p < srcW * srcH; p++, i += 4) {
-    if (kindOf(data[i], data[i + 1], data[i + 2]) === 0) {
-      isBg[p] = 1
-    }
+  let minX = Infinity
+  let maxX = -Infinity
+
+  for (let i = 0; i < HERO_BRAIN_DETAIL_COUNT; i++) {
+    const x = positions[i * 3]
+    if (x < minX) minX = x
+    if (x > maxX) maxX = x
   }
 
-  const TRACE_DUP = 6
-  const EDGE_DUP = 4
-  const cells = []
-  let minX = srcW
-  let minY = srcH
-  let maxX = 0
-  let maxY = 0
+  const span = (maxX - minX) || 1
 
-  for (let y = 0; y < srcH; y++) {
-    for (let x = 0; x < srcW; x++) {
-      const p = y * srcW + x
-      if (isBg[p]) continue
-      const i = p * 4
-      const kind = kindOf(data[i], data[i + 1], data[i + 2])
-      if (!kind) continue
-      if (x < minX) minX = x
-      if (x > maxX) maxX = x
-      if (y < minY) minY = y
-      if (y > maxY) maxY = y
-      const rgb = PALETTE[kind]
-      const isTrace = kind === 1 || kind === 2 ? 1 : 0
-      let copies = isTrace ? TRACE_DUP : 1
-      if (
-        (y > 0 && isBg[p - srcW]) ||
-        (y + 1 < srcH && isBg[p + srcW]) ||
-        (x > 0 && isBg[p - 1]) ||
-        (x + 1 < srcW && isBg[p + 1])
-      ) {
-        copies += EDGE_DUP
-      }
-      for (let n = 0; n < copies; n++) {
-        cells.push(x, y, rgb[0], rgb[1], rgb[2], isTrace)
-      }
-    }
-  }
+  const colors = new Float32Array(HERO_BRAIN_DETAIL_COUNT * 3)
+  const sizes = new Float32Array(HERO_BRAIN_DETAIL_COUNT)
 
-  const STRIDE = 6
-  const cellCount = cells.length / STRIDE
-  const positions = new Float32Array(count * 3)
-  const colors = new Float32Array(count * 3)
-  if (!cellCount) return { positions, colors }
-
-  const contentW = Math.max(1, maxX - minX + 1)
-  const contentH = Math.max(1, maxY - minY + 1)
-  const midX = (minX + maxX + 1) / 2
-  const midY = (minY + maxY + 1) / 2
-  const worldHeight = worldWidth * (contentH / contentW)
-  const PHI = 0.618033988749895
-  const layers = 7
-  const pixelW = worldWidth / contentW
-  const pixelH = worldHeight / contentH
-
-  for (let i = 0; i < count; i++) {
-    const idx = Math.floor(((i * PHI) % 1) * cellCount)
-    const base = idx * STRIDE
-    const x = cells[base]
-    const y = cells[base + 1]
-    const isTrace = cells[base + 5]
-    const layer = isTrace ? 4 + (i % 3) : i % layers
-    const zt = layer / (layers - 1)
-    const puff = 1 - 0.10 * Math.abs(zt - 0.5) * 2
-    const jx = ((i * 0.173 + 0.31) % 1) - 0.5
-    const jy = ((i * 0.271 + 0.17) % 1) - 0.5
+  for (let i = 0; i < HERO_BRAIN_DETAIL_COUNT; i++) {
     const i3 = i * 3
-    positions[i3] =
-      ((x + 0.5 - midX) / contentW) * worldWidth * puff +
-      jx * pixelW * 0.55
-    positions[i3 + 1] =
-      ((midY - (y + 0.5)) / contentH) * worldHeight * puff +
-      jy * pixelH * 0.55
-    positions[i3 + 2] =
-      (zt - 0.5) * zDepth + (isTrace ? 0.06 : 0)
-    colors[i3]     = cells[base + 2]
-    colors[i3 + 1] = cells[base + 3]
-    colors[i3 + 2] = cells[base + 4]
+    const t = (positions[i3] - minX) / span
+
+    // Same tri-color gradient the sparse morph particles use, so the
+    // dense overlay reads as the same object, just sharper.
+    if (t < 0.45) {
+      tempColor.lerpColors(ORANGE, BURNT_ORANGE, t / 0.45)
+    } else if (t < 0.72) {
+      tempColor.lerpColors(NAVY, BLUE, (t - 0.45) / 0.27)
+    } else {
+      tempColor.lerpColors(BLUE, MUTE, (t - 0.72) / 0.28)
+    }
+
+    colors[i3]     = tempColor.r
+    colors[i3 + 1] = tempColor.g
+    colors[i3 + 2] = tempColor.b
+
+    sizes[i] = 0.78 + Math.random() * 0.5
   }
 
-  return { positions, colors }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  geometry.setAttribute('aScale', new THREE.BufferAttribute(sizes, 1))
+
+  const material = createPointMaterial({
+    size: MOBILE_AT_LOAD ? 4.2 : 3.6,
+    drift: 0,
+    alpha: 0,
+    additive: true,
+  })
+
+  const mesh = new THREE.Points(geometry, material)
+  mesh.frustumCulled = false
+  mesh.visible = false
+  particles.add(mesh)
+
+  return mesh
 }
 
-function generateLogoPositions(brainImg) {
-  consumeLogoSampleRng(
-    PARTICLE_COUNT - Math.floor(PARTICLE_COUNT * 0.12)
+// A dedicated, much denser fill of the same logo mesh, added as a
+// child of `particles` so it inherits the same position / rotation /
+// scale. It stays invisible for the entire scroll and only fades in
+// on the final hold — the morph system's shared PARTICLE_COUNT never
+// has enough budget to make text actually legible without slowing
+// down every other stage, so this exists purely to make the closing
+// "MetaMinds" mark read as real type instead of a fuzzy suggestion.
+//
+// The logo mesh's own "icon" slice is just a flat badge graphic, not
+// real brain geometry, so it never reads as a brain no matter how it's
+// sampled. Instead we drop that slice entirely and sample the actual
+// brain.glb into its slot — same detailed shape as the hero, just
+// small and brand-colored.
+function buildLogoDetail(
+  logoScene,
+  brainScene
+) {
+  // Oversample the full logo mesh, then keep only points that land
+  // outside the icon's slice (the leftmost ~24% of its width) so we
+  // end up with ~LOGO_DETAIL_COUNT text-only points.
+  const oversample =
+    Math.round(LOGO_DETAIL_COUNT / 0.6)
+
+  const rawPositions = modelToParticlePositions(
+    logoScene,
+    LOGO_SIZE,
+    0.1,
+    oversample
   )
 
-  const output = new Float32Array(PARTICLE_COUNT * 3)
-  const colors = new Float32Array(PARTICLE_COUNT * 3)
-  logoBrainCount = PARTICLE_COUNT
-
-  const brain = sampleColoredSilhouette(
-    brainImg,
-    PARTICLE_COUNT,
-    3.15,
-    1.05
-  )
-
-  output.set(brain.positions)
-  colors.set(brain.colors)
-
-  // Draw traces on top of fill when the assembled mark
-  // switches to normal blending.
-  {
-    let write = 0
-    const posSwap = new Float32Array(PARTICLE_COUNT * 3)
-    const colSwap = new Float32Array(PARTICLE_COUNT * 3)
-    const copyParticle = (src) => {
-      const s3 = src * 3
-      const d3 = write * 3
-      posSwap[d3]     = output[s3]
-      posSwap[d3 + 1] = output[s3 + 1]
-      posSwap[d3 + 2] = output[s3 + 2]
-      colSwap[d3]     = colors[s3]
-      colSwap[d3 + 1] = colors[s3 + 1]
-      colSwap[d3 + 2] = colors[s3 + 2]
-      write++
-    }
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const i3 = i * 3
-      const isTrace =
-        (colors[i3] > 0.85 && colors[i3 + 1] > 0.85) ||
-        (colors[i3] > 0.85 && colors[i3 + 2] < 0.12)
-      if (!isTrace) copyParticle(i)
-    }
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const i3 = i * 3
-      const isTrace =
-        (colors[i3] > 0.85 && colors[i3 + 1] > 0.85) ||
-        (colors[i3] > 0.85 && colors[i3 + 2] < 0.12)
-      if (isTrace) copyParticle(i)
-    }
-    output.set(posSwap)
-    colors.set(colSwap)
+  if (!rawPositions) {
+    return null
   }
 
-  logoColors = colors
-  return output
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+
+  for (let i = 0; i < oversample; i++) {
+    const x = rawPositions[i * 3]
+    const y = rawPositions[i * 3 + 1]
+    if (x < minX) minX = x
+    if (x > maxX) maxX = x
+    if (y < minY) minY = y
+    if (y > maxY) maxY = y
+  }
+
+  const span = (maxX - minX) || 1
+  const iconEdge = minX + span * 0.26
+  const textMidEdge = minX + span * 0.6
+
+  const keptIdx = []
+  for (let i = 0; i < oversample; i++) {
+    if (rawPositions[i * 3] >= iconEdge) {
+      keptIdx.push(i)
+      if (keptIdx.length >= LOGO_DETAIL_COUNT) break
+    }
+  }
+
+  const textCount = keptIdx.length
+  const textPositions = new Float32Array(textCount * 3)
+  const textColors = new Float32Array(textCount * 3)
+  const textSizes = new Float32Array(textCount)
+
+  for (let k = 0; k < textCount; k++) {
+    const i = keptIdx[k]
+    const i3 = i * 3
+    const k3 = k * 3
+    const x = rawPositions[i3]
+
+    textPositions[k3]     = x
+    textPositions[k3 + 1] = rawPositions[i3 + 1]
+    textPositions[k3 + 2] = rawPositions[i3 + 2]
+
+    if (x < textMidEdge) {
+      tempColor.copy(WHITE)
+      tempColor.lerp(INK, 0.12)
+    } else {
+      tempColor.copy(BLUE)
+      tempColor.lerp(WHITE, 0.5)
+    }
+
+    textColors[k3]     = tempColor.r
+    textColors[k3 + 1] = tempColor.g
+    textColors[k3 + 2] = tempColor.b
+
+    textSizes[k] = 0.78 + Math.random() * 0.5
+  }
+
+  const textGeometry = new THREE.BufferGeometry()
+  textGeometry.setAttribute('position', new THREE.BufferAttribute(textPositions, 3))
+  textGeometry.setAttribute('color', new THREE.BufferAttribute(textColors, 3))
+  textGeometry.setAttribute('aScale', new THREE.BufferAttribute(textSizes, 1))
+
+  const textMaterial = createPointMaterial({
+    size: MOBILE_AT_LOAD ? 4.6 : 3.8,
+    drift: 0,
+    alpha: 0,
+    additive: true,
+  })
+
+  const textMesh = new THREE.Points(textGeometry, textMaterial)
+  textMesh.frustumCulled = false
+  textMesh.visible = false
+  particles.add(textMesh)
+
+  // ---- ICON: the real brain, scaled and centered into the icon slot ----
+  const iconCenterX = minX + span * 0.12
+  const iconSlotHeight = (maxY - minY) || 1
+  const iconBrainSize = iconSlotHeight * 0.86
+
+  const brainRawCount =
+    MOBILE_AT_LOAD
+      ? 1300
+      : 2800
+
+  const brainRaw = modelToParticlePositions(
+    brainScene,
+    iconBrainSize,
+    0.22,
+    brainRawCount
+  )
+
+  let brainMinX = Infinity
+  let brainMaxX = -Infinity
+
+  for (let i = 0; i < brainRawCount; i++) {
+    const x = brainRaw[i * 3]
+    if (x < brainMinX) brainMinX = x
+    if (x > brainMaxX) brainMaxX = x
+  }
+
+  const brainSpan = (brainMaxX - brainMinX) || 1
+
+  const iconBrainPositions = new Float32Array(brainRawCount * 3)
+  const brainColors = new Float32Array(brainRawCount * 3)
+  const brainSizes = new Float32Array(brainRawCount)
+
+  for (let i = 0; i < brainRawCount; i++) {
+    const i3 = i * 3
+    const localX = brainRaw[i3]
+
+    iconBrainPositions[i3]     = localX + iconCenterX
+    iconBrainPositions[i3 + 1] = brainRaw[i3 + 1]
+    iconBrainPositions[i3 + 2] = brainRaw[i3 + 2]
+
+    // Same brand gradient the hero brain reads in — hemisphere split,
+    // circuit orange into deep navy/blue.
+    const t = (localX - brainMinX) / brainSpan
+    if (t < 0.5) {
+      tempColor.lerpColors(ORANGE, BURNT_ORANGE, t * 2)
+    } else {
+      tempColor.lerpColors(NAVY, BLUE, (t - 0.5) * 2)
+    }
+
+    brainColors[i3]     = tempColor.r
+    brainColors[i3 + 1] = tempColor.g
+    brainColors[i3 + 2] = tempColor.b
+
+    brainSizes[i] = 0.78 + Math.random() * 0.5
+  }
+
+  const brainGeometry = new THREE.BufferGeometry()
+  brainGeometry.setAttribute('position', new THREE.BufferAttribute(iconBrainPositions, 3))
+  brainGeometry.setAttribute('color', new THREE.BufferAttribute(brainColors, 3))
+  brainGeometry.setAttribute('aScale', new THREE.BufferAttribute(brainSizes, 1))
+
+  const brainMaterial = createPointMaterial({
+    size: MOBILE_AT_LOAD ? 4.6 : 3.8,
+    drift: 0,
+    alpha: 0,
+    additive: true,
+  })
+
+  const brainMesh = new THREE.Points(brainGeometry, brainMaterial)
+  brainMesh.frustumCulled = false
+  brainMesh.visible = false
+  particles.add(brainMesh)
+
+  return [textMesh, brainMesh]
 }
 
 // ======================================================
@@ -1887,9 +1986,9 @@ function applyScrollCamera(p) {
     { p: 0.66, z: 4.70, fov: 48, x: -0.72 },
     { p: 0.80, z: 4.55, fov: 48, x: -0.68 },
     { p: 0.84, z: 1.62, fov: 70, x:  0.00 },
-    { p: 0.90, z: 3.55, fov: 50, x:  0.00 },
-    { p: 0.93, z: 4.45, fov: 48, x:  0.00 },
-    { p: 1.00, z: 4.85, fov: 46, x:  0.00 },
+    { p: 0.90, z: 3.55, fov: 48, x:  0.00 },
+    { p: 0.93, z: 7.80, fov: 40, x:  0.00 },
+    { p: 1.00, z: 9.35, fov: 34, x:  0.00 },
   ]
 
   let a = keys[0]
@@ -1919,7 +2018,7 @@ function applyScrollCamera(p) {
       (p >= 0.64 && p < 0.82)
 
     cameraTarget.z *= onLogo
-      ? 1.18
+      ? 2.05
       : onCopyHold
         ? 2.15
         : 1.28
@@ -2047,40 +2146,13 @@ function updateReducedMotionStory(
 //
 // ======================================================
 
-function effectiveStoryProgress() {
-  let p = story.progress
-
-  const hold = document.querySelector('.logo-hold-chapter')
-  if (hold) {
-    const rect = hold.getBoundingClientRect()
-    const vh = window.innerHeight || 1
-    if (rect.top < vh * 0.72) {
-      const travel = Math.max(1, hold.offsetHeight * 0.45)
-      const into = vh * 0.72 - rect.top
-      const local = Math.max(0, Math.min(1, into / travel))
-      p = Math.max(p, 0.82 + local * 0.18)
-    }
-  }
-
-  const maxScroll =
-    document.documentElement.scrollHeight - window.innerHeight
-  if (maxScroll > 1) {
-    const raw = window.scrollY / maxScroll
-    if (raw > 0.96) {
-      p = 1
-    }
-  }
-
-  return Math.max(0, Math.min(1, p))
-}
-
 function updateStory() {
   if (!modelsReady) {
     return
   }
 
   const p =
-    effectiveStoryProgress()
+    story.progress
 
   if (scrollProgressBar) {
     scrollProgressBar.style.transform =
@@ -2123,7 +2195,7 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        RIGHT_X
+        HERO_BRAIN_X
       )
 
     transformTarget.y =
@@ -2173,7 +2245,7 @@ function updateStory() {
     transformTarget.x =
       desktopOrMobileX(
         lerp(
-          RIGHT_X,
+          HERO_BRAIN_X,
           LEFT_X,
           t
         )
@@ -2645,14 +2717,6 @@ Promise.all([
   loadGLB(
     '/models/metaminds-logo.glb'
   ),
-
-  loadImage(
-    '/metaminds-brain.png'
-  ),
-
-  document.fonts
-    ? document.fonts.ready
-    : Promise.resolve(),
 ])
   .then(
     ([
@@ -2660,14 +2724,17 @@ Promise.all([
       bulbGLB,
       landGeoJSON,
       logoGLB,
-      lockedBrainImg,
-      _fontsReady,
     ]) => {
       brainPositions =
         modelToParticlePositions(
           brainGLB.scene,
           BRAIN_SIZE,
           0.4
+        )
+
+      heroBrainDetail =
+        buildHeroBrainDetail(
+          brainGLB.scene
         )
 
       lightbulbPositions =
@@ -2681,7 +2748,13 @@ Promise.all([
 
       logoPositions =
         generateLogoPositions(
-          lockedBrainImg
+          logoGLB.scene
+        )
+
+      logoDetail =
+        buildLogoDetail(
+          logoGLB.scene,
+          brainGLB.scene
         )
 
       if (
@@ -2722,18 +2795,13 @@ Promise.all([
 
       modelsReady = true
 
+      createPage()
+
       if (bootScreen) {
         bootScreen.classList.add(
           'is-done'
         )
       }
-
-      document.documentElement.classList.remove(
-        'is-booting'
-      )
-      window.scrollTo(0, 0)
-
-      createPage()
 
       // Build initial matrices/colors once.
       updateParticleInstances(
@@ -2787,12 +2855,19 @@ function createNavbar() {
   )
 
   nav.innerHTML = `
-    <a class="brand" href="#">
+    <a class="brand" href="#s1">
       <img
         src="/metaminds-lockup.png"
         alt="MetaMinds STEM Academy"
         class="brand-logo"
       >
+    </a>
+
+    <a
+      class="nav-signin"
+      href="#"
+    >
+      Sign In
     </a>
 
     <a
@@ -2858,11 +2933,7 @@ function setupNav() {
     '.brand'
   )?.addEventListener(
     'click',
-    (event) => {
-      event.preventDefault()
-      closeNav()
-      window.scrollTo(0, 0)
-    }
+    closeNav
   )
 
   nav.querySelectorAll(
@@ -2923,19 +2994,26 @@ function syncCopyBeats(p) {
       beat.selector.indexOf('teach') !== -1 &&
       p >= 0.52
 
-    const gate =
-      hardOff
-        ? 0
-        : beatGate(p, beat.start, beat.end)
+    let gate
+
+    if (beat.selector === '.copy-hero') {
+      // The hero copy used to hold flat at full opacity and only
+      // snap off in the last sliver of its range — scrolling did
+      // nothing visible to it at first. Fade and drift it linearly
+      // from the very first pixel scrolled instead, so it reacts
+      // immediately.
+      const t = clamp01(p / beat.end)
+      gate = 1 - t
+      el.style.transform = `translateY(${-t * 46}px)`
+    } else {
+      gate =
+        hardOff
+          ? 0
+          : beatGate(p, beat.start, beat.end)
+    }
+
     el.style.opacity = String(gate)
     el.classList.toggle('is-live', gate > 0.04)
-  }
-
-  const endBrand = document.querySelector('.end-brand')
-  if (endBrand) {
-    const gate = beatGate(p, 0.86, 1.05, 0.02)
-    endBrand.style.opacity = String(gate)
-    endBrand.classList.toggle('is-live', gate > 0.04)
   }
 }
 
@@ -3020,17 +3098,6 @@ function createPage() {
       aria-hidden="true"
     ></section>
 
-    <div class="end-brand" aria-hidden="true">
-      <img
-        class="end-brand-icon"
-        src="/metaminds-brain.png"
-        alt=""
-      >
-      <p class="end-brand-word">
-        <span>Meta</span><span class="minds">Minds</span>
-      </p>
-    </div>
-
     <section
       id="consultation"
       class="chapter logo-hold-chapter"
@@ -3091,16 +3158,10 @@ function createPage() {
         end:
           'bottom bottom',
 
-        invalidateOnRefresh:
-          true,
-
-        fastScrollEnd:
-          true,
-
         scrub:
           REDUCED_MOTION
             ? false
-            : 0.4,
+            : 0.95,
 
         onUpdate:
           updateStory,
@@ -3108,46 +3169,7 @@ function createPage() {
     }
   )
 
-  let introLocked = true
-  const releaseIntro = () => {
-    introLocked = false
-  }
-  window.addEventListener('wheel', releaseIntro, { once: true, passive: true })
-  window.addEventListener('touchstart', releaseIntro, { once: true, passive: true })
-  window.addEventListener('keydown', releaseIntro, { once: true })
-  window.setTimeout(releaseIntro, 1800)
-
-  const pinIntro = () => {
-    if (!introLocked) {
-      return
-    }
-    window.scrollTo(0, 0)
-    story.progress = 0
-    storyTween.progress(0)
-    const st = storyTween.scrollTrigger
-    if (st) {
-      st.scroll(st.start)
-    }
-    updateStory()
-  }
-
   ScrollTrigger.refresh()
-  pinIntro()
-  requestAnimationFrame(() => {
-    ScrollTrigger.refresh()
-    pinIntro()
-    requestAnimationFrame(() => {
-      pinIntro()
-    })
-  })
-  window.setTimeout(() => {
-    if (introLocked) {
-      ScrollTrigger.refresh()
-      pinIntro()
-    } else {
-      ScrollTrigger.refresh()
-    }
-  }, 400)
 
   // ==================================================
   // COPY MOTION
@@ -3457,17 +3479,11 @@ function updateParticleInstances(
         currentStage === 'logo' ||
         currentStage === 'logo-forming'
 
-      if (isLogoStage && logoColors) {
-        tempColor.setRGB(
-          logoColors[i3],
-          logoColors[i3 + 1],
-          logoColors[i3 + 2]
-        )
-      } else if (isLogoStage) {
+      if (isLogoStage) {
         tempColor.copy(WHITE)
         tempColor.lerp(
           INK,
-          0.10
+          0.18
         )
       } else if (isEarthStage) {
         const lat =
@@ -3533,7 +3549,11 @@ function updateParticleInstances(
         }
       }
 
-      if (!isLogoStage) {
+      if (isLogoStage) {
+        tempColor.multiplyScalar(
+          0.48
+        )
+      } else {
         tempColor.multiplyScalar(
           0.55 +
           depth *
@@ -3902,16 +3922,11 @@ function animate() {
       currentStage === 'logo-forming'
 
     if (onLogoHold) {
-      logoStill.value +=
-        (
-          0.38 -
-          logoStill.value
-        ) *
-        0.14
+      logoStill.value = 1
     } else {
       logoStill.value +=
         (
-          0 -
+          (onLogo ? 1 : 0) -
           logoStill.value
         ) *
         0.14
@@ -3945,26 +3960,56 @@ function animate() {
         0.1
     }
 
+    const onBrainHold =
+      currentStage === 'brain'
+
     particleMaterial.uniforms.uAlpha.value +=
       (
-        (onLogoHold ? 0 : 0.9) -
+        (
+          onLogoHold ? 0.4 :
+          onBrainHold ? 0.45 :
+          0.9
+        ) -
         particleMaterial.uniforms.uAlpha.value
       ) *
-      (onLogoHold ? 0.35 : 0.1)
+      0.1
 
-    particles.visible =
-      !onLogoHold ||
-      particleMaterial.uniforms.uAlpha.value > 0.03
+    if (logoDetail) {
+      const detailTarget =
+        onLogo ? 0.95 : 0
 
-    if (wordMark) {
-      wordMark.visible = false
-      wordMark.material.opacity = 0
+      for (let li = 0; li < logoDetail.length; li++) {
+        const detailMesh = logoDetail[li]
+
+        detailMesh.material.uniforms.uAlpha.value +=
+          (
+            detailTarget -
+            detailMesh.material.uniforms.uAlpha.value
+          ) *
+          0.12
+
+        detailMesh.visible =
+          detailMesh.material.uniforms.uAlpha.value > 0.02
+      }
+    }
+
+    if (heroBrainDetail) {
+      const heroDetailTarget =
+        onBrainHold ? 0.95 : 0
+
+      heroBrainDetail.material.uniforms.uAlpha.value +=
+        (
+          heroDetailTarget -
+          heroBrainDetail.material.uniforms.uAlpha.value
+        ) *
+        0.12
+
+      heroBrainDetail.visible =
+        heroBrainDetail.material.uniforms.uAlpha.value > 0.02
     }
 
     const logoBlend =
-      onLogoHold
-        ? THREE.NormalBlending
-        : THREE.AdditiveBlending
+      THREE.AdditiveBlending
 
     if (
       particleMaterial.blending !==

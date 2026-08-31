@@ -19,14 +19,7 @@
 html {
   background: var(--mm-void);
   color: var(--mm-ink);
-  scroll-behavior: auto;
-  overflow-anchor: none;
-}
-
-html.is-booting,
-html.is-booting body {
-  overflow: hidden;
-  height: 100%;
+  scroll-behavior: smooth;
 }
 
 html,
@@ -136,11 +129,9 @@ button {
 }
 
 .boot-logo {
-  height: clamp(140px, 16vw, 200px);
+  height: 68px;
   width: auto;
-  opacity: 1;
-  background: transparent;
-  image-rendering: auto;
+  opacity: 0.92;
 }
 
 .boot-screen p {
@@ -223,7 +214,22 @@ button {
   filter: brightness(1.08);
 }
 
-.nav-signin,
+.nav-signin {
+  position: relative;
+  z-index: 102;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(243, 246, 249, 0.7);
+  transition: color 0.2s ease;
+}
+
+.nav-signin:hover {
+  color: #fff;
+}
+
 .nav-panel-signin {
   display: none !important;
 }
@@ -420,10 +426,10 @@ button {
 .logo-hold-chapter {
   min-height: 280vh;
   min-height: 280svh;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding-bottom: 48px;
-  padding-top: 96px;
+  padding-bottom: 40px;
+  padding-top: 62vh;
 }
 
 .copy {
@@ -448,7 +454,7 @@ button {
 .copy-hero {
   width: min(760px, 52vw);
   max-width: none;
-  top: 88px;
+  top: 220px;
   text-shadow: none;
 }
 
@@ -491,14 +497,11 @@ button {
 .copy-consult {
   left: 50%;
   top: auto;
-  bottom: 8vh;
-  width: min(760px, 90vw);
+  bottom: 7vh;
+  width: min(560px, 86vw);
   text-align: center;
   transform: translateX(-50%);
   text-shadow: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .copy-consult h2 {
@@ -514,54 +517,6 @@ button {
   font-size: 14px;
   font-weight: 500;
   line-height: 1.45;
-}
-
-.end-brand {
-  position: fixed;
-  inset: 0;
-  z-index: 12;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(14px, 2.2vw, 36px);
-  padding: 88px 24px 120px;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.end-brand.is-live {
-  visibility: visible;
-}
-
-.end-brand-icon {
-  display: block;
-  height: clamp(132px, 26vh, 260px);
-  width: auto;
-  flex: 0 0 auto;
-  background: transparent;
-  image-rendering: auto;
-}
-
-.end-brand-word {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(48px, 8.2vw, 128px);
-  letter-spacing: -0.05em;
-  line-height: 0.92;
-  color: #ffffff;
-  text-shadow:
-    -2px 0 0 #000,
-    2px 0 0 #000,
-    0 2px 0 #000,
-    0 -2px 0 #000,
-    0 8px 28px rgba(0, 0, 0, 0.9);
-  white-space: nowrap;
-}
-
-.end-brand-word .minds {
-  color: #0ba8e6;
 }
 
 .copy-consult .primary-button {
@@ -744,15 +699,14 @@ h2 {
     width: calc(var(--lockup-h) * 3.312);
   }
 
+  .nav-signin {
+    font-size: 10px;
+  }
+
   .brand-logo {
     height: calc(var(--lockup-h) * 2.4794);
     width: auto;
     max-width: none;
-  }
-
-  .boot-logo {
-    height: auto;
-    width: min(92vw, 520px);
   }
 
   .chapter {
@@ -788,10 +742,9 @@ h2 {
   .logo-hold-chapter {
     min-height: 160vh;
     min-height: 160svh;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     padding-bottom: 24px;
-    padding-top: 80px;
   }
 
   .copy,
@@ -809,7 +762,7 @@ h2 {
   }
 
   .copy-hero {
-    top: 80px;
+    top: 120px;
     width: min(82vw, 320px);
   }
 
@@ -835,11 +788,11 @@ h2 {
   .copy-consult {
     top: auto;
     bottom: 24px;
-    left: 50%;
-    right: auto;
-    width: min(92vw, 360px);
+    left: 20px;
+    right: 20px;
+    width: calc(100% - 40px);
     text-align: center;
-    transform: translateX(-50%);
+    transform: none;
   }
 
   h1 {
@@ -856,20 +809,6 @@ h2 {
   .chapter-teach .copy p {
     margin-top: 10px;
     font-size: clamp(16px, 4.6vw, 22px);
-  }
-
-  .end-brand {
-    flex-direction: column;
-    gap: 18px;
-    padding: 72px 16px 140px;
-  }
-
-  .end-brand-icon {
-    height: clamp(96px, 18vh, 160px);
-  }
-
-  .end-brand-word {
-    font-size: clamp(36px, 11vw, 64px);
   }
 
   .copy-consult h2 {
@@ -907,6 +846,7 @@ h2 {
   .boot-screen,
   .nav-panel,
   .nav-cta,
+  .nav-signin,
   .primary-button,
   .nav-links a,
   .menu-button span {
