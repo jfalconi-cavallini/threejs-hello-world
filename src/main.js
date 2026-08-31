@@ -3250,26 +3250,11 @@ function syncNavHighlight(
 
 function liveCopy(el) {
   const opacity = Number(gsap.getProperty(el, 'opacity')) || 0
-  el.classList.toggle('is-live', opacity > 0.12)
+  el.classList.toggle('is-live', opacity > 0)
 }
 
-function enforceOneCopy() {
-  const copies = [...document.querySelectorAll('.copy')]
-  const scored = copies.map((el, i) => ({
-    el,
-    i,
-    op: Number(gsap.getProperty(el, 'opacity')) || 0,
-  }))
-  const visible = scored.filter((item) => item.op > 0.12)
-
-  if (visible.length > 1) {
-    visible.sort((a, b) => b.op - a.op || b.i - a.i)
-    visible.slice(1).forEach(({ el }) => {
-      gsap.set(el, { autoAlpha: 0 })
-    })
-  }
-
-  copies.forEach(liveCopy)
+function syncCopyLive() {
+  document.querySelectorAll('.copy').forEach(liveCopy)
 }
 
 function copyAnchor(el, desktop) {
@@ -3285,41 +3270,19 @@ function copyAnchor(el, desktop) {
   }
 }
 
-function addPageTurnBeat(tl, el, t, slot) {
-  // 8% of each 100vh page stays empty so the outgoing line is
-  // fully off (and hidden) before the next page becomes readable.
-  const enter = slot * 0.15
-  const hold = slot * 0.62
-  const exit = slot * 0.15
+// One 100vh page per beat. Fade in and out share the same scroll
+// distance and ease. Outgoing fade-out starts when the next beat
+// starts, so the slot crossfades instead of going empty.
+const COPY_PAGE = 100
+const COPY_FADE = 20
 
-  if (REDUCED_MOTION) {
-    tl.to(el, { autoAlpha: 1, duration: enter, ease: 'none' }, t)
-    tl.to(el, { duration: hold, ease: 'none' }, t + enter)
-    tl.to(el, { autoAlpha: 0, duration: exit, ease: 'none' }, t + enter + hold)
-    return t + slot
-  }
-
-  const tHold = t + enter
-  const tExit = tHold + hold
-
-  tl.to(el, { y: 12, duration: enter, ease: 'power1.out' }, t)
-  tl.to(el, {
-    autoAlpha: 1,
-    duration: enter * 0.45,
-    ease: 'power2.in',
-  }, t + enter * 0.4)
-  tl.to(el, { y: -20, duration: hold, ease: 'none' }, tHold)
-  tl.to(el, { y: -260, duration: exit, ease: 'power1.in' }, tExit)
-  tl.to(el, {
-    autoAlpha: 0,
-    duration: exit * 0.55,
-    ease: 'power1.out',
-  }, tExit)
-
-  return t + slot
+function addFadeBeat(tl, el, t) {
+  tl.to(el, { opacity: 1, duration: COPY_FADE, ease: 'none' }, t)
+  tl.to(el, { opacity: 0, duration: COPY_FADE, ease: 'none' }, t + COPY_PAGE)
+  return t + COPY_PAGE
 }
 
-function wireCopyCluster(desktop, selectors, scroll, copyScrub) {
+function wireCopyCluster(desktop, selectors, scroll) {
   const els = selectors.map((selector) => document.querySelector(selector))
 
   if (els.some((el) => !el) || !scroll.trigger) {
@@ -3329,86 +3292,64 @@ function wireCopyCluster(desktop, selectors, scroll, copyScrub) {
   els.forEach((el) => {
     gsap.set(el, {
       ...copyAnchor(el, desktop),
-      y: REDUCED_MOTION ? 0 : 200,
-      autoAlpha: 0,
+      opacity: 0,
     })
   })
 
-  const slot = 1 / els.length
   const tl = gsap.timeline({
-    defaults: { force3D: true },
+    defaults: { force3D: true, ease: 'none' },
     scrollTrigger: {
       trigger: scroll.trigger,
       endTrigger: scroll.endTrigger || scroll.trigger,
-      start: 'top+=12vh top',
-      end: 'bottom top',
-      scrub: REDUCED_MOTION ? true : copyScrub,
-      onUpdate: enforceOneCopy,
+      start: 'top top',
+      end: `bottom+=${COPY_FADE}vh top`,
+      scrub: true,
+      onUpdate: syncCopyLive,
     },
   })
 
   let t = 0
   els.forEach((el) => {
-    t = addPageTurnBeat(tl, el, t, slot)
+    t = addFadeBeat(tl, el, t)
   })
 }
 
 function setupCopyTravel() {
-  // No numeric scrub — lag was stacking two pages in the same slot.
-  // Smoothness comes from the 100vh Y travel, not from tween delay.
-  const copyScrub = REDUCED_MOTION ? false : true
   const mm = gsap.matchMedia()
 
   const wire = (desktop) => {
     const hero = document.querySelector('.copy-hero')
     const heroChapter = document.querySelector('.chapter-hero')
     const consult = document.querySelector('.copy-consult')
-    const consultChapter = document.querySelector('.logo-hold-chapter')
     const morphA = document.querySelector('.chapter-morph-a')
     const morphB = document.querySelector('.chapter-morph-b')
+    const morphC = document.querySelector('.chapter-morph-c')
     const lbItems = [...document.querySelectorAll('.chapter-lb-hold-item')]
     const teamChapter = document.querySelector('.chapter-team')
 
     if (hero && heroChapter) {
       const base = copyAnchor(hero, desktop)
-      const vh = window.innerHeight
 
-      if (REDUCED_MOTION) {
-        gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
-        gsap.to(hero, {
-          autoAlpha: 0,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: heroChapter,
-            start: 'top top',
-            end: '80% top',
-            scrub: true,
-            onUpdate: enforceOneCopy,
-          },
-        })
-      } else {
-        gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
-        gsap.timeline({
-          defaults: { force3D: true },
-          scrollTrigger: {
-            trigger: heroChapter,
-            start: 'top top',
-            end: '80% top',
-            scrub: copyScrub,
-            onUpdate: enforceOneCopy,
-          },
-        })
-          .to(hero, { y: vh * -0.45, duration: 0.55, ease: 'none' })
-          .to(hero, { y: -(vh + 80), duration: 0.45, ease: 'power1.in' })
-          .to(hero, { autoAlpha: 0, duration: 0.28, ease: 'none' }, '<')
-      }
+      gsap.set(hero, { ...base, opacity: 1 })
+      hero.classList.add('is-live')
+      gsap.timeline({
+        defaults: { force3D: true, ease: 'none' },
+        scrollTrigger: {
+          trigger: heroChapter,
+          start: 'top top',
+          end: `bottom+=${COPY_FADE}vh top`,
+          scrub: true,
+          onUpdate: syncCopyLive,
+        },
+      })
+        .to(hero, { opacity: 1, duration: COPY_PAGE })
+        .to(hero, { opacity: 0, duration: COPY_FADE })
     }
 
     wireCopyCluster(
       desktop,
       ['.t2-block', '.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
-      { trigger: morphA },
-      copyScrub
+      { trigger: morphA }
     )
 
     wireCopyCluster(
@@ -3423,15 +3364,13 @@ function setupCopyTravel() {
       {
         trigger: lbItems[0],
         endTrigger: lbItems[lbItems.length - 1],
-      },
-      copyScrub
+      }
     )
 
     wireCopyCluster(
       desktop,
       ['.t5-main', '.t5-caveat'],
-      { trigger: morphB },
-      copyScrub
+      { trigger: morphB }
     )
 
     wireCopyCluster(
@@ -3446,29 +3385,26 @@ function setupCopyTravel() {
         '.earth-phil-para',
         '.earth-phil-close',
       ],
-      { trigger: teamChapter },
-      copyScrub
+      { trigger: teamChapter }
     )
 
-    if (consult && consultChapter) {
+    if (consult && morphC) {
       const base = copyAnchor(consult, desktop)
 
       gsap.set(consult, {
         ...base,
-        y: REDUCED_MOTION ? 0 : 56,
-        autoAlpha: 0,
+        opacity: 0,
       })
       gsap.to(consult, {
-        y: 0,
-        autoAlpha: 1,
-        ease: REDUCED_MOTION ? 'none' : 'power2.out',
+        opacity: 1,
+        ease: 'none',
         force3D: true,
         scrollTrigger: {
-          trigger: consultChapter,
+          trigger: morphC,
           start: 'top top',
-          end: 'top 55%',
-          scrub: REDUCED_MOTION ? true : copyScrub,
-          onUpdate: enforceOneCopy,
+          end: `top+=${COPY_FADE}vh top`,
+          scrub: true,
+          onUpdate: syncCopyLive,
         },
       })
     }
