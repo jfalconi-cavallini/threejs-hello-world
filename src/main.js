@@ -80,6 +80,16 @@ function mountChrome() {
     boot
   )
 
+  document.documentElement.classList.add(
+    'is-booting'
+  )
+
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual'
+  }
+
+  window.scrollTo(0, 0)
+
   bootScreen =
     boot
 }
@@ -1346,7 +1356,7 @@ function rasterizeMetaMindsWord(count) {
   const ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, W, H)
   ctx.textBaseline = 'middle'
-  ctx.font = '700 236px Syne, Arial, Helvetica, sans-serif'
+  ctx.font = '700 260px Syne, Arial, Helvetica, sans-serif'
   const metaW = ctx.measureText('Meta').width
   const mindsW = ctx.measureText('Minds').width
   const total = metaW + mindsW
@@ -1369,7 +1379,7 @@ function rasterizeMetaMindsWord(count) {
   if (!cells.length) return { positions, colors }
 
   const cellCount = cells.length / 5
-  const worldW = 5.35
+  const worldW = 6.85
   const worldH = worldW * (H / W)
 
   for (let i = 0; i < count; i++) {
@@ -1380,9 +1390,12 @@ function rasterizeMetaMindsWord(count) {
     positions[i3]     = ((x + 0.5) / W - 0.5) * worldW
     positions[i3 + 1] = (0.5 - (y + 0.5) / H) * worldH
     positions[i3 + 2] = ((i % 5) - 2) * 0.055
-    colors[i3]     = cells[idx * 5 + 2] / 255
-    colors[i3 + 1] = cells[idx * 5 + 3] / 255
-    colors[i3 + 2] = cells[idx * 5 + 4] / 255
+    const isMinds =
+      cells[idx * 5 + 4] > 160 &&
+      cells[idx * 5 + 2] < 80
+    colors[i3]     = isMinds ? 0x0b / 255 : 1
+    colors[i3 + 1] = isMinds ? 0xa8 / 255 : 1
+    colors[i3 + 2] = isMinds ? 0xe6 / 255 : 1
   }
 
   return { positions, colors }
@@ -1403,8 +1416,8 @@ function generateLogoPositions(brainImg) {
   const brain = sampleColoredSilhouette(
     brainImg,
     BRAIN_COUNT,
-    2.08,
-    0.7
+    2.55,
+    0.82
   )
 
   for (let i = 0; i < BRAIN_COUNT; i++) {
@@ -1969,8 +1982,8 @@ function applyScrollCamera(p) {
     { p: 0.80, z: 4.55, fov: 48, x: -0.68 },
     { p: 0.84, z: 1.62, fov: 70, x:  0.00 },
     { p: 0.90, z: 3.55, fov: 48, x:  0.00 },
-    { p: 0.93, z: 7.80, fov: 40, x:  0.00 },
-    { p: 1.00, z: 9.35, fov: 34, x:  0.00 },
+    { p: 0.93, z: 4.35, fov: 44, x:  0.00 },
+    { p: 1.00, z: 4.75, fov: 42, x:  0.00 },
   ]
 
   let a = keys[0]
@@ -2000,7 +2013,7 @@ function applyScrollCamera(p) {
       (p >= 0.64 && p < 0.82)
 
     cameraTarget.z *= onLogo
-      ? 2.05
+      ? 1.18
       : onCopyHold
         ? 2.15
         : 1.28
@@ -2703,6 +2716,10 @@ Promise.all([
   loadImage(
     '/metaminds-brain.png'
   ),
+
+  document.fonts
+    ? document.fonts.ready
+    : Promise.resolve(),
 ])
   .then(
     ([
@@ -2711,6 +2728,7 @@ Promise.all([
       landGeoJSON,
       logoGLB,
       lockedBrainImg,
+      _fontsReady,
     ]) => {
       brainPositions =
         modelToParticlePositions(
@@ -2778,6 +2796,11 @@ Promise.all([
           'is-done'
         )
       }
+
+      document.documentElement.classList.remove(
+        'is-booting'
+      )
+      window.scrollTo(0, 0)
 
       // Build initial matrices/colors once.
       updateParticleInstances(
@@ -2902,7 +2925,11 @@ function setupNav() {
     '.brand'
   )?.addEventListener(
     'click',
-    closeNav
+    (event) => {
+      event.preventDefault()
+      closeNav()
+      window.scrollTo(0, 0)
+    }
   )
 
   nav.querySelectorAll(
@@ -3110,7 +3137,7 @@ function createPage() {
         start:
           'top top',
 
-        end:
+          end:
           'bottom bottom',
 
         scrub:
@@ -3125,6 +3152,16 @@ function createPage() {
   )
 
   ScrollTrigger.refresh()
+  window.scrollTo(0, 0)
+  story.progress = 0
+  updateStory()
+  requestAnimationFrame(() => {
+    window.scrollTo(0, 0)
+    ScrollTrigger.refresh()
+    window.scrollTo(0, 0)
+    story.progress = 0
+    updateStory()
+  })
 
   // ==================================================
   // COPY MOTION
@@ -3510,11 +3547,7 @@ function updateParticleInstances(
         }
       }
 
-      if (isLogoStage) {
-        tempColor.multiplyScalar(
-          0.92
-        )
-      } else {
+      if (!isLogoStage) {
         tempColor.multiplyScalar(
           0.55 +
           depth *
@@ -3885,7 +3918,7 @@ function animate() {
     if (onLogoHold) {
       logoStill.value +=
         (
-          0.08 -
+          0.48 -
           logoStill.value
         ) *
         0.14
