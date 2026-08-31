@@ -1226,51 +1226,110 @@ function sampleColoredSilhouette(img, count, worldWidth, zDepth) {
   ctx.drawImage(img, 0, 0)
   const data = ctx.getImageData(0, 0, srcW, srcH).data
 
+  // Locked mark: cyan left #0BA8E6 + white traces,
+  // navy right #182231 + orange #FF8A00 traces.
+  // The crop is RGB (no alpha); black padding is empty space.
+  const CYAN = [0x0b / 255, 0xa8 / 255, 0xe6 / 255]
+  const NAVY = [0x18 / 255, 0x22 / 255, 0x31 / 255]
+  const WHITE = [1, 1, 1]
+  const ORANGE = [1, 0x8a / 255, 0]
+  const PALETTE = [null, WHITE, ORANGE, CYAN, NAVY]
+
+  const kindOf = (r, g, b) => {
+    const sum = r + g + b
+    if (sum < 22) return 0
+    if (r > 190 && g > 200 && b > 200) return 1
+    if (r > 160 && g > 70 && g < 185 && b < 55) return 2
+    if (b > 145 && g > 90 && r < 90) return 3
+    if (b >= 14 && b < 110 && r < 60 && g < 70) return 4
+    if (sum < 28) return 0
+    if (r > b + 40 && r > 120) return 2
+    if (b > 130) return 3
+    return 4
+  }
+
+  const isBg = new Uint8Array(srcW * srcH)
+  for (let p = 0, i = 0; p < srcW * srcH; p++, i += 4) {
+    if (kindOf(data[i], data[i + 1], data[i + 2]) === 0) {
+      isBg[p] = 1
+    }
+  }
+
+  const TRACE_DUP = 6
+  const EDGE_DUP = 4
   const cells = []
+  let minX = srcW
+  let minY = srcH
+  let maxX = 0
+  let maxY = 0
+
   for (let y = 0; y < srcH; y++) {
     for (let x = 0; x < srcW; x++) {
-      const i = (y * srcW + x) * 4
-      if (data[i + 3] < 40) continue
-      const r = data[i]
-      const g = data[i + 1]
-      const b = data[i + 2]
-      cells.push(x, y, r, g, b)
-      const isFill =
-        (Math.abs(r - 11) < 18 && Math.abs(g - 168) < 18 && Math.abs(b - 230) < 18) ||
-        (Math.abs(r - 24) < 18 && Math.abs(g - 34) < 18 && Math.abs(b - 49) < 18)
-      if (!isFill) {
-        cells.push(x, y, r, g, b)
-        cells.push(x, y, r, g, b)
+      const p = y * srcW + x
+      if (isBg[p]) continue
+      const i = p * 4
+      const kind = kindOf(data[i], data[i + 1], data[i + 2])
+      if (!kind) continue
+      if (x < minX) minX = x
+      if (x > maxX) maxX = x
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
+      const rgb = PALETTE[kind]
+      const isTrace = kind === 1 || kind === 2 ? 1 : 0
+      let copies = isTrace ? TRACE_DUP : 1
+      if (
+        (y > 0 && isBg[p - srcW]) ||
+        (y + 1 < srcH && isBg[p + srcW]) ||
+        (x > 0 && isBg[p - 1]) ||
+        (x + 1 < srcW && isBg[p + 1])
+      ) {
+        copies += EDGE_DUP
+      }
+      for (let n = 0; n < copies; n++) {
+        cells.push(x, y, rgb[0], rgb[1], rgb[2], isTrace)
       }
     }
   }
 
-  const cellCount = cells.length / 5
+  const STRIDE = 6
+  const cellCount = cells.length / STRIDE
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
   if (!cellCount) return { positions, colors }
 
-  const worldHeight = worldWidth * (srcH / srcW)
+  const contentW = Math.max(1, maxX - minX + 1)
+  const contentH = Math.max(1, maxY - minY + 1)
+  const midX = (minX + maxX + 1) / 2
+  const midY = (minY + maxY + 1) / 2
+  const worldHeight = worldWidth * (contentH / contentW)
   const PHI = 0.618033988749895
   const layers = 7
+  const pixelW = worldWidth / contentW
+  const pixelH = worldHeight / contentH
 
   for (let i = 0; i < count; i++) {
     const idx = Math.floor(((i * PHI) % 1) * cellCount)
-    const x = cells[idx * 5]
-    const y = cells[idx * 5 + 1]
-    const layer = i % layers
-    const zt = layers === 1 ? 0.5 : layer / (layers - 1)
+    const base = idx * STRIDE
+    const x = cells[base]
+    const y = cells[base + 1]
+    const isTrace = cells[base + 5]
+    const layer = isTrace ? 4 + (i % 3) : i % layers
+    const zt = layer / (layers - 1)
     const puff = 1 - 0.10 * Math.abs(zt - 0.5) * 2
+    const jx = ((i * 0.173 + 0.31) % 1) - 0.5
+    const jy = ((i * 0.271 + 0.17) % 1) - 0.5
     const i3 = i * 3
     positions[i3] =
-      ((x + 0.5) / srcW - 0.5) * worldWidth * puff
+      ((x + 0.5 - midX) / contentW) * worldWidth * puff +
+      jx * pixelW * 0.55
     positions[i3 + 1] =
-      (0.5 - (y + 0.5) / srcH) * worldHeight * puff
+      ((midY - (y + 0.5)) / contentH) * worldHeight * puff +
+      jy * pixelH * 0.55
     positions[i3 + 2] =
-      (zt - 0.5) * zDepth
-    colors[i3]     = cells[idx * 5 + 2] / 255
-    colors[i3 + 1] = cells[idx * 5 + 3] / 255
-    colors[i3 + 2] = cells[idx * 5 + 4] / 255
+      (zt - 0.5) * zDepth + (isTrace ? 0.06 : 0)
+    colors[i3]     = cells[base + 2]
+    colors[i3 + 1] = cells[base + 3]
+    colors[i3 + 2] = cells[base + 4]
   }
 
   return { positions, colors }
@@ -1344,8 +1403,8 @@ function generateLogoPositions(brainImg) {
   const brain = sampleColoredSilhouette(
     brainImg,
     BRAIN_COUNT,
-    1.92,
-    0.62
+    2.08,
+    0.7
   )
 
   for (let i = 0; i < BRAIN_COUNT; i++) {
@@ -1356,6 +1415,41 @@ function generateLogoPositions(brainImg) {
     colors[i3]     = brain.colors[i3]
     colors[i3 + 1] = brain.colors[i3 + 1]
     colors[i3 + 2] = brain.colors[i3 + 2]
+  }
+
+  // Draw traces on top of fill when the assembled mark
+  // switches to normal blending.
+  {
+    let write = 0
+    const posSwap = new Float32Array(BRAIN_COUNT * 3)
+    const colSwap = new Float32Array(BRAIN_COUNT * 3)
+    const copyParticle = (src) => {
+      const s3 = src * 3
+      const d3 = write * 3
+      posSwap[d3]     = output[s3]
+      posSwap[d3 + 1] = output[s3 + 1]
+      posSwap[d3 + 2] = output[s3 + 2]
+      colSwap[d3]     = colors[s3]
+      colSwap[d3 + 1] = colors[s3 + 1]
+      colSwap[d3 + 2] = colors[s3 + 2]
+      write++
+    }
+    for (let i = 0; i < BRAIN_COUNT; i++) {
+      const i3 = i * 3
+      const isTrace =
+        (colors[i3] > 0.85 && colors[i3 + 1] > 0.85) ||
+        (colors[i3] > 0.85 && colors[i3 + 2] < 0.12)
+      if (!isTrace) copyParticle(i)
+    }
+    for (let i = 0; i < BRAIN_COUNT; i++) {
+      const i3 = i * 3
+      const isTrace =
+        (colors[i3] > 0.85 && colors[i3 + 1] > 0.85) ||
+        (colors[i3] > 0.85 && colors[i3 + 2] < 0.12)
+      if (isTrace) copyParticle(i)
+    }
+    output.set(posSwap.subarray(0, BRAIN_COUNT * 3), 0)
+    colors.set(colSwap.subarray(0, BRAIN_COUNT * 3), 0)
   }
 
   let brainMaxX = -Infinity
@@ -3845,7 +3939,9 @@ function animate() {
     }
 
     const logoBlend =
-      THREE.AdditiveBlending
+      onLogoHold
+        ? THREE.NormalBlending
+        : THREE.AdditiveBlending
 
     if (
       particleMaterial.blending !==
