@@ -456,13 +456,13 @@ button {
 }
 
 .chapter-morph-a {
-  min-height: 500vh;
-  min-height: 500svh;
+  min-height: 800vh;
+  min-height: 800svh;
 }
 
 .chapter-morph-b {
-  min-height: 200vh;
-  min-height: 200svh;
+  min-height: 400vh;
+  min-height: 400svh;
 }
 
 .chapter-morph-c {
@@ -483,8 +483,8 @@ button {
 }
 
 .logo-hold-chapter {
-  min-height: 200vh;
-  min-height: 200svh;
+  min-height: 300vh;
+  min-height: 300svh;
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 40px;
@@ -1032,13 +1032,13 @@ h2 {
   }
 
   .chapter-morph-a {
-    min-height: 500vh;
-    min-height: 500svh;
+    min-height: 800vh;
+    min-height: 800svh;
   }
 
   .chapter-morph-b {
-    min-height: 200vh;
-    min-height: 200svh;
+    min-height: 400vh;
+    min-height: 400svh;
   }
 
   .chapter-morph-c {
@@ -1057,8 +1057,8 @@ h2 {
   }
 
   .logo-hold-chapter {
-    min-height: 200vh;
-    min-height: 200svh;
+    min-height: 300vh;
+    min-height: 300svh;
     align-items: flex-end;
     justify-content: center;
     padding-bottom: 24px;

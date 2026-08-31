@@ -1971,17 +1971,24 @@ function setTransformShot(
   bloomTarget = MOBILE_AT_LOAD ? 0 : 0.2
 }
 
+// 31 sequential 100vh beats. Copy and morph share this clock so a
+// page-turn cannot still be traveling while the next form change
+// starts. Morphs occupy their own empty pages — no copy in the slot.
+const STORY_PAGES = 31
+const PAGE = 1 / STORY_PAGES
+
 const STAGE = {
-  brainHold: 0.040,
-  brainMove: 0.080,
-  brainExplode: 0.120,
-  bulbForm: 0.160,
-  bulbHold: 0.440,
-  bulbExplode: 0.480,
-  earthForm: 0.520,
-  earthHold: 0.840,
-  earthExplode: 0.880,
-  logoForm: 0.920,
+  brainHold: 1 * PAGE,
+  brainMove: 2 * PAGE,
+  page2: 3 * PAGE,
+  brainExplode: 4 * PAGE,
+  bulbForm: 5 * PAGE,
+  bulbHold: 14 * PAGE,
+  bulbExplode: 15 * PAGE,
+  earthForm: 16 * PAGE,
+  earthHold: 26 * PAGE,
+  earthExplode: 27 * PAGE,
+  logoForm: 28 * PAGE,
 }
 
 function applyScrollCamera(p) {
@@ -1990,9 +1997,10 @@ function applyScrollCamera(p) {
   const keys = [
     { p: 0.000, z: 4.55, fov: 50, x: -0.68 },
     { p: STAGE.brainHold, z: 4.40, fov: 51, x: -0.62 },
-    // Hold wide through the page-2 block — no dolly-in while there's
-    // copy on screen — then ease in across the longer explosion.
     { p: STAGE.brainMove, z: 4.40, fov: 51, x: -0.62 },
+    // Hold wide through the page-2 block — no dolly-in while there's
+    // copy on screen — then ease in across the explosion page.
+    { p: STAGE.page2, z: 4.40, fov: 51, x: -0.62 },
     { p: STAGE.brainExplode, z: 1.38, fov: 74, x:  0.00 },
     { p: STAGE.bulbForm, z: 5.35, fov: 46, x:  0.00 },
     { p: STAGE.bulbHold, z: 5.20, fov: 46, x:  0.00 },
@@ -2029,7 +2037,7 @@ function applyScrollCamera(p) {
     const onLogo = p >= STAGE.logoForm
     const onCopyHold =
       p < STAGE.brainHold ||
-      (p >= STAGE.brainHold + 0.036 && p < STAGE.brainMove) ||
+      (p >= STAGE.brainMove && p < STAGE.page2) ||
       (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
       (p >= STAGE.earthForm && p < STAGE.earthHold)
 
@@ -2145,20 +2153,22 @@ function updateReducedMotionStory(
 // MASTER STORY
 // ======================================================
 //
-// Copy beats hold the 3D form. Morphs ease across at least
-// one viewport so they share the page-turn pace:
+// One 100vh page per beat. Copy never shares a page with a morph:
 //
-// 0.00 – brainHold     Brain hold             hero
-//      – brainMove     Brain moves / page 2
-//      – brainExplode  Brain explosion
-//      – bulbForm      Lightbulb formation
-//      – bulbHold      Lightbulb hold         session notes
-//      – bulbExplode   Lightbulb explosion
-//      – earthForm     Earth formation
-//      – earthHold     Earth hold             programs
-//      – earthExplode  Earth explosion
-//      – logoForm      Logo formation
-//      – 1.00          Logo hold              consultation
+//  0  brainHold      hero
+//  1  brainMove      (empty)
+//  2  page2          t2-block
+//  3  brainExplode   (empty)
+//  4  bulbForm       (empty)
+//  5–8   bulbHold    t3 intro + three lines
+//  9–13  bulbHold    lightbulb session notes
+// 14  bulbExplode    (empty)
+// 15  earthForm      (empty)
+// 16–17  earthHold   t5 virtual-first
+// 18–25  earthHold   programs
+// 26  earthExplode   (empty)
+// 27  logoForm       (empty)
+// 28–30  logo hold   consultation
 //
 // ======================================================
 
@@ -2176,6 +2186,12 @@ function updateStory() {
   }
 
   syncNavHighlight(p)
+
+  if (copyTimeline) {
+    copyTimeline.progress(p)
+  }
+
+  enforceOneCopy()
 
   if (REDUCED_MOTION) {
     updateReducedMotionStory(
@@ -2247,9 +2263,8 @@ function updateStory() {
       1.08
     )
 
-    // Reach the resting pose within the first third of this window,
-    // then hold there — the rest of the scroll is spent with the
-    // page-2 content on screen, not still spinning/relocating.
+    // Finish the relocate on this empty page so page 2 opens on a
+    // settled brain, not mid-spin.
     const localT =
       (
         p -
@@ -2264,7 +2279,7 @@ function updateStory() {
       smoothstep(
         Math.min(
           localT /
-            0.3,
+            0.85,
           1
         )
       )
@@ -2308,6 +2323,43 @@ function updateStory() {
   }
 
   // ==================================================
+  // 2b. BRAIN SETTLED LEFT — page 2 copy
+  // ==================================================
+
+  else if (p < STAGE.page2) {
+    if (currentStage !== 'brain') {
+      writeStaticTarget(
+        brainPositions
+      )
+    }
+
+    currentStage =
+      'brain'
+
+    setHoldShot(
+      4.38,
+      47,
+      -0.22
+    )
+
+    transformTarget.x =
+      desktopOrMobileX(
+        LEFT_X
+      )
+
+    transformTarget.y = 0
+
+    transformTarget.rx =
+      -0.02
+
+    transformTarget.ry =
+      0.08
+
+    transformTarget.rz =
+      0
+  }
+
+  // ==================================================
   // 3. BRAIN EXPLOSION
   // ==================================================
 
@@ -2318,11 +2370,11 @@ function updateStory() {
     const t =
       (
         p -
-        STAGE.brainMove
+        STAGE.page2
       ) /
       (
         STAGE.brainExplode -
-        STAGE.brainMove
+        STAGE.page2
       )
 
     writeMorphTarget(
@@ -3319,168 +3371,111 @@ function addPageTurnBeat(tl, el, t, slot) {
   return t + slot
 }
 
-function wireCopyCluster(desktop, selectors, scroll, copyScrub) {
-  const els = selectors.map((selector) => document.querySelector(selector))
+let copyTimeline = null
 
-  if (els.some((el) => !el) || !scroll.trigger) {
-    return
+function buildCopyTimeline(desktop) {
+  const tl = gsap.timeline({
+    paused: true,
+    defaults: { force3D: true },
+  })
+
+  const hero = document.querySelector('.copy-hero')
+  const consult = document.querySelector('.copy-consult')
+
+  const traveling = [
+    { selector: '.t2-block', page: 2 },
+    { selector: '.t3-intro', page: 5 },
+    { selector: '.t3-line1', page: 6 },
+    { selector: '.t3-line2', page: 7 },
+    { selector: '.t3-line3', page: 8 },
+    { selector: '.lb-intro', page: 9 },
+    { selector: '.lb-feature-1', page: 10 },
+    { selector: '.lb-feature-2', page: 11 },
+    { selector: '.lb-feature-3', page: 12 },
+    { selector: '.lb-feature-4', page: 13 },
+    { selector: '.t5-main', page: 16 },
+    { selector: '.t5-caveat', page: 17 },
+    { selector: '.earth-intro', page: 18 },
+    { selector: '.earth-path-1', page: 19 },
+    { selector: '.earth-path-2', page: 20 },
+    { selector: '.earth-path-3', page: 21 },
+    { selector: '.earth-path-4', page: 22 },
+    { selector: '.earth-phil-intro', page: 23 },
+    { selector: '.earth-phil-para', page: 24 },
+    { selector: '.earth-phil-close', page: 25 },
+  ]
+
+  if (hero) {
+    const base = copyAnchor(hero, desktop)
+    const vh = window.innerHeight
+
+    gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
+
+    if (REDUCED_MOTION) {
+      tl.to(hero, { autoAlpha: 0, duration: PAGE * 0.8, ease: 'none' }, 0)
+    } else {
+      tl.to(hero, { y: vh * -0.45, duration: PAGE * 0.55, ease: 'none' }, 0)
+      tl.to(hero, { y: -(vh + 80), duration: PAGE * 0.45, ease: 'power1.in' }, PAGE * 0.55)
+      tl.to(hero, { autoAlpha: 0, duration: PAGE * 0.28, ease: 'none' }, PAGE * 0.55)
+    }
   }
 
-  els.forEach((el) => {
+  traveling.forEach(({ selector, page }) => {
+    const el = document.querySelector(selector)
+
+    if (!el) {
+      return
+    }
+
     gsap.set(el, {
       ...copyAnchor(el, desktop),
       y: REDUCED_MOTION ? 0 : 200,
       autoAlpha: 0,
     })
+
+    addPageTurnBeat(tl, el, page * PAGE, PAGE)
   })
 
-  const slot = 1 / els.length
-  const tl = gsap.timeline({
-    defaults: { force3D: true },
-    scrollTrigger: {
-      trigger: scroll.trigger,
-      endTrigger: scroll.endTrigger || scroll.trigger,
-      start: 'top+=12vh top',
-      end: 'bottom top',
-      scrub: REDUCED_MOTION ? true : copyScrub,
-      onUpdate: enforceOneCopy,
-    },
-  })
+  if (consult) {
+    gsap.set(consult, {
+      ...copyAnchor(consult, desktop),
+      y: REDUCED_MOTION ? 0 : 56,
+      autoAlpha: 0,
+    })
 
-  let t = 0
-  els.forEach((el) => {
-    t = addPageTurnBeat(tl, el, t, slot)
-  })
+    tl.to(consult, {
+      y: 0,
+      autoAlpha: 1,
+      duration: PAGE * 1.2,
+      ease: REDUCED_MOTION ? 'none' : 'power2.out',
+    }, STAGE.logoForm)
+  }
+
+  tl.addLabel('end', 1)
+
+  return tl
 }
 
 function setupCopyTravel() {
-  // No numeric scrub — lag was stacking two pages in the same slot.
-  // Smoothness comes from the 100vh Y travel, not from tween delay.
-  const copyScrub = REDUCED_MOTION ? false : true
+  // Copy is seeked from story.progress — the same clock as the
+  // particle morph. A second ScrollTrigger with its own scrub was
+  // racing the 1.35s story tween and stacking turns on 1→2, 6→7,
+  // and 13→14.
   const mm = gsap.matchMedia()
 
   const wire = (desktop) => {
-    const hero = document.querySelector('.copy-hero')
-    const heroChapter = document.querySelector('.chapter-hero')
-    const consult = document.querySelector('.copy-consult')
-    const consultChapter = document.querySelector('.logo-hold-chapter')
-    const morphA = document.querySelector('.chapter-morph-a')
-    const morphB = document.querySelector('.chapter-morph-b')
-    const lbItems = [...document.querySelectorAll('.chapter-lb-hold-item')]
-    const teamChapter = document.querySelector('.chapter-team')
+    copyTimeline = buildCopyTimeline(desktop)
+    copyTimeline.progress(story.progress)
+    enforceOneCopy()
 
-    if (hero && heroChapter) {
-      const base = copyAnchor(hero, desktop)
-      const vh = window.innerHeight
-
-      if (REDUCED_MOTION) {
-        gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
-        gsap.to(hero, {
-          autoAlpha: 0,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: heroChapter,
-            start: 'top top',
-            end: '80% top',
-            scrub: true,
-            onUpdate: enforceOneCopy,
-          },
-        })
-      } else {
-        gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
-        gsap.timeline({
-          defaults: { force3D: true },
-          scrollTrigger: {
-            trigger: heroChapter,
-            start: 'top top',
-            end: '80% top',
-            scrub: copyScrub,
-            onUpdate: enforceOneCopy,
-          },
-        })
-          .to(hero, { y: vh * -0.45, duration: 0.55, ease: 'none' })
-          .to(hero, { y: -(vh + 80), duration: 0.45, ease: 'power1.in' })
-          .to(hero, { autoAlpha: 0, duration: 0.28, ease: 'none' }, '<')
-      }
-    }
-
-    wireCopyCluster(
-      desktop,
-      ['.t2-block', '.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
-      { trigger: morphA },
-      copyScrub
-    )
-
-    wireCopyCluster(
-      desktop,
-      [
-        '.lb-intro',
-        '.lb-feature-1',
-        '.lb-feature-2',
-        '.lb-feature-3',
-        '.lb-feature-4',
-      ],
-      {
-        trigger: lbItems[0],
-        endTrigger: lbItems[lbItems.length - 1],
-      },
-      copyScrub
-    )
-
-    wireCopyCluster(
-      desktop,
-      ['.t5-main', '.t5-caveat'],
-      { trigger: morphB },
-      copyScrub
-    )
-
-    wireCopyCluster(
-      desktop,
-      [
-        '.earth-intro',
-        '.earth-path-1',
-        '.earth-path-2',
-        '.earth-path-3',
-        '.earth-path-4',
-        '.earth-phil-intro',
-        '.earth-phil-para',
-        '.earth-phil-close',
-      ],
-      { trigger: teamChapter },
-      copyScrub
-    )
-
-    if (consult && consultChapter) {
-      const base = copyAnchor(consult, desktop)
-
-      gsap.set(consult, {
-        ...base,
-        y: REDUCED_MOTION ? 0 : 56,
-        autoAlpha: 0,
-      })
-      gsap.to(consult, {
-        y: 0,
-        autoAlpha: 1,
-        ease: REDUCED_MOTION ? 'none' : 'power2.out',
-        force3D: true,
-        scrollTrigger: {
-          trigger: consultChapter,
-          start: 'top top',
-          end: 'top 55%',
-          scrub: REDUCED_MOTION ? true : copyScrub,
-          onUpdate: enforceOneCopy,
-        },
-      })
+    return () => {
+      copyTimeline?.kill()
+      copyTimeline = null
     }
   }
 
-  mm.add('(min-width: 768px)', () => {
-    wire(true)
-  })
-
-  mm.add('(max-width: 767px)', () => {
-    wire(false)
-  })
+  mm.add('(min-width: 768px)', () => wire(true))
+  mm.add('(max-width: 767px)', () => wire(false))
 }
 
 // ======================================================
@@ -3812,6 +3807,8 @@ function createPage() {
 
   setupNav()
 
+  setupCopyTravel()
+
   // ==================================================
   // MASTER SCROLL
   // ==================================================
@@ -3888,10 +3885,35 @@ function createPage() {
     }
   }
 
-  setupCopyTravel()
-  ScrollTrigger.refresh()
-
   setupVisibilityObserver()
+
+  window.__mmInspectTiming = () => {
+    const copies = [...document.querySelectorAll('.copy')].map((el) => {
+      const op = Number(gsap.getProperty(el, 'opacity')) || 0
+      const cls = [...el.classList].find((name) => (
+        name.startsWith('t2') ||
+        name.startsWith('t3') ||
+        name.startsWith('t5') ||
+        name.startsWith('lb-') ||
+        name.startsWith('earth-') ||
+        name === 'copy-hero' ||
+        name === 'copy-consult'
+      )) || el.className
+
+      return { id: cls, op, live: el.classList.contains('is-live') }
+    })
+
+    return {
+      p: story.progress,
+      stage: currentStage,
+      morphing: (
+        currentStage.endsWith('-moving') ||
+        currentStage.endsWith('-explosion') ||
+        currentStage.endsWith('-forming')
+      ),
+      live: copies.filter((item) => item.op > 0.12),
+    }
+  }
 
   window.__mmSetProgress = (p) => {
     const next = Math.max(0, Math.min(1, Number(p) || 0))
