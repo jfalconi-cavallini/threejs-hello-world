@@ -3248,34 +3248,46 @@ function syncNavHighlight(
 ) {
 }
 
-function liveCopy(el) {
-  const opacity = Number(gsap.getProperty(el, 'opacity')) || 0
-  el.classList.toggle('is-live', opacity > 0.25)
+const COPY_PAINT_EPS = 0.01
+const copyFadeProxies = new WeakMap()
+
+function fadeProxy(el) {
+  let proxy = copyFadeProxies.get(el)
+  if (!proxy) {
+    proxy = { copyFade: 0 }
+    copyFadeProxies.set(el, proxy)
+  }
+  return proxy
 }
 
-// Visibility only — does not touch Y, opacity tweens, scrub, or durations.
-// One readable .copy in the fixed slot. Incoming (later in DOM) wins so
-// two headlines cannot sit at full opacity on top of each other.
+function copyFadeOf(el) {
+  return Number(fadeProxy(el).copyFade) || 0
+}
+
+// Exclusive paint in the shared slot. Timelines tween copyFade + Y
+// only; this is the only writer of CSS opacity/visibility. At most
+// one .copy may have computed opacity > 0. Incoming stays at 0 until
+// the outgoing beat's copyFade has reached 0.
 function syncCopySlot() {
   const copies = [...document.querySelectorAll('.copy')]
-  const readable = copies.filter((el) => {
-    return (Number(gsap.getProperty(el, 'opacity')) || 0) > 0.55
-  })
-
-  if (readable.length <= 1) {
-    copies.forEach((el) => {
-      const opacity = Number(gsap.getProperty(el, 'opacity')) || 0
-      el.classList.toggle('is-live', opacity > 0.25)
-      el.style.visibility = opacity > 0 ? 'visible' : 'hidden'
-    })
+  if (!copies.length) {
     return
   }
 
-  const winner = readable[readable.length - 1]
-  copies.forEach((el) => {
-    const on = el === winner
-    el.classList.toggle('is-live', on)
-    el.style.visibility = on ? 'visible' : 'hidden'
+  const scored = copies.map((el, i) => ({
+    el,
+    i,
+    op: copyFadeOf(el),
+  }))
+  const painted = scored.filter((item) => item.op > COPY_PAINT_EPS)
+  const keeper = painted.length ? painted[0] : null
+
+  scored.forEach((item) => {
+    const on = keeper !== null && item.el === keeper.el
+    const paint = on ? item.op : 0
+    item.el.style.opacity = String(paint)
+    item.el.style.visibility = paint > COPY_PAINT_EPS ? 'visible' : 'hidden'
+    item.el.classList.toggle('is-live', paint > COPY_PAINT_EPS)
   })
 }
 
@@ -3297,12 +3309,12 @@ function copyAnchor(el, desktop) {
 // the handoff overlaps — no empty stall, no sequential dead zone.
 const PAGE_TURN = { enter: 0.04, hold: 0.14, exit: 0.06 }
 
-function addPageTurnBeat(tl, el, t, enter, hold, exit, stay) {
+function addPageTurnBeat(tl, el, t, enter, hold, exit, stay, fadeWait) {
   if (REDUCED_MOTION) {
-    tl.to(el, { autoAlpha: 1, duration: enter, ease: 'none' }, t)
+    tl.to(fadeProxy(el), { copyFade: 1, duration: enter, ease: 'none' }, t)
     tl.to(el, { duration: hold, ease: 'none' }, t + enter)
     if (!stay) {
-      tl.to(el, { autoAlpha: 0, duration: exit, ease: 'none' }, t + enter + hold)
+      tl.to(fadeProxy(el), { copyFade: 0, duration: exit, ease: 'none' }, t + enter + hold)
     }
     return t + enter + hold
   }
@@ -3311,11 +3323,14 @@ function addPageTurnBeat(tl, el, t, enter, hold, exit, stay) {
   const tExit = tHold + hold
 
   tl.to(el, { y: 10, duration: enter, ease: 'power1.out' }, t)
-  tl.to(el, {
-    autoAlpha: 1,
+  // Fade in only after the previous beat's fade-out (exit * 0.5)
+  // has reached 0. Y travel still starts at t — page-turn unchanged.
+  const fadeInAt = t + (fadeWait == null ? exit * 0.5 : fadeWait)
+  tl.to(fadeProxy(el), {
+    copyFade: 1,
     duration: enter * 0.5,
     ease: 'power2.in',
-  }, t + enter * 0.35)
+  }, fadeInAt)
   tl.to(el, { y: -24, duration: hold, ease: 'none' }, tHold)
 
   if (stay) {
@@ -3323,8 +3338,8 @@ function addPageTurnBeat(tl, el, t, enter, hold, exit, stay) {
   }
 
   tl.to(el, { y: -220, duration: exit, ease: 'power1.in' }, tExit)
-  tl.to(el, {
-    autoAlpha: 0,
+  tl.to(fadeProxy(el), {
+    copyFade: 0,
     duration: exit * 0.5,
     ease: 'power1.out',
   }, tExit)
@@ -3345,6 +3360,7 @@ function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
       y: REDUCED_MOTION ? 0 : 200,
       autoAlpha: 0,
     })
+    fadeProxy(el).copyFade = 0
   })
 
   const tl = gsap.timeline({
@@ -3359,7 +3375,16 @@ function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
   let t = 0
   els.forEach((el, i) => {
     const beat = beats[i] || PAGE_TURN
-    t = addPageTurnBeat(tl, el, t, beat.enter, beat.hold, beat.exit, beat.stay)
+    t = addPageTurnBeat(
+      tl,
+      el,
+      t,
+      beat.enter,
+      beat.hold,
+      beat.exit,
+      beat.stay,
+      beat.fadeWait
+    )
   })
 }
 
@@ -3383,8 +3408,9 @@ function setupCopyTravel() {
 
       if (REDUCED_MOTION) {
         gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
-        gsap.to(hero, {
-          autoAlpha: 0,
+        fadeProxy(hero).copyFade = 1
+        gsap.to(fadeProxy(hero), {
+          copyFade: 0,
           ease: 'none',
           scrollTrigger: {
             trigger: heroChapter,
@@ -3395,6 +3421,7 @@ function setupCopyTravel() {
         })
       } else {
         gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
+        fadeProxy(hero).copyFade = 1
         hero.classList.add('is-live')
         // Y travel matches b0009d9. Fade starts as page 2 enters
         // (morph-a top 82% ≈ 0.10 of this 170% range) so the slot
@@ -3411,7 +3438,7 @@ function setupCopyTravel() {
         })
           .to(hero, { y: vh * -0.42, duration: 0.64, ease: 'none' })
           .to(hero, { y: -(vh + 80), duration: 0.36, ease: 'power1.in' })
-          .to(hero, { autoAlpha: 0, duration: 0.14, ease: 'power1.out' }, 0.10)
+          .to(fadeProxy(hero), { copyFade: 0, duration: 0.14, ease: 'power1.out' }, 0.10)
       }
     }
 
@@ -3424,7 +3451,7 @@ function setupCopyTravel() {
         end: 'bottom 18%',
       },
       [
-        PAGE_TURN,
+        { ...PAGE_TURN, fadeWait: 0.06 },
         PAGE_TURN,
         PAGE_TURN,
         PAGE_TURN,
@@ -3449,7 +3476,7 @@ function setupCopyTravel() {
         end: '40% top',
       },
       [
-        PAGE_TURN,
+        { ...PAGE_TURN, fadeWait: 0.13 },
         PAGE_TURN,
         PAGE_TURN,
         PAGE_TURN,
@@ -3467,7 +3494,7 @@ function setupCopyTravel() {
         end: 'bottom 14%',
       },
       [
-        PAGE_TURN,
+        { ...PAGE_TURN, fadeWait: 0.05 },
         PAGE_TURN,
       ],
       copyScrub
@@ -3491,7 +3518,7 @@ function setupCopyTravel() {
         end: 'bottom top',
       },
       [
-        PAGE_TURN,
+        { ...PAGE_TURN, fadeWait: 0.13 },
         PAGE_TURN,
         PAGE_TURN,
         PAGE_TURN,
@@ -3511,6 +3538,7 @@ function setupCopyTravel() {
         y: REDUCED_MOTION ? 0 : 200,
         autoAlpha: 0,
       })
+      fadeProxy(consult).copyFade = 0
 
       const tl = gsap.timeline({
         defaults: { force3D: true },
@@ -3530,7 +3558,8 @@ function setupCopyTravel() {
         PAGE_TURN.enter,
         PAGE_TURN.hold,
         PAGE_TURN.exit,
-        true
+        true,
+        0.42
       )
     }
   }
@@ -3542,6 +3571,13 @@ function setupCopyTravel() {
   mm.add('(max-width: 767px)', () => {
     wire(false)
   })
+
+  if (!setupCopyTravel.ticking) {
+    gsap.ticker.add(syncCopySlot)
+    setupCopyTravel.ticking = true
+  }
+
+  syncCopySlot()
 }
 
 // ======================================================
@@ -3953,6 +3989,12 @@ function createPage() {
   ScrollTrigger.refresh()
 
   setupVisibilityObserver()
+
+  window.__mmCopyPaintCount = () =>
+    [...document.querySelectorAll('.copy')].filter((el) => {
+      const cs = getComputedStyle(el)
+      return Number(cs.opacity) > 0.01 && cs.visibility !== 'hidden'
+    }).length
 
   window.__mmSetProgress = (p) => {
     const next = Math.max(0, Math.min(1, Number(p) || 0))
