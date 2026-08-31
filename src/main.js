@@ -2838,6 +2838,28 @@ Promise.all([
 // NAV
 // ======================================================
 
+const ARROW_ICON = `
+  <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M9 6l6 6-6 6" />
+  </svg>
+`
+
+const USERS_ICON = `
+  <svg class="hero-trust-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+`
+
+const SHIELD_ICON = `
+  <svg class="hero-trust-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+`
+
 let navLinks = []
 
 function createNavbar() {
@@ -2875,6 +2897,7 @@ function createNavbar() {
       href="https://www.metamindsstemacademy.com/consultation"
     >
       Book Free Consultation
+      ${ARROW_ICON}
     </a>
   `
 
@@ -2973,7 +2996,7 @@ function beatGate(p, start, end, fade = 0.012) {
 }
 
 const COPY_BEATS = [
-  { selector: '.copy-hero', start: 0.00, end: 0.165 },
+  { selector: '.copy-hero', start: 0.00, end: 0.24 },
   { selector: '.chapter-plan .copy', start: 0.345, end: 0.415 },
   { selector: '.chapter-notes .copy', start: 0.42, end: 0.468 },
   { selector: '.chapter-teach .copy', start: 0.47, end: 0.52 },
@@ -2990,27 +3013,27 @@ function syncCopyBeats(p) {
       continue
     }
 
+    if (beat.selector === '.copy-hero') {
+      // No fade here — it just rises and scrolls off the top of the
+      // viewport as you scroll, staying fully opaque the whole way,
+      // reacting from the very first pixel scrolled.
+      const t = clamp01(p / beat.end)
+      const travel = window.innerHeight + 200
+
+      el.style.transform = `translateY(${-t * travel}px)`
+      el.style.opacity = '1'
+      el.classList.toggle('is-live', t < 0.9)
+      continue
+    }
+
     const hardOff =
       beat.selector.indexOf('teach') !== -1 &&
       p >= 0.52
 
-    let gate
-
-    if (beat.selector === '.copy-hero') {
-      // The hero copy used to hold flat at full opacity and only
-      // snap off in the last sliver of its range — scrolling did
-      // nothing visible to it at first. Fade and drift it linearly
-      // from the very first pixel scrolled instead, so it reacts
-      // immediately.
-      const t = clamp01(p / beat.end)
-      gate = 1 - t
-      el.style.transform = `translateY(${-t * 46}px)`
-    } else {
-      gate =
-        hardOff
-          ? 0
-          : beatGate(p, beat.start, beat.end)
-    }
+    const gate =
+      hardOff
+        ? 0
+        : beatGate(p, beat.start, beat.end)
 
     el.style.opacity = String(gate)
     el.classList.toggle('is-live', gate > 0.04)
@@ -3039,8 +3062,36 @@ function createPage() {
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
         <h1>
-          A mentor who stays with your kid.
+          A mentor who stays with <span class="grad-accent">your kid.</span>
         </h1>
+        <p>
+          Personalized virtual tutoring in math, SAT prep, reading,
+          science, coding, and robotics. Limited in-person support may
+          be available depending on tutor availability.
+        </p>
+        <div class="hero-divider"></div>
+        <div class="hero-trust">
+          <div class="hero-trust-item hero-trust-item--families">
+            ${USERS_ICON}
+            <span class="hero-trust-text">
+              Trusted by Families<br>Across the Country
+            </span>
+          </div>
+          <div class="hero-trust-sep"></div>
+          <div class="hero-trust-item hero-trust-item--vetted">
+            ${SHIELD_ICON}
+            <span class="hero-trust-text">
+              Vetted Tutors.<br>From Prestigious Universities.
+            </span>
+          </div>
+        </div>
+        <a
+          href="https://www.metamindsstemacademy.com/consultation"
+          class="primary-button hero-cta"
+        >
+          Book Free Consultation
+          ${ARROW_ICON}
+        </a>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3117,6 +3168,7 @@ function createPage() {
           class="primary-button"
         >
           Book Free Consultation
+          ${ARROW_ICON}
         </a>
       </div>
     </section>
@@ -3161,7 +3213,7 @@ function createPage() {
         scrub:
           REDUCED_MOTION
             ? false
-            : 0.95,
+            : true,
 
         onUpdate:
           updateStory,
@@ -3834,6 +3886,15 @@ function animate() {
       particles.rotation.y +=
         dt *
         0.14
+    }
+
+    else if (
+      currentStage ===
+      'brain'
+    ) {
+      particles.rotation.y +=
+        dt *
+        0.24
     }
 
     else if (
