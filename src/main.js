@@ -1977,8 +1977,10 @@ function applyScrollCamera(p) {
   const keys = [
     { p: 0.000, z: 4.55, fov: 50, x: -0.68 },
     { p: 0.070, z: 4.40, fov: 51, x: -0.62 },
-    { p: 0.105, z: 1.85, fov: 68, x: -0.08 },
-    { p: 0.195, z: 1.38, fov: 74, x:  0.00 },
+    // Hold wide through the page-2 block — no dolly-in while there's
+    // copy on screen — then dolly in fast for the brief explosion.
+    { p: 0.199, z: 4.40, fov: 51, x: -0.62 },
+    { p: 0.245, z: 1.38, fov: 74, x:  0.00 },
     { p: 0.284, z: 5.35, fov: 46, x:  0.00 },
     { p: 0.415, z: 5.20, fov: 46, x:  0.00 },
     { p: 0.454, z: 1.55, fov: 72, x:  0.00 },
@@ -2014,6 +2016,7 @@ function applyScrollCamera(p) {
     const onLogo = p >= 0.883
     const onCopyHold =
       p < 0.079 ||
+      (p >= 0.115 && p < 0.199) ||
       (p >= 0.284 && p < 0.430) ||
       (p >= 0.547 && p < 0.781)
 
@@ -2194,13 +2197,13 @@ function updateStory() {
     )
 
     transformTarget.x =
-      desktopOrMobileX(
-        HERO_BRAIN_X
-      )
+      isMobile()
+        ? 0.6
+        : HERO_BRAIN_X
 
     transformTarget.y =
       isMobile()
-        ? -1.85
+        ? -1.2
         : 0
 
     transformTarget.rx =
@@ -2217,7 +2220,7 @@ function updateStory() {
   // 2. BRAIN MOVES LEFT / CIRCULAR ROTATION
   // ==================================================
 
-  else if (p < 0.156) {
+  else if (p < 0.199) {
     currentStage =
       'brain-moving'
 
@@ -2233,13 +2236,23 @@ function updateStory() {
       1.08
     )
 
+    // Reach the resting pose within the first third of this window,
+    // then hold there — the rest of the scroll is spent with the
+    // page-2 content on screen, not still spinning/relocating.
+    const localT =
+      (
+        p -
+        0.079
+      ) /
+        0.120
+
     const t =
       smoothstep(
-        (
-          p -
-          0.079
-        ) /
-          0.077
+        Math.min(
+          localT /
+            0.3,
+          1
+        )
       )
 
     transformTarget.x =
@@ -2284,16 +2297,16 @@ function updateStory() {
   // 3. BRAIN EXPLOSION
   // ==================================================
 
-  else if (p < 0.233) {
+  else if (p < 0.250) {
     currentStage =
       'brain-explosion'
 
     const t =
       (
         p -
-        0.156
+        0.199
       ) /
-      0.077
+      0.051
 
     writeMorphTarget(
       brainPositions,
@@ -2341,9 +2354,9 @@ function updateStory() {
     const t =
       (
         p -
-        0.233
+        0.250
       ) /
-      0.051
+      0.034
 
     writeMorphTarget(
       brainExplosion,
@@ -2860,6 +2873,45 @@ const SHIELD_ICON = `
   </svg>
 `
 
+function iconSvg(cls, paths) {
+  return `
+  <svg class="${cls}" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    ${paths}
+  </svg>
+`
+}
+
+const GLOBE_ICON = iconSvg(
+  'page2-feature-icon',
+  `<circle cx="12" cy="12" r="10" />
+   <line x1="2" y1="12" x2="22" y2="12" />
+   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />`
+)
+
+const PIN_ICON = iconSvg(
+  'page2-feature-icon',
+  `<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+   <circle cx="12" cy="10" r="3" />`
+)
+
+const CAP_ICON = iconSvg(
+  'page2-stat-icon',
+  `<path d="M22 10 12 5 2 10l10 5 10-5z" />
+   <path d="M6 12.5V17a1 1 0 0 0 .3.7c1.2 1.2 3.4 2.3 5.7 2.3s4.5-1.1 5.7-2.3a1 1 0 0 0 .3-.7v-4.5" />
+   <path d="M22 10v6" />`
+)
+
+const TRENDING_ICON = iconSvg(
+  'page2-stat-icon',
+  `<polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+   <polyline points="17 6 23 6 23 12" />`
+)
+
+const STAR_ICON = iconSvg(
+  'page2-stat-icon',
+  `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />`
+)
+
 let navLinks = []
 
 function createNavbar() {
@@ -3186,18 +3238,16 @@ function beatGate(p, start, end, fade = 0.012) {
 const COPY_BEATS = [
   { selector: '.copy-hero', start: 0.000, end: 0.075 },
 
-  // Chapter 2 — brain moves right → left. "Every student gets stuck..."
-  { selector: '.t2-intro', start: 0.085, end: 0.108 },
-  { selector: '.t2-line1', start: 0.108, end: 0.125 },
-  { selector: '.t2-line2', start: 0.125, end: 0.142 },
-  { selector: '.t2-line3', start: 0.142, end: 0.153 },
+  // Chapter 2 — brain settles left after moving. Full landing-style
+  // block: headline, feature row, CTAs, stat row, trust bar.
+  { selector: '.t2-block', start: 0.090, end: 0.192 },
 
   // Chapter 3 — brain explodes into the lightbulb. "Understanding
   // changes everything."
-  { selector: '.t3-intro', start: 0.160, end: 0.200 },
-  { selector: '.t3-line1', start: 0.200, end: 0.225 },
-  { selector: '.t3-line2', start: 0.225, end: 0.250 },
-  { selector: '.t3-line3', start: 0.250, end: 0.280 },
+  { selector: '.t3-intro', start: 0.200, end: 0.222 },
+  { selector: '.t3-line1', start: 0.222, end: 0.240 },
+  { selector: '.t3-line2', start: 0.240, end: 0.258 },
+  { selector: '.t3-line3', start: 0.258, end: 0.278 },
 
   // Chapter 4 — lightbulb hold. What happens between sessions.
   { selector: '.lb-intro', start: 0.290, end: 0.315 },
@@ -3324,23 +3374,92 @@ function createPage() {
     </section>
 
     <section class="chapter chapter-morph chapter-morph-a">
-      <div class="copy copy-right-mid t2-intro">
-        <h2>Every student gets stuck for a different reason.</h2>
+      <div class="copy copy-center copy-mid t2-block">
+        <div class="page2-eyebrow">Virtual Tutoring. Real Results.</div>
+        <h2>Expert mentors. Personalized learning. Stronger futures.</h2>
         <p>
-          Sometimes it's a missing foundation. Sometimes it's
-          confidence, organization, pacing, or a concept that never
-          fully clicked. We figure out what is actually getting in
-          the way before deciding what comes next.
+          MetaMinds provides virtual STEM tutoring and academic
+          mentorship for students across the U.S. Our mentors build
+          confidence, strengthen skills, and inspire a love for
+          learning.
         </p>
-      </div>
-      <div class="copy copy-right-mid t2-line1">
-        <h2>What do they already know?</h2>
-      </div>
-      <div class="copy copy-right-mid t2-line2">
-        <h2>Where are the gaps?</h2>
-      </div>
-      <div class="copy copy-right-mid t2-line3">
-        <h2>What should we work on next?</h2>
+
+        <div class="page2-features">
+          <div class="page2-feature-item">
+            ${GLOBE_ICON}
+            <h4>Virtual First</h4>
+            <p>
+              All sessions are online so students can learn from the
+              best mentors anywhere.
+            </p>
+          </div>
+          <div class="page2-feature-item">
+            ${PIN_ICON}
+            <h4>In-Person Options</h4>
+            <p>
+              In-person tutoring may be available in select areas
+              depending on tutor availability.
+            </p>
+          </div>
+          <div class="page2-feature-item">
+            ${USERS_ICON.replace('hero-trust-icon', 'page2-feature-icon')}
+            <h4>Personalized 1:1</h4>
+            <p>
+              Every student gets a custom learning plan designed
+              around their goals.
+            </p>
+          </div>
+        </div>
+
+        <div class="hero-actions page2-actions">
+          <a
+            href="https://www.metamindsstemacademy.com/consultation"
+            class="primary-button hero-cta"
+          >
+            Book Free Consultation
+            ${ARROW_ICON}
+          </a>
+          <a href="#team" class="hero-secondary-cta">
+            Explore Programs
+          </a>
+        </div>
+
+        <div class="page2-stats">
+          <div class="page2-stat-item">
+            ${CAP_ICON}
+            <div>
+              <div class="page2-stat-value">500+</div>
+              <div class="page2-stat-label">Students Mentored</div>
+              <p>Across all grade levels and skill areas</p>
+            </div>
+          </div>
+          <div class="page2-stat-item">
+            ${TRENDING_ICON}
+            <div>
+              <div class="page2-stat-value">95%</div>
+              <div class="page2-stat-label">Improvement Rate</div>
+              <p>Students see stronger grades and test scores</p>
+            </div>
+          </div>
+          <div class="page2-stat-item">
+            ${STAR_ICON}
+            <div>
+              <div class="page2-stat-label">Expert Mentors</div>
+              <p>Top college students, engineers, and STEM professionals</p>
+            </div>
+          </div>
+          <div class="page2-stat-item">
+            ${SHIELD_ICON.replace('hero-trust-icon', 'page2-stat-icon')}
+            <div>
+              <div class="page2-stat-label">Safe & Supportive</div>
+              <p>Carefully vetted mentors and a student-first environment</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="page2-trust">
+          <div class="page2-trust-label">Trusted by Families Across the U.S.</div>
+        </div>
       </div>
 
       <div class="copy copy-center copy-mid t3-intro">
