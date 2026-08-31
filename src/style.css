@@ -466,8 +466,8 @@ button {
 }
 
 .chapter-morph-c {
-  min-height: 200vh;
-  min-height: 200svh;
+  min-height: 100vh;
+  min-height: 100svh;
 }
 
 .chapter-lb-hold-item {
@@ -483,8 +483,8 @@ button {
 }
 
 .logo-hold-chapter {
-  min-height: 200vh;
-  min-height: 200svh;
+  min-height: 300vh;
+  min-height: 300svh;
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 40px;
@@ -1042,8 +1042,8 @@ h2 {
   }
 
   .chapter-morph-c {
-    min-height: 200vh;
-    min-height: 200svh;
+    min-height: 100vh;
+    min-height: 100svh;
   }
 
   .chapter-lb-hold-item {
@@ -1057,8 +1057,8 @@ h2 {
   }
 
   .logo-hold-chapter {
-    min-height: 200vh;
-    min-height: 200svh;
+    min-height: 300vh;
+    min-height: 300svh;
     align-items: flex-end;
     justify-content: center;
     padding-bottom: 24px;

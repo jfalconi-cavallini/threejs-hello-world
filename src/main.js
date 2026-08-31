@@ -1980,8 +1980,10 @@ const STAGE = {
   bulbExplode: 0.480,
   earthForm: 0.520,
   earthHold: 0.840,
-  earthExplode: 0.880,
-  logoForm: 0.920,
+  // Explode + form share one 100vh chapter (was two). Copy arrives
+  // as the mark finishes instead of after a second empty viewport.
+  earthExplode: 0.860,
+  logoForm: 0.880,
 }
 
 function applyScrollCamera(p) {
@@ -3291,11 +3293,14 @@ function addPageTurnBeat(tl, el, t, slot) {
   const enter = slot * 0.15
   const hold = slot * 0.62
   const exit = slot * 0.15
+  // Same opacity ramp in and out. power2.in on a shorter enter was
+  // popping (~28–42px) while exits took ~56–70px.
+  const fade = slot * 0.08
 
   if (REDUCED_MOTION) {
-    tl.to(el, { autoAlpha: 1, duration: enter, ease: 'none' }, t)
-    tl.to(el, { duration: hold, ease: 'none' }, t + enter)
-    tl.to(el, { autoAlpha: 0, duration: exit, ease: 'none' }, t + enter + hold)
+    tl.to(el, { autoAlpha: 1, duration: fade, ease: 'none' }, t)
+    tl.to(el, { duration: hold + enter - fade, ease: 'none' }, t + fade)
+    tl.to(el, { autoAlpha: 0, duration: fade, ease: 'none' }, t + enter + hold)
     return t + slot
   }
 
@@ -3305,14 +3310,14 @@ function addPageTurnBeat(tl, el, t, slot) {
   tl.to(el, { y: 12, duration: enter, ease: 'power1.out' }, t)
   tl.to(el, {
     autoAlpha: 1,
-    duration: enter * 0.45,
-    ease: 'power2.in',
-  }, t + enter * 0.4)
+    duration: fade,
+    ease: 'power1.out',
+  }, t)
   tl.to(el, { y: -20, duration: hold, ease: 'none' }, tHold)
   tl.to(el, { y: -260, duration: exit, ease: 'power1.in' }, tExit)
   tl.to(el, {
     autoAlpha: 0,
-    duration: exit * 0.55,
+    duration: fade,
     ease: 'power1.out',
   }, tExit)
 
@@ -3340,8 +3345,8 @@ function wireCopyCluster(desktop, selectors, scroll, copyScrub) {
     scrollTrigger: {
       trigger: scroll.trigger,
       endTrigger: scroll.endTrigger || scroll.trigger,
-      start: 'top+=12vh top',
-      end: 'bottom top',
+      start: scroll.start || 'top+=12vh top',
+      end: scroll.end || 'bottom top',
       scrub: REDUCED_MOTION ? true : copyScrub,
       onUpdate: enforceOneCopy,
     },
@@ -3381,7 +3386,7 @@ function setupCopyTravel() {
           scrollTrigger: {
             trigger: heroChapter,
             start: 'top top',
-            end: '80% top',
+            end: 'bottom top',
             scrub: true,
             onUpdate: enforceOneCopy,
           },
@@ -3393,21 +3398,21 @@ function setupCopyTravel() {
           scrollTrigger: {
             trigger: heroChapter,
             start: 'top top',
-            end: '80% top',
+            end: 'bottom top',
             scrub: copyScrub,
             onUpdate: enforceOneCopy,
           },
         })
           .to(hero, { y: vh * -0.45, duration: 0.55, ease: 'none' })
           .to(hero, { y: -(vh + 80), duration: 0.45, ease: 'power1.in' })
-          .to(hero, { autoAlpha: 0, duration: 0.28, ease: 'none' }, '<')
+          .to(hero, { autoAlpha: 0, duration: 0.07, ease: 'power1.out' }, 0.93)
       }
     }
 
     wireCopyCluster(
       desktop,
       ['.t2-block', '.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
-      { trigger: morphA },
+      { trigger: morphA, start: 'top+=4vh top' },
       copyScrub
     )
 
@@ -3461,12 +3466,14 @@ function setupCopyTravel() {
       gsap.to(consult, {
         y: 0,
         autoAlpha: 1,
-        ease: REDUCED_MOTION ? 'none' : 'power2.out',
+        ease: REDUCED_MOTION ? 'none' : 'power1.out',
         force3D: true,
         scrollTrigger: {
           trigger: consultChapter,
+          // end was 'top 55%' — that fires BEFORE start ('top top'),
+          // so the tween completed in one frame (opacity 1 snap).
           start: 'top top',
-          end: 'top 55%',
+          end: '+=36',
           scrub: REDUCED_MOTION ? true : copyScrub,
           onUpdate: enforceOneCopy,
         },
