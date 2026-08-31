@@ -456,23 +456,23 @@ button {
 }
 
 .chapter-morph-a {
-  min-height: 700vh;
-  min-height: 700svh;
+  min-height: 920vh;
+  min-height: 920svh;
 }
 
 .chapter-morph-b {
-  min-height: 400vh;
-  min-height: 400svh;
+  min-height: 580vh;
+  min-height: 580svh;
 }
 
 .chapter-morph-c {
-  min-height: 350vh;
-  min-height: 350svh;
+  min-height: 480vh;
+  min-height: 480svh;
 }
 
 .chapter-lb-hold-item {
-  min-height: 100vh;
-  min-height: 100svh;
+  min-height: 110vh;
+  min-height: 110svh;
   justify-content: center;
 }
 
@@ -483,8 +483,8 @@ button {
 }
 
 .logo-hold-chapter {
-  min-height: 400vh;
-  min-height: 400svh;
+  min-height: 420vh;
+  min-height: 420svh;
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 40px;
@@ -1030,23 +1030,23 @@ h2 {
   }
 
   .chapter-morph-a {
-    min-height: 490vh;
-    min-height: 490svh;
+    min-height: 640vh;
+    min-height: 640svh;
   }
 
   .chapter-morph-b {
-    min-height: 280vh;
-    min-height: 280svh;
+    min-height: 400vh;
+    min-height: 400svh;
   }
 
   .chapter-morph-c {
-    min-height: 250vh;
-    min-height: 250svh;
+    min-height: 340vh;
+    min-height: 340svh;
   }
 
   .chapter-lb-hold-item {
-    min-height: 85vh;
-    min-height: 85svh;
+    min-height: 95vh;
+    min-height: 95svh;
   }
 
   .chapter-team {
@@ -1055,8 +1055,8 @@ h2 {
   }
 
   .logo-hold-chapter {
-    min-height: 260vh;
-    min-height: 260svh;
+    min-height: 290vh;
+    min-height: 290svh;
     align-items: flex-end;
     justify-content: center;
     padding-bottom: 24px;

@@ -1966,9 +1966,22 @@ function setTransformShot(
 ) {
   stageIsTransform = true
   morphLerp =
-    POSITION_LERP * 2.05
+    POSITION_LERP * 1.15
   transformTarget.s = scale
   bloomTarget = MOBILE_AT_LOAD ? 0 : 0.2
+}
+
+const STAGE = {
+  brainHold: 0.067,
+  brainMove: 0.200,
+  brainExplode: 0.248,
+  bulbForm: 0.296,
+  bulbHold: 0.432,
+  bulbExplode: 0.495,
+  earthForm: 0.575,
+  earthHold: 0.773,
+  earthExplode: 0.832,
+  logoForm: 0.891,
 }
 
 function applyScrollCamera(p) {
@@ -1976,20 +1989,20 @@ function applyScrollCamera(p) {
   // distant silhouette. Dolly IN only during morphs — no copy.
   const keys = [
     { p: 0.000, z: 4.55, fov: 50, x: -0.68 },
-    { p: 0.070, z: 4.40, fov: 51, x: -0.62 },
+    { p: STAGE.brainHold, z: 4.40, fov: 51, x: -0.62 },
     // Hold wide through the page-2 block — no dolly-in while there's
-    // copy on screen — then dolly in fast for the brief explosion.
-    { p: 0.199, z: 4.40, fov: 51, x: -0.62 },
-    { p: 0.245, z: 1.38, fov: 74, x:  0.00 },
-    { p: 0.284, z: 5.35, fov: 46, x:  0.00 },
-    { p: 0.415, z: 5.20, fov: 46, x:  0.00 },
-    { p: 0.454, z: 1.55, fov: 72, x:  0.00 },
-    { p: 0.524, z: 1.72, fov: 68, x:  0.00 },
-    { p: 0.573, z: 4.70, fov: 48, x: -0.72 },
-    { p: 0.755, z: 4.55, fov: 48, x: -0.68 },
-    { p: 0.804, z: 1.62, fov: 70, x:  0.00 },
-    { p: 0.872, z: 3.55, fov: 48, x:  0.00 },
-    { p: 0.909, z: 7.80, fov: 40, x:  0.00 },
+    // copy on screen — then ease in across the longer explosion.
+    { p: STAGE.brainMove, z: 4.40, fov: 51, x: -0.62 },
+    { p: STAGE.brainExplode, z: 1.38, fov: 74, x:  0.00 },
+    { p: STAGE.bulbForm, z: 5.35, fov: 46, x:  0.00 },
+    { p: STAGE.bulbHold, z: 5.20, fov: 46, x:  0.00 },
+    { p: (STAGE.bulbHold + STAGE.bulbExplode) * 0.5, z: 1.55, fov: 72, x:  0.00 },
+    { p: (STAGE.bulbExplode + STAGE.earthForm) * 0.5, z: 1.72, fov: 68, x:  0.00 },
+    { p: STAGE.earthForm, z: 4.70, fov: 48, x: -0.72 },
+    { p: STAGE.earthHold - 0.023, z: 4.55, fov: 48, x: -0.68 },
+    { p: (STAGE.earthHold + STAGE.earthExplode) * 0.5, z: 1.62, fov: 70, x:  0.00 },
+    { p: (STAGE.earthExplode + STAGE.logoForm) * 0.5, z: 3.55, fov: 48, x:  0.00 },
+    { p: STAGE.logoForm + 0.019, z: 7.80, fov: 40, x:  0.00 },
     { p: 1.000, z: 9.35, fov: 34, x:  0.00 },
   ]
 
@@ -2013,12 +2026,12 @@ function applyScrollCamera(p) {
   cameraTarget.roll = 0
 
   if (isMobile()) {
-    const onLogo = p >= 0.883
+    const onLogo = p >= STAGE.logoForm
     const onCopyHold =
-      p < 0.079 ||
-      (p >= 0.115 && p < 0.199) ||
-      (p >= 0.284 && p < 0.430) ||
-      (p >= 0.547 && p < 0.781)
+      p < STAGE.brainHold ||
+      (p >= STAGE.brainHold + 0.036 && p < STAGE.brainMove) ||
+      (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
+      (p >= STAGE.earthForm && p < STAGE.earthHold)
 
     cameraTarget.z *= onLogo
       ? 2.05
@@ -2027,7 +2040,7 @@ function applyScrollCamera(p) {
         : 1.28
   }
 
-  if (MOBILE_AT_LOAD || p >= 0.872) {
+  if (MOBILE_AT_LOAD || p >= STAGE.earthExplode) {
     bloomTarget = 0
   }
 }
@@ -2067,7 +2080,7 @@ function updateReducedMotionStory(
     associated with the part of the page.
   */
 
-  if (progress < 0.22) {
+  if (progress < STAGE.brainExplode) {
     currentStage = 'brain'
 
     writeStaticTarget(
@@ -2076,13 +2089,13 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        progress < 0.18
+        progress < STAGE.brainMove
           ? RIGHT_X
           : LEFT_X
       )
   }
 
-  else if (progress < 0.52) {
+  else if (progress < STAGE.earthForm) {
     currentStage = 'lightbulb'
 
     writeStaticTarget(
@@ -2095,7 +2108,7 @@ function updateReducedMotionStory(
       )
   }
 
-  else if (progress < 0.82) {
+  else if (progress < STAGE.logoForm) {
     currentStage = 'earth'
 
     writeStaticTarget(
@@ -2132,20 +2145,20 @@ function updateReducedMotionStory(
 // MASTER STORY
 // ======================================================
 //
-// Copy beats hold the 3D form. Morphs are short
-// transitions between scenes:
+// Copy beats hold the 3D form. Morphs ease across at least
+// one viewport so they share the page-turn pace:
 //
-// 0.00 - 0.16 Brain hold             hero
-// 0.16 - 0.22 Brain moves
-// 0.22 - 0.28 Brain explosion
-// 0.28 - 0.36 Lightbulb formation
-// 0.36 - 0.52 Lightbulb hold         plan / notes / teach
-// 0.52 - 0.58 Lightbulb explosion
-// 0.58 - 0.66 Earth formation
-// 0.66 - 0.84 Earth hold             team
-// 0.82 - 0.87 Earth explosion
-// 0.87 - 0.91 Logo formation
-// 0.91 - 1.00 Logo hold              consultation
+// 0.00 – brainHold     Brain hold             hero
+//      – brainMove     Brain moves / page 2
+//      – brainExplode  Brain explosion
+//      – bulbForm      Lightbulb formation
+//      – bulbHold      Lightbulb hold         session notes
+//      – bulbExplode   Lightbulb explosion
+//      – earthForm     Earth formation
+//      – earthHold     Earth hold             programs
+//      – earthExplode  Earth explosion
+//      – logoForm      Logo formation
+//      – 1.00          Logo hold              consultation
 //
 // ======================================================
 
@@ -2178,7 +2191,7 @@ function updateStory() {
   // 1. BRAIN HERO
   // ==================================================
 
-  if (p < 0.079) {
+  if (p < STAGE.brainHold) {
     if (currentStage !== 'brain') {
       writeStaticTarget(
         brainPositions
@@ -2218,7 +2231,7 @@ function updateStory() {
   // 2. BRAIN MOVES LEFT / CIRCULAR ROTATION
   // ==================================================
 
-  else if (p < 0.199) {
+  else if (p < STAGE.brainMove) {
     currentStage =
       'brain-moving'
 
@@ -2240,9 +2253,12 @@ function updateStory() {
     const localT =
       (
         p -
-        0.079
+        STAGE.brainHold
       ) /
-        0.120
+        (
+          STAGE.brainMove -
+          STAGE.brainHold
+        )
 
     const t =
       smoothstep(
@@ -2295,16 +2311,19 @@ function updateStory() {
   // 3. BRAIN EXPLOSION
   // ==================================================
 
-  else if (p < 0.250) {
+  else if (p < STAGE.brainExplode) {
     currentStage =
       'brain-explosion'
 
     const t =
       (
         p -
-        0.199
+        STAGE.brainMove
       ) /
-      0.051
+      (
+        STAGE.brainExplode -
+        STAGE.brainMove
+      )
 
     writeMorphTarget(
       brainPositions,
@@ -2345,16 +2364,19 @@ function updateStory() {
   // 4. LIGHTBULB FORMS
   // ==================================================
 
-  else if (p < 0.284) {
+  else if (p < STAGE.bulbForm) {
     currentStage =
       'lightbulb-forming'
 
     const t =
       (
         p -
-        0.250
+        STAGE.brainExplode
       ) /
-      0.034
+      (
+        STAGE.bulbForm -
+        STAGE.brainExplode
+      )
 
     writeMorphTarget(
       brainExplosion,
@@ -2399,7 +2421,7 @@ function updateStory() {
   // 5. LIGHTBULB HOLD
   // ==================================================
 
-  else if (p < 0.430) {
+  else if (p < STAGE.bulbHold) {
     if (currentStage !== 'lightbulb') {
       writeStaticTarget(
         lightbulbPositions
@@ -2434,16 +2456,19 @@ function updateStory() {
   // 6. LIGHTBULB EXPLOSION
   // ==================================================
 
-  else if (p < 0.477) {
+  else if (p < STAGE.bulbExplode) {
     currentStage =
       'lightbulb-explosion'
 
     const t =
       (
         p -
-        0.430
+        STAGE.bulbHold
       ) /
-      0.047
+      (
+        STAGE.bulbExplode -
+        STAGE.bulbHold
+      )
 
     writeMorphTarget(
       lightbulbPositions,
@@ -2477,16 +2502,19 @@ function updateStory() {
   // 7. EARTH FORMS
   // ==================================================
 
-  else if (p < 0.547) {
+  else if (p < STAGE.earthForm) {
     currentStage =
       'earth-forming'
 
     const t =
       (
         p -
-        0.477
+        STAGE.bulbExplode
       ) /
-      0.070
+      (
+        STAGE.earthForm -
+        STAGE.bulbExplode
+      )
 
     writeMorphTarget(
       lightbulbExplosion,
@@ -2531,7 +2559,7 @@ function updateStory() {
   // 8. EARTH HOLD
   // ==================================================
 
-  else if (p < 0.781) {
+  else if (p < STAGE.earthHold) {
     if (currentStage !== 'earth') {
       writeStaticTarget(
         earthPositions
@@ -2566,16 +2594,19 @@ function updateStory() {
   // 9. EARTH EXPLODES
   // ==================================================
 
-  else if (p < 0.838) {
+  else if (p < STAGE.earthExplode) {
     currentStage =
       'earth-explosion'
 
     const t =
       (
         p -
-        0.781
+        STAGE.earthHold
       ) /
-      0.057
+      (
+        STAGE.earthExplode -
+        STAGE.earthHold
+      )
 
     writeMorphTarget(
       earthPositions,
@@ -2615,16 +2646,19 @@ function updateStory() {
   // 10. LOGO FORMS
   // ==================================================
 
-  else if (p < 0.883) {
+  else if (p < STAGE.logoForm) {
     currentStage =
       'logo-forming'
 
     const t =
       (
         p -
-        0.838
+        STAGE.earthExplode
       ) /
-      0.045
+      (
+        STAGE.logoForm -
+        STAGE.earthExplode
+      )
 
     writeMorphTarget(
       earthExplosion,
@@ -3820,7 +3854,7 @@ function createPage() {
         scrub:
           REDUCED_MOTION
             ? false
-            : true,
+            : 1.35,
 
         onUpdate:
           updateStory,
