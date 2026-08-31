@@ -1348,15 +1348,15 @@ function sampleColoredSilhouette(img, count, worldWidth, zDepth) {
 function rasterizeMetaMindsWord(count) {
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
-  const W = 1800
-  const H = 400
+  const W = 2200
+  const H = 420
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, W, H)
   ctx.textBaseline = 'middle'
-  ctx.font = '700 260px Syne, Arial, Helvetica, sans-serif'
+  ctx.font = '700 280px Syne, Arial, Helvetica, sans-serif'
   const metaW = ctx.measureText('Meta').width
   const mindsW = ctx.measureText('Minds').width
   const total = metaW + mindsW
@@ -1379,7 +1379,7 @@ function rasterizeMetaMindsWord(count) {
   if (!cells.length) return { positions, colors }
 
   const cellCount = cells.length / 5
-  const worldW = 6.85
+  const worldW = 7.35
   const worldH = worldW * (H / W)
 
   for (let i = 0; i < count; i++) {
@@ -1478,7 +1478,7 @@ function generateLogoPositions(brainImg) {
     if (x < textMinX) textMinX = x
   }
 
-  const gap = 0.38
+  const gap = 0.52
   const textShift = brainMaxX + gap - textMinX
 
   for (let i = 0; i < TEXT_COUNT; i++) {
@@ -3918,7 +3918,7 @@ function animate() {
     if (onLogoHold) {
       logoStill.value +=
         (
-          0.48 -
+          0.82 -
           logoStill.value
         ) *
         0.14
