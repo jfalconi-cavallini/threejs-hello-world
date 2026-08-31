@@ -3947,10 +3947,14 @@ function animate() {
 
     particleMaterial.uniforms.uAlpha.value +=
       (
-        (onLogoHold ? 0.07 : 0.9) -
+        (onLogoHold ? 0 : 0.9) -
         particleMaterial.uniforms.uAlpha.value
       ) *
-      (onLogoHold ? 0.22 : 0.1)
+      (onLogoHold ? 0.35 : 0.1)
+
+    particles.visible =
+      !onLogoHold ||
+      particleMaterial.uniforms.uAlpha.value > 0.03
 
     if (wordMark) {
       wordMark.visible = false
