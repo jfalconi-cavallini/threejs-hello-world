@@ -499,14 +499,14 @@ button {
   z-index: 10;
   pointer-events: none;
   opacity: 0;
-  visibility: hidden;
   filter: none;
   mix-blend-mode: normal;
   text-shadow: 0 1px 18px rgba(0, 0, 0, 0.55);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 .copy.is-live {
-  visibility: visible;
   pointer-events: auto;
 }
 
@@ -619,7 +619,6 @@ button {
   margin-left: 0;
   margin-right: 0;
   text-align: center;
-  transform: translate(-50%, -50%);
 }
 
 .copy-team {
@@ -628,7 +627,6 @@ button {
   width: min(760px, 52vw);
   max-width: none;
   text-align: left;
-  transform: translateY(-50%);
 }
 
 .copy-team h2 {
@@ -650,7 +648,6 @@ button {
   width: min(720px, 50vw);
   max-width: none;
   text-align: right;
-  transform: translateY(-50%);
 }
 
 .copy-right-mid p {
@@ -676,7 +673,6 @@ button {
   bottom: 7vh;
   width: min(560px, 86vw);
   text-align: center;
-  transform: translateX(-50%);
   text-shadow: none;
 }
 

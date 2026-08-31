@@ -2164,8 +2164,6 @@ function updateStory() {
 
   syncNavHighlight(p)
 
-  syncCopyBeats(p)
-
   if (REDUCED_MOTION) {
     updateReducedMotionStory(
       p
@@ -3216,91 +3214,257 @@ function syncNavHighlight(
 ) {
 }
 
-function beatGate(p, start, end, fade = 0.012) {
-  if (p < start || p > end) {
-    return 0
-  }
-
-  const distIn = p - start
-  const distOut = end - p
-
-  if (distIn < fade && start > 0) {
-    return smootherstep(distIn / fade)
-  }
-
-  if (distOut < fade) {
-    return smootherstep(distOut / fade)
-  }
-
-  return 1
+function liveCopy(el) {
+  const opacity = Number(gsap.getProperty(el, 'opacity')) || 0
+  el.classList.toggle('is-live', opacity > 0.25)
 }
 
-const COPY_BEATS = [
-  { selector: '.copy-hero', start: 0.000, end: 0.075 },
+function copyAnchor(el, desktop) {
+  const mid = desktop && el.classList.contains('copy-mid')
+  const team = desktop && el.classList.contains('copy-team')
+  const consult = desktop && el.classList.contains('copy-consult')
+  const rightMid = desktop && el.classList.contains('copy-right-mid')
 
-  // Chapter 2 — brain settles left after moving. Full landing-style
-  // block: headline, feature row, CTAs, stat row, trust bar.
-  { selector: '.t2-block', start: 0.090, end: 0.192 },
-
-  // Chapter 3 — brain explodes into the lightbulb. "Understanding
-  // changes everything."
-  { selector: '.t3-intro', start: 0.200, end: 0.222 },
-  { selector: '.t3-line1', start: 0.222, end: 0.240 },
-  { selector: '.t3-line2', start: 0.240, end: 0.258 },
-  { selector: '.t3-line3', start: 0.258, end: 0.278 },
-
-  // Chapter 4 — lightbulb hold. What happens between sessions.
-  { selector: '.lb-intro', start: 0.290, end: 0.315 },
-  { selector: '.lb-feature-1', start: 0.315, end: 0.340 },
-  { selector: '.lb-feature-2', start: 0.340, end: 0.365 },
-  { selector: '.lb-feature-3', start: 0.365, end: 0.390 },
-  { selector: '.lb-feature-4', start: 0.390, end: 0.425 },
-
-  // Chapter 5 — lightbulb explodes into the earth. Virtual-first.
-  { selector: '.t5-main', start: 0.435, end: 0.500 },
-  { selector: '.t5-caveat', start: 0.500, end: 0.543 },
-
-  // Chapters 6 + 7 — earth hold. Who we help, then the long-term case.
-  { selector: '.earth-intro', start: 0.552, end: 0.575 },
-  { selector: '.earth-path-1', start: 0.575, end: 0.598 },
-  { selector: '.earth-path-2', start: 0.598, end: 0.621 },
-  { selector: '.earth-path-3', start: 0.621, end: 0.644 },
-  { selector: '.earth-path-4', start: 0.644, end: 0.667 },
-  { selector: '.earth-phil-intro', start: 0.675, end: 0.700 },
-  { selector: '.earth-phil-para', start: 0.700, end: 0.735 },
-  { selector: '.earth-phil-close', start: 0.735, end: 0.775 },
-
-  { selector: '.copy-consult', start: 0.890, end: 1.05 },
-]
-
-function syncCopyBeats(p) {
-  for (let i = 0; i < COPY_BEATS.length; i++) {
-    const beat = COPY_BEATS[i]
-    const el = document.querySelector(beat.selector)
-
-    if (!el) {
-      continue
-    }
-
-    if (beat.selector === '.copy-hero') {
-      // No fade here — it just rises and scrolls off the top of the
-      // viewport as you scroll, staying fully opaque the whole way,
-      // reacting from the very first pixel scrolled.
-      const t = clamp01(p / beat.end)
-      const travel = window.innerHeight + 200
-
-      el.style.transform = `translateY(${-t * travel}px)`
-      el.style.opacity = '1'
-      el.classList.toggle('is-live', t < 0.9)
-      continue
-    }
-
-    const gate =
-      beatGate(p, beat.start, beat.end)
-
-    el.style.opacity = String(gate)
-    el.classList.toggle('is-live', gate > 0.04)
+  return {
+    xPercent: mid || consult ? -50 : 0,
+    yPercent: mid || team || rightMid ? -50 : 0,
+    force3D: true,
   }
+}
+
+function addPageTurnBeat(tl, el, t, enter, hold, exit) {
+  if (REDUCED_MOTION) {
+    tl.to(el, { autoAlpha: 1, duration: enter, ease: 'none' }, t)
+    tl.to(el, { duration: hold, ease: 'none' }, t + enter)
+    tl.to(el, { autoAlpha: 0, duration: exit, ease: 'none' }, t + enter + hold)
+    return t + enter + hold
+  }
+
+  const tHold = t + enter
+  const tExit = tHold + hold
+
+  tl.to(el, { y: 10, duration: enter, ease: 'power1.out' }, t)
+  tl.to(el, {
+    autoAlpha: 1,
+    duration: enter * 0.5,
+    ease: 'power2.in',
+  }, t + enter * 0.35)
+  tl.to(el, { y: -24, duration: hold, ease: 'none' }, tHold)
+  tl.to(el, { y: -220, duration: exit, ease: 'power1.in' }, tExit)
+  tl.to(el, {
+    autoAlpha: 0,
+    duration: exit * 0.5,
+    ease: 'power1.out',
+  }, tExit)
+
+  return tExit
+}
+
+function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
+  const els = selectors.map((selector) => document.querySelector(selector))
+
+  if (els.some((el) => !el) || !scroll.trigger || (scroll.endTrigger === null)) {
+    return
+  }
+
+  els.forEach((el) => {
+    gsap.set(el, {
+      ...copyAnchor(el, desktop),
+      y: REDUCED_MOTION ? 0 : 200,
+      autoAlpha: 0,
+    })
+  })
+
+  const tl = gsap.timeline({
+    defaults: { force3D: true },
+    scrollTrigger: {
+      ...scroll,
+      scrub: REDUCED_MOTION ? true : copyScrub,
+      onUpdate: () => els.forEach(liveCopy),
+    },
+  })
+
+  let t = 0
+  els.forEach((el, i) => {
+    const beat = beats[i]
+    t = addPageTurnBeat(tl, el, t, beat.enter, beat.hold, beat.exit)
+  })
+}
+
+function setupCopyTravel() {
+  const copyScrub = REDUCED_MOTION ? false : 1.15
+  const mm = gsap.matchMedia()
+
+  const wire = (desktop) => {
+    const hero = document.querySelector('.copy-hero')
+    const heroChapter = document.querySelector('.chapter-hero')
+    const consult = document.querySelector('.copy-consult')
+    const consultChapter = document.querySelector('.logo-hold-chapter')
+    const morphA = document.querySelector('.chapter-morph-a')
+    const morphB = document.querySelector('.chapter-morph-b')
+    const lbChapter = document.querySelector('.chapter-lb-hold-item')
+    const teamChapter = document.querySelector('.chapter-team')
+
+    if (hero && heroChapter) {
+      const base = copyAnchor(hero, desktop)
+      const vh = window.innerHeight
+
+      if (REDUCED_MOTION) {
+        gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
+        gsap.to(hero, {
+          autoAlpha: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: heroChapter,
+            start: 'top top',
+            end: '+=170%',
+            scrub: true,
+          },
+        })
+      } else {
+        gsap.set(hero, { ...base, y: 0, autoAlpha: 1 })
+        gsap.timeline({
+          defaults: { force3D: true },
+          scrollTrigger: {
+            trigger: heroChapter,
+            start: 'top top',
+            end: '+=170%',
+            scrub: copyScrub,
+            onUpdate: () => liveCopy(hero),
+          },
+        })
+          .to(hero, { y: vh * -0.42, duration: 0.64, ease: 'none' })
+          .to(hero, { y: -(vh + 80), duration: 0.36, ease: 'power1.in' })
+          .to(hero, { autoAlpha: 0, duration: 0.2, ease: 'none' }, '<0.16')
+      }
+    }
+
+    // Chapter 2 landing + chapter 3 punch lines live in morph-a (700vh).
+    wireCopyCluster(
+      desktop,
+      ['.t2-block', '.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
+      {
+        trigger: morphA,
+        start: 'top 82%',
+        end: 'bottom 18%',
+      },
+      [
+        { enter: 0.04, hold: 0.18, exit: 0.06 },
+        { enter: 0.04, hold: 0.15, exit: 0.06 },
+        { enter: 0.04, hold: 0.14, exit: 0.06 },
+        { enter: 0.04, hold: 0.14, exit: 0.06 },
+        { enter: 0.04, hold: 0.14, exit: 0.06 },
+      ],
+      copyScrub
+    )
+
+    // Chapter 4 lightbulb hold items are only ~100vh each. One timeline
+    // across the five items plus a slice of morph-b so each beat gets a
+    // full page before the next takes over, with extra middle dwell.
+    wireCopyCluster(
+      desktop,
+      [
+        '.lb-intro',
+        '.lb-feature-1',
+        '.lb-feature-2',
+        '.lb-feature-3',
+        '.lb-feature-4',
+      ],
+      {
+        trigger: lbChapter,
+        endTrigger: morphB,
+        start: 'top 88%',
+        end: '40% top',
+      },
+      [
+        { enter: 0.04, hold: 0.13, exit: 0.06 },
+        { enter: 0.04, hold: 0.14, exit: 0.06 },
+        { enter: 0.04, hold: 0.14, exit: 0.06 },
+        { enter: 0.04, hold: 0.14, exit: 0.06 },
+        { enter: 0.04, hold: 0.15, exit: 0.06 },
+      ],
+      copyScrub
+    )
+
+    // Chapter 5 virtual-first copy, after the lightbulb lines finish.
+    wireCopyCluster(
+      desktop,
+      ['.t5-main', '.t5-caveat'],
+      {
+        trigger: morphB,
+        start: '38% top',
+        end: 'bottom 14%',
+      },
+      [
+        { enter: 0.08, hold: 0.46, exit: 0.1 },
+        { enter: 0.08, hold: 0.32, exit: 0.08 },
+      ],
+      copyScrub
+    )
+
+    // Chapters 6–7 earth hold. Extra dwell on the program paths and
+    // the long philosophy paragraph.
+    wireCopyCluster(
+      desktop,
+      [
+        '.earth-intro',
+        '.earth-path-1',
+        '.earth-path-2',
+        '.earth-path-3',
+        '.earth-path-4',
+        '.earth-phil-intro',
+        '.earth-phil-para',
+        '.earth-phil-close',
+      ],
+      {
+        trigger: teamChapter,
+        start: 'top bottom',
+        end: 'bottom top',
+      },
+      [
+        { enter: 0.02, hold: 0.09, exit: 0.04 },
+        { enter: 0.02, hold: 0.09, exit: 0.04 },
+        { enter: 0.02, hold: 0.11, exit: 0.04 },
+        { enter: 0.02, hold: 0.11, exit: 0.04 },
+        { enter: 0.02, hold: 0.09, exit: 0.04 },
+        { enter: 0.02, hold: 0.1, exit: 0.04 },
+        { enter: 0.02, hold: 0.12, exit: 0.04 },
+        { enter: 0.02, hold: 0.09, exit: 0.04 },
+      ],
+      copyScrub
+    )
+
+    if (consult && consultChapter) {
+      const base = copyAnchor(consult, desktop)
+
+      gsap.set(consult, {
+        ...base,
+        y: REDUCED_MOTION ? 0 : 56,
+        autoAlpha: 0,
+      })
+      gsap.to(consult, {
+        y: 0,
+        autoAlpha: 1,
+        ease: REDUCED_MOTION ? 'none' : 'power2.out',
+        force3D: true,
+        scrollTrigger: {
+          trigger: consultChapter,
+          start: 'top 72%',
+          end: 'top 40%',
+          scrub: REDUCED_MOTION ? true : copyScrub,
+          onUpdate: () => liveCopy(consult),
+        },
+      })
+    }
+  }
+
+  mm.add('(min-width: 768px)', () => {
+    wire(true)
+  })
+
+  mm.add('(max-width: 767px)', () => {
+    wire(false)
+  })
 }
 
 // ======================================================
@@ -3708,9 +3872,10 @@ function createPage() {
     }
   }
 
-  setupVisibilityObserver()
+  setupCopyTravel()
+  ScrollTrigger.refresh()
 
-  syncCopyBeats(story.progress)
+  setupVisibilityObserver()
 
   window.__mmSetProgress = (p) => {
     const next = Math.max(0, Math.min(1, Number(p) || 0))
