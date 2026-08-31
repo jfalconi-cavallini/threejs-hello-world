@@ -158,7 +158,7 @@ const LOGO_SIZE = 4.6
 
 const RIGHT_X = 3.22
 const HERO_BRAIN_X = 2.45
-const LEFT_X = -1.25
+const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
 
@@ -1975,20 +1975,20 @@ function applyScrollCamera(p) {
   // Copy holds stay OUT so type sits in a dark lane or over a
   // distant silhouette. Dolly IN only during morphs — no copy.
   const keys = [
-    { p: 0.00, z: 4.55, fov: 50, x: -0.68 },
-    { p: 0.16, z: 4.40, fov: 51, x: -0.62 },
-    { p: 0.20, z: 1.85, fov: 68, x: -0.08 },
-    { p: 0.27, z: 1.38, fov: 74, x:  0.00 },
-    { p: 0.34, z: 5.35, fov: 46, x:  0.00 },
-    { p: 0.52, z: 5.20, fov: 46, x:  0.00 },
-    { p: 0.56, z: 1.55, fov: 72, x:  0.00 },
-    { p: 0.62, z: 1.72, fov: 68, x:  0.00 },
-    { p: 0.66, z: 4.70, fov: 48, x: -0.72 },
-    { p: 0.80, z: 4.55, fov: 48, x: -0.68 },
-    { p: 0.84, z: 1.62, fov: 70, x:  0.00 },
-    { p: 0.90, z: 3.55, fov: 48, x:  0.00 },
-    { p: 0.93, z: 7.80, fov: 40, x:  0.00 },
-    { p: 1.00, z: 9.35, fov: 34, x:  0.00 },
+    { p: 0.000, z: 4.55, fov: 50, x: -0.68 },
+    { p: 0.070, z: 4.40, fov: 51, x: -0.62 },
+    { p: 0.105, z: 1.85, fov: 68, x: -0.08 },
+    { p: 0.195, z: 1.38, fov: 74, x:  0.00 },
+    { p: 0.284, z: 5.35, fov: 46, x:  0.00 },
+    { p: 0.415, z: 5.20, fov: 46, x:  0.00 },
+    { p: 0.454, z: 1.55, fov: 72, x:  0.00 },
+    { p: 0.524, z: 1.72, fov: 68, x:  0.00 },
+    { p: 0.573, z: 4.70, fov: 48, x: -0.72 },
+    { p: 0.755, z: 4.55, fov: 48, x: -0.68 },
+    { p: 0.804, z: 1.62, fov: 70, x:  0.00 },
+    { p: 0.872, z: 3.55, fov: 48, x:  0.00 },
+    { p: 0.909, z: 7.80, fov: 40, x:  0.00 },
+    { p: 1.000, z: 9.35, fov: 34, x:  0.00 },
   ]
 
   let a = keys[0]
@@ -2011,11 +2011,11 @@ function applyScrollCamera(p) {
   cameraTarget.roll = 0
 
   if (isMobile()) {
-    const onLogo = p >= 0.91
+    const onLogo = p >= 0.883
     const onCopyHold =
-      p < 0.18 ||
-      (p >= 0.34 && p < 0.52) ||
-      (p >= 0.64 && p < 0.82)
+      p < 0.079 ||
+      (p >= 0.284 && p < 0.430) ||
+      (p >= 0.547 && p < 0.781)
 
     cameraTarget.z *= onLogo
       ? 2.05
@@ -2024,7 +2024,7 @@ function applyScrollCamera(p) {
         : 1.28
   }
 
-  if (MOBILE_AT_LOAD || p >= 0.90) {
+  if (MOBILE_AT_LOAD || p >= 0.872) {
     bloomTarget = 0
   }
 }
@@ -2177,7 +2177,7 @@ function updateStory() {
   // 1. BRAIN HERO
   // ==================================================
 
-  if (p < 0.18) {
+  if (p < 0.079) {
     if (currentStage !== 'brain') {
       writeStaticTarget(
         brainPositions
@@ -2217,7 +2217,7 @@ function updateStory() {
   // 2. BRAIN MOVES LEFT / CIRCULAR ROTATION
   // ==================================================
 
-  else if (p < 0.24) {
+  else if (p < 0.156) {
     currentStage =
       'brain-moving'
 
@@ -2237,9 +2237,9 @@ function updateStory() {
       smoothstep(
         (
           p -
-          0.18
+          0.079
         ) /
-          0.06
+          0.077
       )
 
     transformTarget.x =
@@ -2284,16 +2284,16 @@ function updateStory() {
   // 3. BRAIN EXPLOSION
   // ==================================================
 
-  else if (p < 0.30) {
+  else if (p < 0.233) {
     currentStage =
       'brain-explosion'
 
     const t =
       (
         p -
-        0.24
+        0.156
       ) /
-      0.06
+      0.077
 
     writeMorphTarget(
       brainPositions,
@@ -2334,16 +2334,16 @@ function updateStory() {
   // 4. LIGHTBULB FORMS
   // ==================================================
 
-  else if (p < 0.34) {
+  else if (p < 0.284) {
     currentStage =
       'lightbulb-forming'
 
     const t =
       (
         p -
-        0.30
+        0.233
       ) /
-      0.04
+      0.051
 
     writeMorphTarget(
       brainExplosion,
@@ -2388,7 +2388,7 @@ function updateStory() {
   // 5. LIGHTBULB HOLD
   // ==================================================
 
-  else if (p < 0.54) {
+  else if (p < 0.430) {
     if (currentStage !== 'lightbulb') {
       writeStaticTarget(
         lightbulbPositions
@@ -2423,16 +2423,16 @@ function updateStory() {
   // 6. LIGHTBULB EXPLOSION
   // ==================================================
 
-  else if (p < 0.58) {
+  else if (p < 0.477) {
     currentStage =
       'lightbulb-explosion'
 
     const t =
       (
         p -
-        0.54
+        0.430
       ) /
-      0.04
+      0.047
 
     writeMorphTarget(
       lightbulbPositions,
@@ -2466,16 +2466,16 @@ function updateStory() {
   // 7. EARTH FORMS
   // ==================================================
 
-  else if (p < 0.64) {
+  else if (p < 0.547) {
     currentStage =
       'earth-forming'
 
     const t =
       (
         p -
-        0.58
+        0.477
       ) /
-      0.06
+      0.070
 
     writeMorphTarget(
       lightbulbExplosion,
@@ -2520,7 +2520,7 @@ function updateStory() {
   // 8. EARTH HOLD
   // ==================================================
 
-  else if (p < 0.82) {
+  else if (p < 0.781) {
     if (currentStage !== 'earth') {
       writeStaticTarget(
         earthPositions
@@ -2555,16 +2555,16 @@ function updateStory() {
   // 9. EARTH EXPLODES
   // ==================================================
 
-  else if (p < 0.87) {
+  else if (p < 0.838) {
     currentStage =
       'earth-explosion'
 
     const t =
       (
         p -
-        0.82
+        0.781
       ) /
-      0.05
+      0.057
 
     writeMorphTarget(
       earthPositions,
@@ -2604,16 +2604,16 @@ function updateStory() {
   // 10. LOGO FORMS
   // ==================================================
 
-  else if (p < 0.91) {
+  else if (p < 0.883) {
     currentStage =
       'logo-forming'
 
     const t =
       (
         p -
-        0.87
+        0.838
       ) /
-      0.04
+      0.045
 
     writeMorphTarget(
       earthExplosion,
@@ -2885,6 +2885,32 @@ function createNavbar() {
       >
     </a>
 
+    <div class="nav-inline">
+      <div class="nav-dropdown">
+        <button
+          class="nav-dropdown-trigger"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          Programs
+          <svg class="nav-caret" width="9" height="6" viewBox="0 0 9 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 1l3.5 3.5L8 1" />
+          </svg>
+        </button>
+        <div class="nav-dropdown-menu">
+          <a href="#">Academic Tutoring</a>
+          <a href="#">SAT & ACT Prep</a>
+          <a href="#">AP & Advanced Courses</a>
+          <a href="#">Programming & STEM</a>
+        </div>
+      </div>
+      <a href="#">How It Works</a>
+      <a href="#">Results</a>
+      <a href="#">Pricing</a>
+      <a href="#">About</a>
+    </div>
+
     <a
       class="nav-signin"
       href="#"
@@ -2899,6 +2925,37 @@ function createNavbar() {
       Book Free Consultation
       ${ARROW_ICON}
     </a>
+
+    <button
+      class="menu-button"
+      type="button"
+      aria-expanded="false"
+      aria-label="Open chapters"
+    >
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="nav-panel">
+      <div class="nav-links">
+        <a href="#">Academic Tutoring</a>
+        <a href="#">SAT & ACT Prep</a>
+        <a href="#">AP & Advanced Courses</a>
+        <a href="#">Programming & STEM</a>
+        <a href="#">How It Works</a>
+        <a href="#">Results</a>
+        <a href="#">Pricing</a>
+        <a href="#">About</a>
+      </div>
+      <a href="#" class="nav-signin nav-panel-signin">Sign In</a>
+      <a
+        href="https://www.metamindsstemacademy.com/consultation"
+        class="primary-button nav-panel-cta"
+      >
+        Book Free Consultation
+        ${ARROW_ICON}
+      </a>
+    </div>
   `
 
   document.body.appendChild(
@@ -2942,6 +2999,42 @@ function closeNav() {
   }
 }
 
+function openNav() {
+  const nav =
+    document.querySelector(
+      '.metaminds-nav'
+    )
+
+  if (!nav) {
+    return
+  }
+
+  const button =
+    nav.querySelector(
+      '.menu-button'
+    )
+
+  nav.classList.add(
+    'is-open'
+  )
+
+  document.body.classList.add(
+    'nav-open'
+  )
+
+  if (button) {
+    button.setAttribute(
+      'aria-expanded',
+      'true'
+    )
+
+    button.setAttribute(
+      'aria-label',
+      'Close chapters'
+    )
+  }
+}
+
 function setupNav() {
   const nav =
     document.querySelector(
@@ -2969,6 +3062,101 @@ function setupNav() {
       )
     }
   )
+
+  const menuButton =
+    nav.querySelector(
+      '.menu-button'
+    )
+
+  menuButton?.addEventListener(
+    'click',
+    () => {
+      if (
+        nav.classList.contains(
+          'is-open'
+        )
+      ) {
+        closeNav()
+      } else {
+        openNav()
+      }
+    }
+  )
+
+  nav.querySelector(
+    '.nav-panel'
+  )?.querySelectorAll(
+    'a'
+  ).forEach(
+    (link) => {
+      link.addEventListener(
+        'click',
+        closeNav
+      )
+    }
+  )
+
+  const dropdown =
+    nav.querySelector(
+      '.nav-dropdown'
+    )
+
+  const dropdownTrigger =
+    dropdown?.querySelector(
+      '.nav-dropdown-trigger'
+    )
+
+  if (dropdown && dropdownTrigger) {
+    const setDropdownOpen = (open) => {
+      dropdownTrigger.setAttribute(
+        'aria-expanded',
+        open ? 'true' : 'false'
+      )
+    }
+
+    dropdown.addEventListener(
+      'mouseenter',
+      () => setDropdownOpen(true)
+    )
+
+    dropdown.addEventListener(
+      'mouseleave',
+      () => setDropdownOpen(false)
+    )
+
+    dropdown.addEventListener(
+      'focusin',
+      () => setDropdownOpen(true)
+    )
+
+    dropdown.addEventListener(
+      'focusout',
+      (event) => {
+        if (
+          !dropdown.contains(
+            event.relatedTarget
+          )
+        ) {
+          setDropdownOpen(false)
+        }
+      }
+    )
+
+    // Touch devices don't get :hover — tap the trigger to toggle.
+    dropdownTrigger.addEventListener(
+      'click',
+      (event) => {
+        event.preventDefault()
+
+        const isOpen =
+          dropdownTrigger.getAttribute(
+            'aria-expanded'
+          ) === 'true'
+
+        setDropdownOpen(!isOpen)
+      }
+    )
+  }
 }
 
 function syncNavHighlight(
@@ -2996,12 +3184,43 @@ function beatGate(p, start, end, fade = 0.012) {
 }
 
 const COPY_BEATS = [
-  { selector: '.copy-hero', start: 0.00, end: 0.24 },
-  { selector: '.chapter-plan .copy', start: 0.345, end: 0.415 },
-  { selector: '.chapter-notes .copy', start: 0.42, end: 0.468 },
-  { selector: '.chapter-teach .copy', start: 0.47, end: 0.52 },
-  { selector: '.copy-team', start: 0.66, end: 0.805 },
-  { selector: '.copy-consult', start: 0.915, end: 1.05 },
+  { selector: '.copy-hero', start: 0.000, end: 0.075 },
+
+  // Chapter 2 — brain moves right → left. "Every student gets stuck..."
+  { selector: '.t2-intro', start: 0.085, end: 0.108 },
+  { selector: '.t2-line1', start: 0.108, end: 0.125 },
+  { selector: '.t2-line2', start: 0.125, end: 0.142 },
+  { selector: '.t2-line3', start: 0.142, end: 0.153 },
+
+  // Chapter 3 — brain explodes into the lightbulb. "Understanding
+  // changes everything."
+  { selector: '.t3-intro', start: 0.160, end: 0.200 },
+  { selector: '.t3-line1', start: 0.200, end: 0.225 },
+  { selector: '.t3-line2', start: 0.225, end: 0.250 },
+  { selector: '.t3-line3', start: 0.250, end: 0.280 },
+
+  // Chapter 4 — lightbulb hold. What happens between sessions.
+  { selector: '.lb-intro', start: 0.290, end: 0.315 },
+  { selector: '.lb-feature-1', start: 0.315, end: 0.340 },
+  { selector: '.lb-feature-2', start: 0.340, end: 0.365 },
+  { selector: '.lb-feature-3', start: 0.365, end: 0.390 },
+  { selector: '.lb-feature-4', start: 0.390, end: 0.425 },
+
+  // Chapter 5 — lightbulb explodes into the earth. Virtual-first.
+  { selector: '.t5-main', start: 0.435, end: 0.500 },
+  { selector: '.t5-caveat', start: 0.500, end: 0.543 },
+
+  // Chapters 6 + 7 — earth hold. Who we help, then the long-term case.
+  { selector: '.earth-intro', start: 0.552, end: 0.575 },
+  { selector: '.earth-path-1', start: 0.575, end: 0.598 },
+  { selector: '.earth-path-2', start: 0.598, end: 0.621 },
+  { selector: '.earth-path-3', start: 0.621, end: 0.644 },
+  { selector: '.earth-path-4', start: 0.644, end: 0.667 },
+  { selector: '.earth-phil-intro', start: 0.675, end: 0.700 },
+  { selector: '.earth-phil-para', start: 0.700, end: 0.735 },
+  { selector: '.earth-phil-close', start: 0.735, end: 0.775 },
+
+  { selector: '.copy-consult', start: 0.890, end: 1.05 },
 ]
 
 function syncCopyBeats(p) {
@@ -3026,14 +3245,8 @@ function syncCopyBeats(p) {
       continue
     }
 
-    const hardOff =
-      beat.selector.indexOf('teach') !== -1 &&
-      p >= 0.52
-
     const gate =
-      hardOff
-        ? 0
-        : beatGate(p, beat.start, beat.end)
+      beatGate(p, beat.start, beat.end)
 
     el.style.opacity = String(gate)
     el.classList.toggle('is-live', gate > 0.04)
@@ -3062,13 +3275,19 @@ function createPage() {
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
         <h1>
-          A mentor who stays with <span class="grad-accent">your kid.</span>
+          A mentor who stays with <span class="grad-accent">your child.</span>
         </h1>
         <p>
-          Personalized virtual tutoring in math, SAT prep, reading,
-          science, coding, and robotics. Limited in-person support may
-          be available depending on tutor availability.
+          Personalized virtual tutoring with a dedicated mentor, a
+          clear learning plan, and progress you can actually follow.
         </p>
+        <div class="copy-caveat">
+          <p>
+            SAT & ACT prep, K–12 academics, AP support, coding, and
+            STEM. In-person sessions may be available in select areas
+            based on tutor availability.
+          </p>
+        </div>
         <div class="hero-divider"></div>
         <div class="hero-trust">
           <div class="hero-trust-item hero-trust-item--families">
@@ -3085,13 +3304,18 @@ function createPage() {
             </span>
           </div>
         </div>
-        <a
-          href="https://www.metamindsstemacademy.com/consultation"
-          class="primary-button hero-cta"
-        >
-          Book Free Consultation
-          ${ARROW_ICON}
-        </a>
+        <div class="hero-actions">
+          <a
+            href="https://www.metamindsstemacademy.com/consultation"
+            class="primary-button hero-cta"
+          >
+            Book Free Consultation
+            ${ARROW_ICON}
+          </a>
+          <a href="#team" class="hero-secondary-cta">
+            Explore Programs
+          </a>
+        </div>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3099,47 +3323,147 @@ function createPage() {
       </div>
     </section>
 
-    <section
-      class="chapter chapter-morph chapter-morph-a"
-      aria-hidden="true"
-    ></section>
-
-    <section class="chapter chapter-plan" id="plan">
-      <div class="copy copy-center copy-mid">
-        <h2>
-          A plan you can actually see.
-        </h2>
-      </div>
-    </section>
-
-    <section class="chapter chapter-notes" id="notes">
-      <div class="copy copy-center copy-mid">
-        <h2>
-          Notes after every session.
-        </h2>
-      </div>
-    </section>
-
-    <section class="chapter chapter-teach" id="teach">
-      <div class="copy copy-center copy-mid">
-        <h2>
-          SAT. ACT. AP. Math. Coding.
-        </h2>
+    <section class="chapter chapter-morph chapter-morph-a">
+      <div class="copy copy-right-mid t2-intro">
+        <h2>Every student gets stuck for a different reason.</h2>
         <p>
-          K–12 through college.
+          Sometimes it's a missing foundation. Sometimes it's
+          confidence, organization, pacing, or a concept that never
+          fully clicked. We figure out what is actually getting in
+          the way before deciding what comes next.
+        </p>
+      </div>
+      <div class="copy copy-right-mid t2-line1">
+        <h2>What do they already know?</h2>
+      </div>
+      <div class="copy copy-right-mid t2-line2">
+        <h2>Where are the gaps?</h2>
+      </div>
+      <div class="copy copy-right-mid t2-line3">
+        <h2>What should we work on next?</h2>
+      </div>
+
+      <div class="copy copy-center copy-mid t3-intro">
+        <h2>Understanding changes everything.</h2>
+        <p>
+          We don't want students memorizing steps just long enough to
+          pass Friday's quiz. We want them to understand why
+          something works, recognize it again later, and become
+          increasingly capable without us.
+        </p>
+      </div>
+      <div class="copy copy-center copy-mid t3-line1">
+        <h2>Teach the concept.</h2>
+      </div>
+      <div class="copy copy-center copy-mid t3-line2">
+        <h2>Practice it intentionally.</h2>
+      </div>
+      <div class="copy copy-center copy-mid t3-line3">
+        <h2>See if it sticks.</h2>
+      </div>
+    </section>
+
+    <section class="chapter chapter-lb-hold-item" id="plan">
+      <div class="copy copy-center copy-mid lb-intro">
+        <h2>Tutoring shouldn't disappear when the call ends.</h2>
+      </div>
+    </section>
+
+    <section class="chapter chapter-lb-hold-item">
+      <div class="copy copy-center copy-mid lb-feature-1">
+        <h2>Session notes</h2>
+        <p>What we covered and what comes next.</p>
+      </div>
+    </section>
+
+    <section class="chapter chapter-lb-hold-item">
+      <div class="copy copy-center copy-mid lb-feature-2">
+        <h2>Targeted practice</h2>
+        <p>Assignments based on what the student actually needs.</p>
+      </div>
+    </section>
+
+    <section class="chapter chapter-lb-hold-item">
+      <div class="copy copy-center copy-mid lb-feature-3">
+        <h2>Skill tracking</h2>
+        <p>See what's improving and what still needs work.</p>
+      </div>
+    </section>
+
+    <section class="chapter chapter-lb-hold-item" id="notes">
+      <div class="copy copy-center copy-mid lb-feature-4">
+        <h2>Parent updates</h2>
+        <p>You're not left wondering how tutoring is going.</p>
+      </div>
+    </section>
+
+    <section class="chapter chapter-morph chapter-morph-b">
+      <div class="copy copy-team t5-main">
+        <h2>The right mentor doesn't have to live down the street.</h2>
+        <p>
+          MetaMinds is built around virtual tutoring, so students can
+          work with the right mentor regardless of where they live.
+        </p>
+      </div>
+      <div class="copy copy-team copy-caveat t5-caveat">
+        <p>
+          In-person tutoring may also be available in select areas
+          across the U.S. depending on tutor availability.
         </p>
       </div>
     </section>
 
-    <section
-      class="chapter chapter-morph chapter-morph-b"
-      aria-hidden="true"
-    ></section>
-
     <section class="chapter chapter-team" id="team">
-      <div class="copy copy-left copy-team">
+      <div class="copy copy-team earth-intro">
+        <h2>Support that can grow with them.</h2>
+      </div>
+      <div class="copy copy-team earth-path-1">
+        <h2>Elementary & Middle School</h2>
+        <p>
+          Build fundamentals, confidence, organization, and strong
+          learning habits.
+        </p>
+      </div>
+      <div class="copy copy-team earth-path-2">
+        <h2>High School & AP</h2>
+        <p>
+          Keep up with harder coursework, fill gaps, and prepare for
+          what comes next.
+        </p>
+      </div>
+      <div class="copy copy-team earth-path-3">
+        <h2>SAT & ACT</h2>
+        <p>
+          Diagnose weaknesses, build strategy, practice deliberately,
+          and track progress.
+        </p>
+      </div>
+      <div class="copy copy-team earth-path-4">
+        <h2>Programming & STEM</h2>
+        <p>
+          Learn to build with code, robotics, engineering, and real
+          projects.
+        </p>
+      </div>
+      <div class="copy copy-team earth-phil-intro">
         <h2>
-          Mentors who stay.
+          The earlier students build strong habits, the more options
+          they have later.
+        </h2>
+      </div>
+      <div class="copy copy-team earth-phil-para">
+        <p>
+          A sixth grader struggling with fractions has time to
+          rebuild the foundation. A freshman can strengthen algebra
+          before the SAT. A high school student can learn to code
+          before choosing a college major. Small improvements
+          compound when students have time to use them.
+        </p>
+      </div>
+      <div class="copy copy-team earth-phil-close">
+        <h2>
+          We want students prepared for what comes next, not
+          constantly catching up to it.
         </h2>
       </div>
     </section>
@@ -3155,19 +3479,19 @@ function createPage() {
     >
       <div class="copy copy-center copy-consult">
         <h2>
-          Let's find the right tutor.
+          One student. One plan. Years of growth.
         </h2>
         <p>
-          Free. 30 minutes.
-        </p>
-        <p>
-          DFW. Zoom.
+          MetaMinds is designed to give students a consistent
+          academic support system as their goals change—from
+          foundational learning to advanced coursework, test
+          preparation, and future-ready skills.
         </p>
         <a
           href="https://www.metamindsstemacademy.com/consultation"
           class="primary-button"
         >
-          Book Free Consultation
+          Book a Free Consultation
           ${ARROW_ICON}
         </a>
       </div>
