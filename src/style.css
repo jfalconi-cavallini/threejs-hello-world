@@ -163,32 +163,30 @@ button {
   justify-content: flex-start;
   gap: 12px;
   padding: 0 16px 0 12px;
-  background: rgba(4, 6, 10, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #000000;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .brand {
-  /* Crop the 1536×1024 lockup canvas to the ink (101,287)–(1468,701). */
+  /* Crop the 1536×1024 lockup canvas to the ink (101,288)–(1468,700). */
   --lockup-h: 46px;
   display: block;
   height: var(--lockup-h);
-  width: calc(var(--lockup-h) * 3.297);
+  width: calc(var(--lockup-h) * 3.312);
   overflow: hidden;
   flex: 0 0 auto;
   margin-right: auto;
   position: relative;
   z-index: 102;
-  background: transparent;
+  background: #000000;
 }
 
 .brand-logo {
   display: block;
-  height: calc(var(--lockup-h) * 2.4675);
+  height: calc(var(--lockup-h) * 2.4794);
   width: auto;
   max-width: none;
-  margin: calc(var(--lockup-h) * -0.6916) 0 0 calc(var(--lockup-h) * -0.2434);
+  margin: calc(var(--lockup-h) * -0.6973) 0 0 calc(var(--lockup-h) * -0.2446);
   padding: 0;
   border: 0;
   background: transparent;
@@ -688,11 +686,11 @@ h2 {
 
   .brand {
     --lockup-h: 38px;
-    width: calc(var(--lockup-h) * 3.297);
+    width: calc(var(--lockup-h) * 3.312);
   }
 
   .brand-logo {
-    height: calc(var(--lockup-h) * 2.4675);
+    height: calc(var(--lockup-h) * 2.4794);
     width: auto;
     max-width: none;
   }
