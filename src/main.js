@@ -2047,13 +2047,40 @@ function updateReducedMotionStory(
 //
 // ======================================================
 
+function effectiveStoryProgress() {
+  let p = story.progress
+
+  const hold = document.querySelector('.logo-hold-chapter')
+  if (hold) {
+    const rect = hold.getBoundingClientRect()
+    const vh = window.innerHeight || 1
+    if (rect.top < vh * 0.72) {
+      const travel = Math.max(1, hold.offsetHeight * 0.45)
+      const into = vh * 0.72 - rect.top
+      const local = Math.max(0, Math.min(1, into / travel))
+      p = Math.max(p, 0.82 + local * 0.18)
+    }
+  }
+
+  const maxScroll =
+    document.documentElement.scrollHeight - window.innerHeight
+  if (maxScroll > 1) {
+    const raw = window.scrollY / maxScroll
+    if (raw > 0.96) {
+      p = 1
+    }
+  }
+
+  return Math.max(0, Math.min(1, p))
+}
+
 function updateStory() {
   if (!modelsReady) {
     return
   }
 
   const p =
-    story.progress
+    effectiveStoryProgress()
 
   if (scrollProgressBar) {
     scrollProgressBar.style.transform =
@@ -2906,7 +2933,7 @@ function syncCopyBeats(p) {
 
   const endBrand = document.querySelector('.end-brand')
   if (endBrand) {
-    const gate = beatGate(p, 0.888, 1.05, 0.018)
+    const gate = beatGate(p, 0.86, 1.05, 0.02)
     endBrand.style.opacity = String(gate)
     endBrand.classList.toggle('is-live', gate > 0.04)
   }
@@ -3059,18 +3086,21 @@ function createPage() {
           main,
 
         start:
-          0,
+          'top top',
 
         end:
-          'max',
+          'bottom bottom',
 
         invalidateOnRefresh:
+          true,
+
+        fastScrollEnd:
           true,
 
         scrub:
           REDUCED_MOTION
             ? false
-            : 0.95,
+            : 0.4,
 
         onUpdate:
           updateStory,
@@ -3110,6 +3140,14 @@ function createPage() {
       pinIntro()
     })
   })
+  window.setTimeout(() => {
+    if (introLocked) {
+      ScrollTrigger.refresh()
+      pinIntro()
+    } else {
+      ScrollTrigger.refresh()
+    }
+  }, 400)
 
   // ==================================================
   // COPY MOTION
