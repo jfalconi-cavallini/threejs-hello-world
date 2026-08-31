@@ -68,7 +68,7 @@ function mountChrome() {
   boot.innerHTML = `
     <div class="boot-screen-inner">
       <img
-        src="/metaminds-logo-lock.png"
+        src="/metaminds-logo.png"
         alt="MetaMinds STEM Academy"
         class="boot-logo"
       >
@@ -104,8 +104,25 @@ const REDUCED_MOTION =
 // Phone-first 60fps-class budget. Density is secondary.
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
-    ? 4000
-    : 10000
+    ? 1800
+    : 4200
+
+// Extra, dedicated fill just for the closing MetaMinds mark — never
+// drawn until the final hold, so it costs nothing during the rest of
+// the scroll. This is what makes the wordmark actually read as text.
+const LOGO_DETAIL_COUNT =
+  MOBILE_AT_LOAD
+    ? 4200
+    : 9500
+
+// Same idea for the opening hero shot — the shared morph budget
+// alone reads as a fuzzy blob at a glance, so a dedicated dense
+// layer fades in just for the brain hold, then back out before it
+// explodes into the lightbulb.
+const HERO_BRAIN_DETAIL_COUNT =
+  MOBILE_AT_LOAD
+    ? 2200
+    : 4800
 
 const PIXEL_RATIO_CAP =
   MOBILE_AT_LOAD
@@ -140,6 +157,7 @@ const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
 const RIGHT_X = 3.22
+const HERO_BRAIN_X = 2.45
 const LEFT_X = -1.25
 const CENTER_X = 0.35
 const LOGO_X = 0
@@ -360,7 +378,6 @@ function createPointMaterial({
 }) {
   const uniforms = {
     uTime: ambientTime,
-    uLogoStill: logoStill,
     uPixelRatio: {
       value: renderer.getPixelRatio(),
     },
@@ -380,51 +397,70 @@ function createPointMaterial({
       toneMapped: false,
       vertexShader: `
         uniform float uTime;
-        uniform float uLogoStill;
         uniform float uPixelRatio;
         uniform float uSize;
         uniform float uDrift;
         attribute float aScale;
         attribute vec3 color;
         varying vec3 vColor;
-        varying float vAlpha;
+        varying float vAngle;
 
         void main() {
           vColor = color;
           float seed = position.x * 1.73 + position.y * 2.11 + position.z * 1.37;
           vec3 pos = position;
-          float driftAmt = uDrift * mix(1.0, 0.0, uLogoStill);
           pos += vec3(
             sin(uTime * 0.53 + seed) * 1.15,
             cos(uTime * 0.41 + seed * 1.2) * 0.88,
             sin(uTime * 0.47 + seed * 0.8) * 1.02
-          ) * driftAmt;
+          ) * uDrift;
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
           float dist = max(0.42, -mvPosition.z);
-          float atten = mix(12.4 / dist, 2.2, uLogoStill);
+          float atten = 12.4 / dist;
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, mix(58.0, 1.15, uLogoStill));
-          gl_PointSize = max(sz, mix(1.15, 0.9, uLogoStill));
+          sz = min(sz, 33.0);
+          gl_PointSize = max(sz, 1.4);
           gl_Position = projectionMatrix * mvPosition;
-          vAlpha = mix(0.78, 0.42, uLogoStill);
+          // Slow tumble, unique per particle so the field doesn't
+          // read as a uniform grid of identical facets.
+          vAngle = uTime * (0.16 + fract(seed * 4.37) * 0.34) + seed * 6.2831853;
         }
       `,
       fragmentShader: `
         uniform float uAlpha;
-        uniform float uLogoStill;
         varying vec3 vColor;
-        varying float vAlpha;
+        varying float vAngle;
+
+        // iq's equilateral-triangle SDF — draws each particle as a
+        // faceted wireframe triangle instead of a soft round blob.
+        float sdEquilateralTriangle(vec2 p, float r) {
+          const float k = 1.7320508;
+          p.x = abs(p.x) - r;
+          p.y = p.y + r / k;
+          if (p.x + k * p.y > 0.0) {
+            p = vec2(p.x - k * p.y, -k * p.x - p.y) * 0.5;
+          }
+          p.x -= clamp(p.x, -2.0 * r, 0.0);
+          return -length(p) * sign(p.y);
+        }
 
         void main() {
-          vec2 c = gl_PointCoord - vec2(0.5);
-          float d = length(c);
-          if (d > 0.5) discard;
-          float soft = smoothstep(0.5, 0.10, d);
-          float hard = 1.0 - smoothstep(0.22, 0.40, d);
-          float core = mix(soft, hard * 0.55, uLogoStill);
-          float hot = mix(smoothstep(0.22, 0.0, d), 0.35, uLogoStill);
-          vec3 rgb = vColor * mix(0.72 + hot * 0.55, 0.62, uLogoStill);
-          gl_FragColor = vec4(rgb, core * vAlpha * uAlpha);
+          vec2 c = (gl_PointCoord - vec2(0.5)) * 2.2;
+          float ca = cos(vAngle);
+          float sa = sin(vAngle);
+          vec2 rc = vec2(ca * c.x - sa * c.y, sa * c.x + ca * c.y);
+
+          float d = sdEquilateralTriangle(rc, 0.62);
+
+          float lw = 0.07;
+          float aa = 0.05;
+          float edge = 1.0 - smoothstep(lw - aa, lw + aa, abs(d));
+          float fill = smoothstep(0.0, -0.55, d) * 0.16;
+          float core = clamp(edge + fill, 0.0, 1.0);
+
+          if (core < 0.02) discard;
+
+          gl_FragColor = vec4(vColor * 1.1, core * uAlpha);
         }
       `,
     })
@@ -478,7 +514,7 @@ particleGeometry.setAttribute(
 
 const particleMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 5.6 : 4.4,
+    size: MOBILE_AT_LOAD ? 8.5 : 7,
     drift: REDUCED_MOTION ? 0 : 0.042,
     alpha: 0.9,
     additive: true,
@@ -500,8 +536,8 @@ scene.add(particles)
 
 const DEBRIS_COUNT =
   MOBILE_AT_LOAD
-    ? 14
-    : 42
+    ? 10
+    : 28
 
 const debrisPositions =
   new Float32Array(
@@ -593,7 +629,7 @@ debrisGeometry.setAttribute(
 
 const debrisMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 18 : 22,
+    size: MOBILE_AT_LOAD ? 20 : 26,
     drift: REDUCED_MOTION ? 0 : 0.11,
     alpha: 0.22,
     additive: true,
@@ -616,7 +652,7 @@ scene.add(debris)
 const FIELD_COUNT =
   MOBILE_AT_LOAD
     ? 0
-    : 2000
+    : 900
 
 const fieldPositions =
   new Float32Array(
@@ -739,7 +775,7 @@ fieldGeometry.setAttribute(
 
 const fieldMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 2.4 : 1.85,
+    size: MOBILE_AT_LOAD ? 4 : 3.4,
     drift: REDUCED_MOTION ? 0 : 0.16,
     alpha: 0.55,
     additive: true,
@@ -819,13 +855,15 @@ particleGeometry.attributes.aScale.needsUpdate =
   true
 
 let volumeField = null
+let logoDetail = null
+let heroBrainDetail = null
 
 // Extra volumetric dust — golden-ratio sphere, no Math.random
 // so the existing RNG stream for forms/explosions stays intact.
 const VOLUME_COUNT =
   MOBILE_AT_LOAD
     ? 0
-    : 2500
+    : 1150
 
 console.log({
   FIELD_COUNT,
@@ -930,7 +968,7 @@ if (VOLUME_COUNT > 0)
 
   const volumeMaterial =
     createPointMaterial({
-      size: MOBILE_AT_LOAD ? 2.1 : 1.55,
+      size: MOBILE_AT_LOAD ? 3.6 : 3,
       drift: REDUCED_MOTION ? 0 : 0.09,
       alpha: 0.62,
       additive: true,
@@ -1076,7 +1114,8 @@ function loadGLB(url) {
 function modelToParticlePositions(
   model,
   desiredSize,
-  puffScale = 1
+  puffScale = 1,
+  count = PARTICLE_COUNT
 ) {
   model.updateMatrixWorld(true)
 
@@ -1155,9 +1194,9 @@ function modelToParticlePositions(
   const centerZ = (minZ + maxZ) / 2
   const scale = desiredSize / Math.max(maxX - minX, maxY - minY, maxZ - minZ)
 
-  const output = new Float32Array(PARTICLE_COUNT * 3)
+  const output = new Float32Array(count * 3)
 
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
+  for (let i = 0; i < count; i++) {
     // Binary search: pick a triangle weighted by surface area
     const r = Math.random()
     let lo = 0, hi = triCount - 1
@@ -1177,62 +1216,301 @@ function modelToParticlePositions(
     const px = (w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale
     const py = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
     const pz = (w * tris[base + 2] + u * tris[base + 5] + v * tris[base + 8] - centerZ) * scale
-    const plen = Math.sqrt(px * px + py * py + pz * pz) || 1
+
+    // Puff along the triangle's own face normal, not the vector from
+    // the model's bounding-box center. A center-relative puff smears
+    // points sideways across whatever is laid out along that axis —
+    // fatal for a wide horizontal wordmark, where it blurs letters
+    // into their neighbors instead of just thickening each stroke.
+    const e1x = tris[base + 3] - tris[base]
+    const e1y = tris[base + 4] - tris[base + 1]
+    const e1z = tris[base + 5] - tris[base + 2]
+    const e2x = tris[base + 6] - tris[base]
+    const e2y = tris[base + 7] - tris[base + 1]
+    const e2z = tris[base + 8] - tris[base + 2]
+    let nx = e1y * e2z - e1z * e2y
+    let ny = e1z * e2x - e1x * e2z
+    let nz = e1x * e2y - e1y * e2x
+    const nlen = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1
+    nx /= nlen
+    ny /= nlen
+    nz /= nlen
+
     const puff = (Math.random() - 0.22) * 0.22 * puffScale
-    output[i3]     = px + (px / plen) * puff
-    output[i3 + 1] = py + (py / plen) * puff
-    output[i3 + 2] = pz + (pz / plen) * puff
+    output[i3]     = px + nx * puff
+    output[i3 + 1] = py + ny * puff
+    output[i3 + 2] = pz + nz * puff
   }
 
   return output
 }
 
 // ======================================================
-// LOGO — flat MetaMinds silhouette (no mini-brain, no extrusion)
+// LOGO — sampled straight off the metaminds-logo.glb mesh,
+// same area-weighted random fill as the brain / lightbulb.
+// No grid, no glyph raster — just scatter within the model.
 // ======================================================
 
-// Four draws per former text sample. Must stay so
-// explosion / globe RNG downstream does not shift.
-function consumeLogoSampleRng(count) {
-  for (let i = 0; i < count; i++) {
-    Math.random()
-    Math.random()
-    Math.random()
-    Math.random()
-  }
+function generateLogoPositions(logoScene) {
+  return modelToParticlePositions(
+    logoScene,
+    LOGO_SIZE,
+    0.25
+  )
 }
 
-let wordMark = null
-
-function generateLogoHalo(count) {
-  const output = new Float32Array(count * 3)
-
-  // Sparse halo only — last frame is the locked PNG, not a
-  // canvas / particle word.
-  const PHI = 1.618033988749895
-  const inner = 3.15
-  const outer = 8.1
-  for (let i = 0; i < count; i++) {
-    const i3 = i * 3
-    const g = (i * PHI) % 1
-    const g2 = (i * PHI * PHI) % 1
-    const g3 = (i * 0.7548776662466927) % 1
-    const radius = inner + g * (outer - inner)
-    const angle = g2 * Math.PI * 2
-    output[i3]     = Math.cos(angle) * radius
-    output[i3 + 1] = (g3 - 0.5) * 0.82
-    output[i3 + 2] = Math.sin(angle) * radius * 0.38
-  }
-
-  return output
-}
-
-function generateLogoPositions() {
-  consumeLogoSampleRng(
-    PARTICLE_COUNT - Math.floor(PARTICLE_COUNT * 0.12)
+// Same trick as the logo hold below: a dedicated, denser sample of
+// brain.glb, added as a child of `particles` (so it inherits the
+// same transform as the sparse morph copy sitting underneath it),
+// invisible except during the opening brain hold.
+function buildHeroBrainDetail(brainScene) {
+  const positions = modelToParticlePositions(
+    brainScene,
+    BRAIN_SIZE,
+    0.25,
+    HERO_BRAIN_DETAIL_COUNT
   )
 
-  return generateLogoHalo(PARTICLE_COUNT)
+  if (!positions) {
+    return null
+  }
+
+  let minX = Infinity
+  let maxX = -Infinity
+
+  for (let i = 0; i < HERO_BRAIN_DETAIL_COUNT; i++) {
+    const x = positions[i * 3]
+    if (x < minX) minX = x
+    if (x > maxX) maxX = x
+  }
+
+  const span = (maxX - minX) || 1
+
+  const colors = new Float32Array(HERO_BRAIN_DETAIL_COUNT * 3)
+  const sizes = new Float32Array(HERO_BRAIN_DETAIL_COUNT)
+
+  for (let i = 0; i < HERO_BRAIN_DETAIL_COUNT; i++) {
+    const i3 = i * 3
+    const t = (positions[i3] - minX) / span
+
+    // Same tri-color gradient the sparse morph particles use, so the
+    // dense overlay reads as the same object, just sharper.
+    if (t < 0.45) {
+      tempColor.lerpColors(ORANGE, BURNT_ORANGE, t / 0.45)
+    } else if (t < 0.72) {
+      tempColor.lerpColors(NAVY, BLUE, (t - 0.45) / 0.27)
+    } else {
+      tempColor.lerpColors(BLUE, MUTE, (t - 0.72) / 0.28)
+    }
+
+    colors[i3]     = tempColor.r
+    colors[i3 + 1] = tempColor.g
+    colors[i3 + 2] = tempColor.b
+
+    sizes[i] = 0.78 + Math.random() * 0.5
+  }
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  geometry.setAttribute('aScale', new THREE.BufferAttribute(sizes, 1))
+
+  const material = createPointMaterial({
+    size: MOBILE_AT_LOAD ? 4.2 : 3.6,
+    drift: 0,
+    alpha: 0,
+    additive: true,
+  })
+
+  const mesh = new THREE.Points(geometry, material)
+  mesh.frustumCulled = false
+  mesh.visible = false
+  particles.add(mesh)
+
+  return mesh
+}
+
+// A dedicated, much denser fill of the same logo mesh, added as a
+// child of `particles` so it inherits the same position / rotation /
+// scale. It stays invisible for the entire scroll and only fades in
+// on the final hold — the morph system's shared PARTICLE_COUNT never
+// has enough budget to make text actually legible without slowing
+// down every other stage, so this exists purely to make the closing
+// "MetaMinds" mark read as real type instead of a fuzzy suggestion.
+//
+// The logo mesh's own "icon" slice is just a flat badge graphic, not
+// real brain geometry, so it never reads as a brain no matter how it's
+// sampled. Instead we drop that slice entirely and sample the actual
+// brain.glb into its slot — same detailed shape as the hero, just
+// small and brand-colored.
+function buildLogoDetail(
+  logoScene,
+  brainScene
+) {
+  // Oversample the full logo mesh, then keep only points that land
+  // outside the icon's slice (the leftmost ~24% of its width) so we
+  // end up with ~LOGO_DETAIL_COUNT text-only points.
+  const oversample =
+    Math.round(LOGO_DETAIL_COUNT / 0.6)
+
+  const rawPositions = modelToParticlePositions(
+    logoScene,
+    LOGO_SIZE,
+    0.1,
+    oversample
+  )
+
+  if (!rawPositions) {
+    return null
+  }
+
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+
+  for (let i = 0; i < oversample; i++) {
+    const x = rawPositions[i * 3]
+    const y = rawPositions[i * 3 + 1]
+    if (x < minX) minX = x
+    if (x > maxX) maxX = x
+    if (y < minY) minY = y
+    if (y > maxY) maxY = y
+  }
+
+  const span = (maxX - minX) || 1
+  const iconEdge = minX + span * 0.26
+  const textMidEdge = minX + span * 0.6
+
+  const keptIdx = []
+  for (let i = 0; i < oversample; i++) {
+    if (rawPositions[i * 3] >= iconEdge) {
+      keptIdx.push(i)
+      if (keptIdx.length >= LOGO_DETAIL_COUNT) break
+    }
+  }
+
+  const textCount = keptIdx.length
+  const textPositions = new Float32Array(textCount * 3)
+  const textColors = new Float32Array(textCount * 3)
+  const textSizes = new Float32Array(textCount)
+
+  for (let k = 0; k < textCount; k++) {
+    const i = keptIdx[k]
+    const i3 = i * 3
+    const k3 = k * 3
+    const x = rawPositions[i3]
+
+    textPositions[k3]     = x
+    textPositions[k3 + 1] = rawPositions[i3 + 1]
+    textPositions[k3 + 2] = rawPositions[i3 + 2]
+
+    if (x < textMidEdge) {
+      tempColor.copy(WHITE)
+      tempColor.lerp(INK, 0.12)
+    } else {
+      tempColor.copy(BLUE)
+      tempColor.lerp(WHITE, 0.5)
+    }
+
+    textColors[k3]     = tempColor.r
+    textColors[k3 + 1] = tempColor.g
+    textColors[k3 + 2] = tempColor.b
+
+    textSizes[k] = 0.78 + Math.random() * 0.5
+  }
+
+  const textGeometry = new THREE.BufferGeometry()
+  textGeometry.setAttribute('position', new THREE.BufferAttribute(textPositions, 3))
+  textGeometry.setAttribute('color', new THREE.BufferAttribute(textColors, 3))
+  textGeometry.setAttribute('aScale', new THREE.BufferAttribute(textSizes, 1))
+
+  const textMaterial = createPointMaterial({
+    size: MOBILE_AT_LOAD ? 4.6 : 3.8,
+    drift: 0,
+    alpha: 0,
+    additive: true,
+  })
+
+  const textMesh = new THREE.Points(textGeometry, textMaterial)
+  textMesh.frustumCulled = false
+  textMesh.visible = false
+  particles.add(textMesh)
+
+  // ---- ICON: the real brain, scaled and centered into the icon slot ----
+  const iconCenterX = minX + span * 0.12
+  const iconSlotHeight = (maxY - minY) || 1
+  const iconBrainSize = iconSlotHeight * 0.86
+
+  const brainRawCount =
+    MOBILE_AT_LOAD
+      ? 1300
+      : 2800
+
+  const brainRaw = modelToParticlePositions(
+    brainScene,
+    iconBrainSize,
+    0.22,
+    brainRawCount
+  )
+
+  let brainMinX = Infinity
+  let brainMaxX = -Infinity
+
+  for (let i = 0; i < brainRawCount; i++) {
+    const x = brainRaw[i * 3]
+    if (x < brainMinX) brainMinX = x
+    if (x > brainMaxX) brainMaxX = x
+  }
+
+  const brainSpan = (brainMaxX - brainMinX) || 1
+
+  const iconBrainPositions = new Float32Array(brainRawCount * 3)
+  const brainColors = new Float32Array(brainRawCount * 3)
+  const brainSizes = new Float32Array(brainRawCount)
+
+  for (let i = 0; i < brainRawCount; i++) {
+    const i3 = i * 3
+    const localX = brainRaw[i3]
+
+    iconBrainPositions[i3]     = localX + iconCenterX
+    iconBrainPositions[i3 + 1] = brainRaw[i3 + 1]
+    iconBrainPositions[i3 + 2] = brainRaw[i3 + 2]
+
+    // Same brand gradient the hero brain reads in — hemisphere split,
+    // circuit orange into deep navy/blue.
+    const t = (localX - brainMinX) / brainSpan
+    if (t < 0.5) {
+      tempColor.lerpColors(ORANGE, BURNT_ORANGE, t * 2)
+    } else {
+      tempColor.lerpColors(NAVY, BLUE, (t - 0.5) * 2)
+    }
+
+    brainColors[i3]     = tempColor.r
+    brainColors[i3 + 1] = tempColor.g
+    brainColors[i3 + 2] = tempColor.b
+
+    brainSizes[i] = 0.78 + Math.random() * 0.5
+  }
+
+  const brainGeometry = new THREE.BufferGeometry()
+  brainGeometry.setAttribute('position', new THREE.BufferAttribute(iconBrainPositions, 3))
+  brainGeometry.setAttribute('color', new THREE.BufferAttribute(brainColors, 3))
+  brainGeometry.setAttribute('aScale', new THREE.BufferAttribute(brainSizes, 1))
+
+  const brainMaterial = createPointMaterial({
+    size: MOBILE_AT_LOAD ? 4.6 : 3.8,
+    drift: 0,
+    alpha: 0,
+    additive: true,
+  })
+
+  const brainMesh = new THREE.Points(brainGeometry, brainMaterial)
+  brainMesh.frustumCulled = false
+  brainMesh.visible = false
+  particles.add(brainMesh)
+
+  return [textMesh, brainMesh]
 }
 
 // ======================================================
@@ -1917,7 +2195,7 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        RIGHT_X
+        HERO_BRAIN_X
       )
 
     transformTarget.y =
@@ -1967,7 +2245,7 @@ function updateStory() {
     transformTarget.x =
       desktopOrMobileX(
         lerp(
-          RIGHT_X,
+          HERO_BRAIN_X,
           LEFT_X,
           t
         )
@@ -2454,6 +2732,11 @@ Promise.all([
           0.4
         )
 
+      heroBrainDetail =
+        buildHeroBrainDetail(
+          brainGLB.scene
+        )
+
       lightbulbPositions =
         modelToParticlePositions(
           bulbGLB.scene,
@@ -2464,7 +2747,15 @@ Promise.all([
         generateGlobePositions(landGeoJSON)
 
       logoPositions =
-        generateLogoPositions()
+        generateLogoPositions(
+          logoGLB.scene
+        )
+
+      logoDetail =
+        buildLogoDetail(
+          logoGLB.scene,
+          brainGLB.scene
+        )
 
       if (
         !brainPositions ||
@@ -2565,13 +2856,18 @@ function createNavbar() {
 
   nav.innerHTML = `
     <a class="brand" href="#s1">
-      <span class="brand-plate">
-        <img
-          src="/metaminds-logo-lock.png"
-          alt="MetaMinds STEM Academy"
-          class="brand-logo"
-        >
-      </span>
+      <img
+        src="/metaminds-logo.png"
+        alt="MetaMinds STEM Academy"
+        class="brand-logo"
+      >
+    </a>
+
+    <a
+      class="nav-signin"
+      href="#"
+    >
+      Sign In
     </a>
 
     <a
@@ -2698,10 +2994,24 @@ function syncCopyBeats(p) {
       beat.selector.indexOf('teach') !== -1 &&
       p >= 0.52
 
-    const gate =
-      hardOff
-        ? 0
-        : beatGate(p, beat.start, beat.end)
+    let gate
+
+    if (beat.selector === '.copy-hero') {
+      // The hero copy used to hold flat at full opacity and only
+      // snap off in the last sliver of its range — scrolling did
+      // nothing visible to it at first. Fade and drift it linearly
+      // from the very first pixel scrolled instead, so it reacts
+      // immediately.
+      const t = clamp01(p / beat.end)
+      gate = 1 - t
+      el.style.transform = `translateY(${-t * 46}px)`
+    } else {
+      gate =
+        hardOff
+          ? 0
+          : beatGate(p, beat.start, beat.end)
+    }
+
     el.style.opacity = String(gate)
     el.classList.toggle('is-live', gate > 0.04)
   }
@@ -2793,13 +3103,6 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
       <div class="copy copy-center copy-consult">
-        <span class="brand-plate end-mark-plate">
-          <img
-            class="end-mark"
-            src="/metaminds-logo-lock.png"
-            alt="MetaMinds STEM Academy"
-          >
-        </span>
         <h2>
           Let's find the right tutor.
         </h2>
@@ -3657,20 +3960,52 @@ function animate() {
         0.1
     }
 
-    if (onLogoHold) {
-      particleMaterial.uniforms.uAlpha.value = 0
-    } else {
-      particleMaterial.uniforms.uAlpha.value +=
+    const onBrainHold =
+      currentStage === 'brain'
+
+    particleMaterial.uniforms.uAlpha.value +=
+      (
         (
-          (onLogo ? 0 : 0.9) -
-          particleMaterial.uniforms.uAlpha.value
-        ) *
-        0.1
+          onLogoHold ? 0.4 :
+          onBrainHold ? 0.45 :
+          0.9
+        ) -
+        particleMaterial.uniforms.uAlpha.value
+      ) *
+      0.1
+
+    if (logoDetail) {
+      const detailTarget =
+        onLogo ? 0.95 : 0
+
+      for (let li = 0; li < logoDetail.length; li++) {
+        const detailMesh = logoDetail[li]
+
+        detailMesh.material.uniforms.uAlpha.value +=
+          (
+            detailTarget -
+            detailMesh.material.uniforms.uAlpha.value
+          ) *
+          0.12
+
+        detailMesh.visible =
+          detailMesh.material.uniforms.uAlpha.value > 0.02
+      }
     }
 
-    if (wordMark) {
-      wordMark.visible = false
-      wordMark.material.opacity = 0
+    if (heroBrainDetail) {
+      const heroDetailTarget =
+        onBrainHold ? 0.95 : 0
+
+      heroBrainDetail.material.uniforms.uAlpha.value +=
+        (
+          heroDetailTarget -
+          heroBrainDetail.material.uniforms.uAlpha.value
+        ) *
+        0.12
+
+      heroBrainDetail.visible =
+        heroBrainDetail.material.uniforms.uAlpha.value > 0.02
     }
 
     const logoBlend =
