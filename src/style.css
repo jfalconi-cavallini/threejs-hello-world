@@ -456,18 +456,18 @@ button {
 }
 
 .chapter-morph-a {
-  min-height: 800vh;
-  min-height: 800svh;
+  min-height: 500vh;
+  min-height: 500svh;
 }
 
 .chapter-morph-b {
-  min-height: 400vh;
-  min-height: 400svh;
+  min-height: 200vh;
+  min-height: 200svh;
 }
 
 .chapter-morph-c {
-  min-height: 200vh;
-  min-height: 200svh;
+  min-height: 100vh;
+  min-height: 100svh;
 }
 
 .chapter-lb-hold-item {
@@ -1032,18 +1032,18 @@ h2 {
   }
 
   .chapter-morph-a {
-    min-height: 800vh;
-    min-height: 800svh;
+    min-height: 500vh;
+    min-height: 500svh;
   }
 
   .chapter-morph-b {
-    min-height: 400vh;
-    min-height: 400svh;
+    min-height: 200vh;
+    min-height: 200svh;
   }
 
   .chapter-morph-c {
-    min-height: 200vh;
-    min-height: 200svh;
+    min-height: 100vh;
+    min-height: 100svh;
   }
 
   .chapter-lb-hold-item {
