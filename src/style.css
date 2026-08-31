@@ -20,6 +20,7 @@ html {
   background: var(--mm-void);
   color: var(--mm-ink);
   scroll-behavior: auto;
+  overflow-anchor: none;
 }
 
 html.is-booting,
@@ -515,6 +516,51 @@ button {
   line-height: 1.45;
 }
 
+.end-brand {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2.2vw, 36px);
+  padding: 88px 24px 120px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.end-brand.is-live {
+  visibility: visible;
+}
+
+.end-brand-icon {
+  display: block;
+  height: clamp(108px, 22vh, 220px);
+  width: auto;
+  flex: 0 0 auto;
+  background: transparent;
+  image-rendering: auto;
+}
+
+.end-brand-word {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(42px, 7.6vw, 118px);
+  letter-spacing: -0.05em;
+  line-height: 0.92;
+  color: #ffffff;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.85),
+    0 8px 28px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+.end-brand-word .minds {
+  color: #0ba8e6;
+}
+
 .copy-consult .primary-button {
   margin-top: 16px;
   padding: 12px 20px;
@@ -807,6 +853,20 @@ h2 {
   .chapter-teach .copy p {
     margin-top: 10px;
     font-size: clamp(16px, 4.6vw, 22px);
+  }
+
+  .end-brand {
+    flex-direction: column;
+    gap: 18px;
+    padding: 72px 16px 140px;
+  }
+
+  .end-brand-icon {
+    height: clamp(96px, 18vh, 160px);
+  }
+
+  .end-brand-word {
+    font-size: clamp(36px, 11vw, 64px);
   }
 
   .copy-consult h2 {

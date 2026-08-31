@@ -11,6 +11,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './style.css'
 
 gsap.registerPlugin(ScrollTrigger)
+ScrollTrigger.config({
+  ignoreMobileResize: true,
+})
 
 let scrollProgressBar = null
 let bootScreen = null
@@ -86,6 +89,14 @@ function mountChrome() {
 
   if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual'
+  }
+
+  if (location.hash) {
+    history.replaceState(
+      null,
+      '',
+      location.pathname + location.search
+    )
   }
 
   window.scrollTo(0, 0)
@@ -411,12 +422,12 @@ function createPointMaterial({
           ) * driftAmt;
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
           float dist = max(0.42, -mvPosition.z);
-          float atten = mix(12.4 / dist, 2.2, uLogoStill);
+          float atten = mix(12.4 / dist, 5.4, uLogoStill);
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, mix(58.0, 1.15, uLogoStill));
-          gl_PointSize = max(sz, mix(1.15, 0.9, uLogoStill));
+          sz = min(sz, mix(58.0, 7.2, uLogoStill));
+          gl_PointSize = max(sz, mix(1.15, 2.4, uLogoStill));
           gl_Position = projectionMatrix * mvPosition;
-          vAlpha = mix(0.78, 0.42, uLogoStill);
+          vAlpha = mix(0.78, 0.94, uLogoStill);
         }
       `,
       fragmentShader: `
@@ -431,9 +442,9 @@ function createPointMaterial({
           if (d > 0.5) discard;
           float soft = smoothstep(0.5, 0.10, d);
           float hard = 1.0 - smoothstep(0.22, 0.40, d);
-          float core = mix(soft, hard * 0.55, uLogoStill);
-          float hot = mix(smoothstep(0.22, 0.0, d), 0.35, uLogoStill);
-          vec3 rgb = vColor * mix(0.72 + hot * 0.55, 0.62, uLogoStill);
+          float core = mix(soft, hard * 0.92, uLogoStill);
+          float hot = mix(smoothstep(0.22, 0.0, d), 0.55, uLogoStill);
+          vec3 rgb = vColor * mix(0.72 + hot * 0.55, 1.08, uLogoStill);
           gl_FragColor = vec4(rgb, core * vAlpha * uAlpha);
         }
       `,
@@ -1208,7 +1219,7 @@ function modelToParticlePositions(
 }
 
 // ======================================================
-// LOGO — mini first-page brain + particle "MetaMinds" word
+// LOGO — locked brain icon as the assembled 3D mark
 // ======================================================
 
 // Four draws per former text sample. Must stay so
@@ -1345,62 +1356,6 @@ function sampleColoredSilhouette(img, count, worldWidth, zDepth) {
   return { positions, colors }
 }
 
-function rasterizeMetaMindsWord(count) {
-  const positions = new Float32Array(count * 3)
-  const colors = new Float32Array(count * 3)
-  const W = 2200
-  const H = 420
-  const canvas = document.createElement('canvas')
-  canvas.width = W
-  canvas.height = H
-  const ctx = canvas.getContext('2d')
-  ctx.clearRect(0, 0, W, H)
-  ctx.textBaseline = 'middle'
-  ctx.font = '700 280px Syne, Arial, Helvetica, sans-serif'
-  const metaW = ctx.measureText('Meta').width
-  const mindsW = ctx.measureText('Minds').width
-  const total = metaW + mindsW
-  const left = (W - total) / 2
-  ctx.fillStyle = '#ffffff'
-  ctx.fillText('Meta', left, H / 2 + 8)
-  ctx.fillStyle = '#0BA8E6'
-  ctx.fillText('Minds', left + metaW, H / 2 + 8)
-
-  const pixels = ctx.getImageData(0, 0, W, H).data
-  const cells = []
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const i = (y * W + x) * 4
-      if (pixels[i + 3] > 40) {
-        cells.push(x, y, pixels[i], pixels[i + 1], pixels[i + 2])
-      }
-    }
-  }
-  if (!cells.length) return { positions, colors }
-
-  const cellCount = cells.length / 5
-  const worldW = 7.35
-  const worldH = worldW * (H / W)
-
-  for (let i = 0; i < count; i++) {
-    const idx = i % cellCount
-    const i3 = i * 3
-    const x = cells[idx * 5]
-    const y = cells[idx * 5 + 1]
-    positions[i3]     = ((x + 0.5) / W - 0.5) * worldW
-    positions[i3 + 1] = (0.5 - (y + 0.5) / H) * worldH
-    positions[i3 + 2] = ((i % 5) - 2) * 0.055
-    const isMinds =
-      cells[idx * 5 + 4] > 160 &&
-      cells[idx * 5 + 2] < 80
-    colors[i3]     = isMinds ? 0x0b / 255 : 1
-    colors[i3 + 1] = isMinds ? 0xa8 / 255 : 1
-    colors[i3 + 2] = isMinds ? 0xe6 / 255 : 1
-  }
-
-  return { positions, colors }
-}
-
 function generateLogoPositions(brainImg) {
   consumeLogoSampleRng(
     PARTICLE_COUNT - Math.floor(PARTICLE_COUNT * 0.12)
@@ -1408,34 +1363,24 @@ function generateLogoPositions(brainImg) {
 
   const output = new Float32Array(PARTICLE_COUNT * 3)
   const colors = new Float32Array(PARTICLE_COUNT * 3)
-  const BRAIN_COUNT = Math.floor(PARTICLE_COUNT * 0.42)
-  const TEXT_COUNT = PARTICLE_COUNT - BRAIN_COUNT
-
-  logoBrainCount = BRAIN_COUNT
+  logoBrainCount = PARTICLE_COUNT
 
   const brain = sampleColoredSilhouette(
     brainImg,
-    BRAIN_COUNT,
-    2.55,
-    0.82
+    PARTICLE_COUNT,
+    3.15,
+    1.05
   )
 
-  for (let i = 0; i < BRAIN_COUNT; i++) {
-    const i3 = i * 3
-    output[i3]     = brain.positions[i3]
-    output[i3 + 1] = brain.positions[i3 + 1]
-    output[i3 + 2] = brain.positions[i3 + 2]
-    colors[i3]     = brain.colors[i3]
-    colors[i3 + 1] = brain.colors[i3 + 1]
-    colors[i3 + 2] = brain.colors[i3 + 2]
-  }
+  output.set(brain.positions)
+  colors.set(brain.colors)
 
   // Draw traces on top of fill when the assembled mark
   // switches to normal blending.
   {
     let write = 0
-    const posSwap = new Float32Array(BRAIN_COUNT * 3)
-    const colSwap = new Float32Array(BRAIN_COUNT * 3)
+    const posSwap = new Float32Array(PARTICLE_COUNT * 3)
+    const colSwap = new Float32Array(PARTICLE_COUNT * 3)
     const copyParticle = (src) => {
       const s3 = src * 3
       const d3 = write * 3
@@ -1447,61 +1392,22 @@ function generateLogoPositions(brainImg) {
       colSwap[d3 + 2] = colors[s3 + 2]
       write++
     }
-    for (let i = 0; i < BRAIN_COUNT; i++) {
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
       const i3 = i * 3
       const isTrace =
         (colors[i3] > 0.85 && colors[i3 + 1] > 0.85) ||
         (colors[i3] > 0.85 && colors[i3 + 2] < 0.12)
       if (!isTrace) copyParticle(i)
     }
-    for (let i = 0; i < BRAIN_COUNT; i++) {
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
       const i3 = i * 3
       const isTrace =
         (colors[i3] > 0.85 && colors[i3 + 1] > 0.85) ||
         (colors[i3] > 0.85 && colors[i3 + 2] < 0.12)
       if (isTrace) copyParticle(i)
     }
-    output.set(posSwap.subarray(0, BRAIN_COUNT * 3), 0)
-    colors.set(colSwap.subarray(0, BRAIN_COUNT * 3), 0)
-  }
-
-  let brainMaxX = -Infinity
-  for (let i = 0; i < BRAIN_COUNT; i++) {
-    const x = output[i * 3]
-    if (x > brainMaxX) brainMaxX = x
-  }
-
-  const text = rasterizeMetaMindsWord(TEXT_COUNT)
-  let textMinX = Infinity
-  for (let i = 0; i < TEXT_COUNT; i++) {
-    const x = text.positions[i * 3]
-    if (x < textMinX) textMinX = x
-  }
-
-  const gap = 0.52
-  const textShift = brainMaxX + gap - textMinX
-
-  for (let i = 0; i < TEXT_COUNT; i++) {
-    const dest = (BRAIN_COUNT + i) * 3
-    const t3 = i * 3
-    output[dest]     = text.positions[t3] + textShift
-    output[dest + 1] = text.positions[t3 + 1]
-    output[dest + 2] = text.positions[t3 + 2]
-    colors[dest]     = text.colors[t3]
-    colors[dest + 1] = text.colors[t3 + 1]
-    colors[dest + 2] = text.colors[t3 + 2]
-  }
-
-  let minX = Infinity
-  let maxX = -Infinity
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const x = output[i * 3]
-    if (x < minX) minX = x
-    if (x > maxX) maxX = x
-  }
-  const mid = (minX + maxX) / 2
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    output[i * 3] -= mid
+    output.set(posSwap)
+    colors.set(colSwap)
   }
 
   logoColors = colors
@@ -1981,9 +1887,9 @@ function applyScrollCamera(p) {
     { p: 0.66, z: 4.70, fov: 48, x: -0.72 },
     { p: 0.80, z: 4.55, fov: 48, x: -0.68 },
     { p: 0.84, z: 1.62, fov: 70, x:  0.00 },
-    { p: 0.90, z: 3.55, fov: 48, x:  0.00 },
-    { p: 0.93, z: 4.35, fov: 44, x:  0.00 },
-    { p: 1.00, z: 4.75, fov: 42, x:  0.00 },
+    { p: 0.90, z: 3.55, fov: 50, x:  0.00 },
+    { p: 0.93, z: 4.45, fov: 48, x:  0.00 },
+    { p: 1.00, z: 4.85, fov: 46, x:  0.00 },
   ]
 
   let a = keys[0]
@@ -2789,8 +2695,6 @@ Promise.all([
 
       modelsReady = true
 
-      createPage()
-
       if (bootScreen) {
         bootScreen.classList.add(
           'is-done'
@@ -2801,6 +2705,8 @@ Promise.all([
         'is-booting'
       )
       window.scrollTo(0, 0)
+
+      createPage()
 
       // Build initial matrices/colors once.
       updateParticleInstances(
@@ -2854,7 +2760,7 @@ function createNavbar() {
   )
 
   nav.innerHTML = `
-    <a class="brand" href="#s1">
+    <a class="brand" href="#">
       <img
         src="/metaminds-lockup.png"
         alt="MetaMinds STEM Academy"
@@ -2997,6 +2903,13 @@ function syncCopyBeats(p) {
     el.style.opacity = String(gate)
     el.classList.toggle('is-live', gate > 0.04)
   }
+
+  const endBrand = document.querySelector('.end-brand')
+  if (endBrand) {
+    const gate = beatGate(p, 0.888, 1.05, 0.018)
+    endBrand.style.opacity = String(gate)
+    endBrand.classList.toggle('is-live', gate > 0.04)
+  }
 }
 
 // ======================================================
@@ -3080,6 +2993,17 @@ function createPage() {
       aria-hidden="true"
     ></section>
 
+    <div class="end-brand" aria-hidden="true">
+      <img
+        class="end-brand-icon"
+        src="/metaminds-brain.png"
+        alt=""
+      >
+      <p class="end-brand-word">
+        <span>Meta</span><span class="minds">Minds</span>
+      </p>
+    </div>
+
     <section
       id="consultation"
       class="chapter logo-hold-chapter"
@@ -3135,10 +3059,13 @@ function createPage() {
           main,
 
         start:
-          'top top',
+          0,
 
-          end:
-          'bottom bottom',
+        end:
+          'max',
+
+        invalidateOnRefresh:
+          true,
 
         scrub:
           REDUCED_MOTION
@@ -3151,16 +3078,37 @@ function createPage() {
     }
   )
 
-  ScrollTrigger.refresh()
-  window.scrollTo(0, 0)
-  story.progress = 0
-  updateStory()
-  requestAnimationFrame(() => {
-    window.scrollTo(0, 0)
-    ScrollTrigger.refresh()
+  let introLocked = true
+  const releaseIntro = () => {
+    introLocked = false
+  }
+  window.addEventListener('wheel', releaseIntro, { once: true, passive: true })
+  window.addEventListener('touchstart', releaseIntro, { once: true, passive: true })
+  window.addEventListener('keydown', releaseIntro, { once: true })
+  window.setTimeout(releaseIntro, 1800)
+
+  const pinIntro = () => {
+    if (!introLocked) {
+      return
+    }
     window.scrollTo(0, 0)
     story.progress = 0
+    storyTween.progress(0)
+    const st = storyTween.scrollTrigger
+    if (st) {
+      st.scroll(st.start)
+    }
     updateStory()
+  }
+
+  ScrollTrigger.refresh()
+  pinIntro()
+  requestAnimationFrame(() => {
+    ScrollTrigger.refresh()
+    pinIntro()
+    requestAnimationFrame(() => {
+      pinIntro()
+    })
   })
 
   // ==================================================
@@ -3918,7 +3866,7 @@ function animate() {
     if (onLogoHold) {
       logoStill.value +=
         (
-          0.82 -
+          0.38 -
           logoStill.value
         ) *
         0.14
