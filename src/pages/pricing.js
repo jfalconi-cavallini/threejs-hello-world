@@ -33,7 +33,7 @@ mountPage({
         <a class="primary-button" href="/consult">Book a free consult${ARROW_ICON}</a>
       </article>
 
-      <article class="tier-card tier-card--college">
+      <article class="tier-card tier-card--college" id="college">
         <p class="tier-kicker">College Mentor</p>
         <h2>Close to the coursework</h2>
         <p class="tier-rate">From $50/hr</p>

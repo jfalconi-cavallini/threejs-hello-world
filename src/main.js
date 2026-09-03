@@ -147,9 +147,11 @@ const EARTH_X = 4.65
 
 // Phone type sits top-left. Park the form stage-right / low —
 // never under the letters. (Was 0: centered on the H1.)
-const MOBILE_X = 2.15
-const MOBILE_HOLD_Y = -1.55
+const MOBILE_X = 2.55
+const MOBILE_HOLD_Y = -1.85
 const MOBILE_HERO_Y = -2.18
+const MOBILE_RESULTS_Y = -2.62
+const MOBILE_RESULTS_X = 2.9
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -2022,7 +2024,8 @@ function applyScrollCamera(p) {
         : 1.28
 
     if (onCopyHold && !onLogo) {
-      cameraTarget.x -= 0.72
+      cameraTarget.x -= 0.95
+      cameraTarget.z *= 1.12
     }
   }
 
@@ -2595,12 +2598,24 @@ function updateStory() {
         EARTH_X
       )
 
+    const resultsLive =
+      document.querySelector('.copy-results')
+        ?.classList.contains('is-live') === true
+
     transformTarget.y =
-      copyHoldY(0)
+      isMobile() && resultsLive
+        ? MOBILE_RESULTS_Y
+        : copyHoldY(0)
+
+    if (isMobile() && resultsLive) {
+      transformTarget.x = MOBILE_RESULTS_X
+    }
 
     transformTarget.s =
       isMobile()
-        ? 0.7
+        ? resultsLive
+          ? 0.48
+          : 0.62
         : 0.82
 
     // Spin is handled cheaply in animate().
@@ -2651,6 +2666,16 @@ function updateStory() {
 
     transformTarget.y =
       copyHoldY(0)
+
+    if (
+      isMobile() &&
+      document.querySelector('.copy-results')
+        ?.classList.contains('is-live')
+    ) {
+      transformTarget.x = MOBILE_RESULTS_X
+      transformTarget.y = MOBILE_RESULTS_Y
+      transformTarget.s = 0.48
+    }
 
     transformTarget.rx =
       -0.05
@@ -2970,10 +2995,9 @@ function copyAnchor(el, desktop) {
   }
 }
 
-// Same page-turn on every beat (b0009d9): incoming eases up from
-// below, outgoing keeps traveling up. Next beat starts at tExit so
-// the handoff overlaps — no empty stall, no sequential dead zone.
-const PAGE_TURN = { enter: 0.04, hold: 0.14, exit: 0.06 }
+// Parent-speed holds. Incoming starts during the previous hold so
+// the slot is never empty; exclusive paint keeps one line at 1.0.
+const PAGE_TURN = { enter: 0.10, hold: 0.52, exit: 0.12 }
 
 function addPageTurnBeat(tl, el, t, enter, hold, exit, stay, fadeWait) {
   if (REDUCED_MOTION) {
@@ -2982,16 +3006,14 @@ function addPageTurnBeat(tl, el, t, enter, hold, exit, stay, fadeWait) {
     if (!stay) {
       tl.to(fadeProxy(el), { copyFade: 0, duration: exit, ease: 'none' }, t + enter + hold)
     }
-    return t + enter + hold
+    return t + enter + hold * 0.6
   }
 
   const tHold = t + enter
   const tExit = tHold + hold
-
-  tl.to(el, { y: 10, duration: enter, ease: 'power1.out' }, t)
-  // Fade in only after the previous beat's fade-out (exit * 0.5)
-  // has reached 0. Y travel still starts at t — page-turn unchanged.
   const fadeInAt = t + (fadeWait == null ? 0 : fadeWait)
+
+  tl.to(el, { y: stay ? 0 : 8, duration: enter, ease: 'power1.out' }, t)
   tl.to(fadeProxy(el), {
     copyFade: 1,
     duration: enter,
@@ -3002,20 +3024,21 @@ function addPageTurnBeat(tl, el, t, enter, hold, exit, stay, fadeWait) {
     duration: hold,
     ease: 'none',
   }, tHold)
-  tl.to(el, { y: -24, duration: hold, ease: 'none' }, tHold)
+  tl.to(el, { y: stay ? 0 : -16, duration: hold, ease: 'none' }, tHold)
 
   if (stay) {
     return tExit
   }
 
-  tl.to(el, { y: -220, duration: exit, ease: 'power1.in' }, tExit)
+  tl.to(el, { y: -180, duration: exit, ease: 'power1.in' }, tExit)
   tl.to(fadeProxy(el), {
     copyFade: 0,
-    duration: exit * 0.5,
-    ease: 'power1.out',
+    duration: exit,
+    ease: 'none',
   }, tExit)
 
-  return tExit
+  // Next beat begins while this one is still at full white.
+  return t + enter + hold * 0.62
 }
 
 function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
@@ -3108,9 +3131,9 @@ function setupCopyTravel() {
             onUpdate: syncCopySlot,
           },
         })
-          .to(hero, { y: vh * -0.42, duration: 0.64, ease: 'none' })
-          .to(hero, { y: -(vh + 80), duration: 0.36, ease: 'power1.in' })
-          .to(fadeProxy(hero), { copyFade: 0, duration: 0.14, ease: 'power1.out' }, 0.10)
+          .to(hero, { y: vh * -0.28, duration: 0.72, ease: 'none' })
+          .to(hero, { y: -(vh + 80), duration: 0.28, ease: 'power1.in' })
+          .to(fadeProxy(hero), { copyFade: 0, duration: 0.16, ease: 'none' }, 0.28)
       }
     }
 
@@ -3119,11 +3142,11 @@ function setupCopyTravel() {
       ['.t3-intro'],
       {
         trigger: morphA,
-        start: 'top 82%',
-        end: '18% top',
+        start: 'top 88%',
+        end: 'bottom top',
       },
       [
-        { enter: 0.10, hold: 0.72, exit: 0.10, fadeWait: 0 },
+        { enter: 0.12, hold: 0.76, exit: 0.10, stay: true, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3140,11 +3163,11 @@ function setupCopyTravel() {
       {
         trigger: lbChapter,
         endTrigger: morphB,
-        start: 'top 88%',
-        end: '40% top',
+        start: 'top 92%',
+        end: 'top 8%',
       },
       [
-        { ...PAGE_TURN, fadeWait: 0.13 },
+        { enter: 0.12, hold: 0.56, exit: 0.12, fadeWait: 0 },
         PAGE_TURN,
         PAGE_TURN,
         PAGE_TURN,
@@ -3185,7 +3208,7 @@ function setupCopyTravel() {
         end: 'bottom top',
       },
       [
-        { ...PAGE_TURN, fadeWait: 0.13 },
+        { enter: 0.12, hold: 0.56, exit: 0.12, fadeWait: 0 },
         PAGE_TURN,
         PAGE_TURN,
         PAGE_TURN,
@@ -3346,8 +3369,7 @@ function createPage() {
       <div class="copy copy-team earth-path-1">
         <h2>Elementary & Middle School</h2>
         <p>
-          Build fundamentals, confidence, organization, and strong
-          learning habits.
+          Build fundamentals, confidence, organization, and strong learning habits.
         </p>
       </div>
       <div class="copy copy-team earth-path-2">
@@ -4223,6 +4245,10 @@ function animate() {
       document.querySelector('.t5-main')
         ?.classList.contains('is-live') === true
 
+    const resultsLive =
+      document.querySelector('.copy-results')
+        ?.classList.contains('is-live') === true
+
     const hideStage =
       onLogo || consultLive
 
@@ -4236,7 +4262,8 @@ function animate() {
       currentStage === 'lightbulb' ||
       currentStage === 'earth' ||
       currentStage === 'earth-forming' ||
-      teamLive
+      teamLive ||
+      resultsLive
 
     if (onLogoHold) {
       logoStill.value = 1
@@ -4253,6 +4280,11 @@ function animate() {
     // Snap the whole stage off — a 0.1 lerp left a white logo bloom
     // over "Let's find the" on desktop.
     if (hideStage) {
+      const consultEl = document.querySelector('.copy-consult')
+      if (consultEl) {
+        fadeProxy(consultEl).copyFade = 1
+      }
+
       particles.visible = false
       debris.visible = false
       particleMaterial.uniforms.uAlpha.value = 0
