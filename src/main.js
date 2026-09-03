@@ -2978,7 +2978,7 @@ function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
   })
 
   const tl = gsap.timeline({
-    defaults: { force3D: true },
+    defaults: {},
     scrollTrigger: {
       ...scroll,
       scrub: REDUCED_MOTION ? true : copyScrub,
@@ -3041,7 +3041,7 @@ function setupCopyTravel() {
         // (morph-a top 82% ≈ 0.10 of this 170% range) so the slot
         // is never empty and never holds two full-opacity headlines.
         gsap.timeline({
-          defaults: { force3D: true },
+          defaults: {},
           scrollTrigger: {
             trigger: heroChapter,
             start: 'top top',
@@ -3155,7 +3155,7 @@ function setupCopyTravel() {
       fadeProxy(consult).copyFade = 0
 
       const tl = gsap.timeline({
-        defaults: { force3D: true },
+        defaults: {},
         scrollTrigger: {
           trigger: morphC,
           start: 'top 24%',

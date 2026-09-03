@@ -1469,6 +1469,14 @@ body.is-site-page .metaminds-nav {
   color: #fff;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+.consult-pane {
+  min-width: 0;
+}
+
 .consult-form,
 .consult-success {
   padding: 28px;

@@ -55,6 +55,7 @@ mountPage({
         </p>
       </div>
 
+      <div class="consult-pane">
       <form class="consult-form" id="consult-form" novalidate>
         <div class="form-intro">
           <h2>Request your consult</h2>
@@ -120,6 +121,7 @@ mountPage({
           now, <a data-mail-link href="mailto:${EMAIL}">email the academy</a>.
         </p>
         <a class="primary-button" href="/pricing">See mentoring tiers${ARROW_ICON}</a>
+      </div>
       </div>
     </section>
   `,
