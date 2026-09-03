@@ -74,28 +74,11 @@ export function mountAtmosphere() {
   document.body.appendChild(atmosphere)
 }
 
-function navHref(page, path) {
-  if (page === 'home' && path.startsWith('/#')) {
-    return path.slice(1)
-  }
-  return path
-}
-
 function navActive(page, id) {
   return page === id ? ' is-active' : ''
 }
 
-export function createNavbar({ page = 'home' } = {}) {
-  const nav = document.createElement('nav')
-  nav.className = 'metaminds-nav'
-  nav.setAttribute('aria-label', 'MetaMinds')
-
-  const brandHref = page === 'home' ? '#s1' : '/'
-  const notes = navHref(page, '/#notes')
-  const results = navHref(page, '/#results')
-
-  nav.innerHTML = `
-    <a class="brand" href="${brandHref}">
+const LOCKUP = `
       <span class="brand-plate">
         <img
           src="/metaminds-logo-lock.png"
@@ -103,6 +86,39 @@ export function createNavbar({ page = 'home' } = {}) {
           class="brand-logo"
         >
       </span>
+`
+
+const CONSULT_CTA = `
+    <a class="nav-cta" href="/consult">
+      <span class="nav-cta-full">Book Free Consultation</span>
+      <span class="nav-cta-short">Consult</span>
+      ${ARROW_ICON}
+    </a>
+`
+
+export function createNavbar({ page = 'home' } = {}) {
+  const nav = document.createElement('nav')
+  nav.className = page === 'home'
+    ? 'metaminds-nav metaminds-nav--cinematic'
+    : 'metaminds-nav'
+  nav.setAttribute('aria-label', 'MetaMinds')
+
+  const brandHref = page === 'home' ? '#s1' : '/'
+
+  if (page === 'home') {
+    nav.innerHTML = `
+    <a class="brand" href="${brandHref}">
+      ${LOCKUP}
+    </a>
+    ${CONSULT_CTA}
+  `
+    document.body.appendChild(nav)
+    return nav
+  }
+
+  nav.innerHTML = `
+    <a class="brand" href="${brandHref}">
+      ${LOCKUP}
     </a>
 
     <div class="nav-inline">
@@ -125,8 +141,8 @@ export function createNavbar({ page = 'home' } = {}) {
           <a href="/about#stem">Programming &amp; STEM</a>
         </div>
       </div>
-      <a href="${notes}">How It Works</a>
-      <a href="${results}">Results</a>
+      <a href="/#notes">How It Works</a>
+      <a href="/#results">Results</a>
       <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
       <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
     </div>
@@ -149,11 +165,7 @@ export function createNavbar({ page = 'home' } = {}) {
       </div>
     </div>
 
-    <a class="nav-cta" href="/consult">
-      <span class="nav-cta-full">Book Free Consultation</span>
-      <span class="nav-cta-short">Consult</span>
-      ${ARROW_ICON}
-    </a>
+    ${CONSULT_CTA}
 
     <button
       class="menu-button"
@@ -171,8 +183,8 @@ export function createNavbar({ page = 'home' } = {}) {
         <a href="/about#test-prep">SAT &amp; ACT Prep</a>
         <a href="/about#ap">AP &amp; Advanced Courses</a>
         <a href="/about#stem">Programming &amp; STEM</a>
-        <a href="${notes}">How It Works</a>
-        <a href="${results}">Results</a>
+        <a href="/#notes">How It Works</a>
+        <a href="/#results">Results</a>
         <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
         <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
       </div>

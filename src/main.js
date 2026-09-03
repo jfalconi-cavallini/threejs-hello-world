@@ -14,13 +14,6 @@ import {
   createFooter,
   setupNav,
   ARROW_ICON,
-  USERS_ICON,
-  SHIELD_ICON,
-  GLOBE_ICON,
-  PIN_ICON,
-  CAP_ICON,
-  TRENDING_ICON,
-  STAR_ICON,
 } from './chrome.js'
 
 import './style.css'
@@ -3015,6 +3008,7 @@ function setupCopyTravel() {
     const morphC = document.querySelector('.chapter-morph-c')
     const lbChapter = document.querySelector('.chapter-lb-hold-item')
     const teamChapter = document.querySelector('.chapter-team')
+    const resultsChapter = document.querySelector('.chapter-results')
 
     if (hero && heroChapter) {
       const base = copyAnchor(hero, desktop)
@@ -3058,7 +3052,7 @@ function setupCopyTravel() {
 
     wireCopyCluster(
       desktop,
-      ['.t2-block', '.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
+      ['.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
       {
         trigger: morphA,
         start: 'top 82%',
@@ -3066,7 +3060,6 @@ function setupCopyTravel() {
       },
       [
         { ...PAGE_TURN, fadeWait: 0.06 },
-        PAGE_TURN,
         PAGE_TURN,
         PAGE_TURN,
         PAGE_TURN,
@@ -3144,6 +3137,22 @@ function setupCopyTravel() {
       copyScrub
     )
 
+    if (resultsChapter) {
+      wireCopyCluster(
+        desktop,
+        ['.copy-results'],
+        {
+          trigger: resultsChapter,
+          start: 'top 82%',
+          end: 'bottom 18%',
+        },
+        [
+          { ...PAGE_TURN, fadeWait: 0.08 },
+        ],
+        copyScrub
+      )
+    }
+
     if (consult && morphC) {
       const base = copyAnchor(consult, desktop)
 
@@ -3215,47 +3224,15 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <h1>
-          A mentor who stays with <span class="grad-accent">your kid.</span>
-        </h1>
-        <p>
-          One dedicated tutor. A plan you can see. Session notes
-          after every session.
-        </p>
-        <div class="copy-caveat">
-          <p>
-            SAT, ACT, AP, math, and coding. Dallas–Fort Worth,
-            virtual first. AI assists. It never replaces.
-          </p>
-        </div>
-        <div class="hero-divider"></div>
-        <div class="hero-trust">
-          <div class="hero-trust-item hero-trust-item--families">
-            ${USERS_ICON}
-            <span class="hero-trust-text">
-              One dedicated tutor.<br>Notes after every session.
-            </span>
-          </div>
-          <div class="hero-trust-sep"></div>
-          <div class="hero-trust-item hero-trust-item--vetted">
-            ${SHIELD_ICON}
-            <span class="hero-trust-text">
-              SAT, ACT, AP, math,<br>and coding.
-            </span>
-          </div>
-        </div>
-        <div class="hero-actions">
-          <a
-            href="/consult"
-            class="primary-button hero-cta"
-          >
-            Book Free Consultation
-            ${ARROW_ICON}
-          </a>
-          <a href="/about#programs" class="hero-secondary-cta">
-            Explore Programs
-          </a>
-        </div>
+        <h1>A mentor who stays with your kid.</h1>
+        <p>One dedicated tutor. Session notes after every session.</p>
+        <a
+          href="/consult"
+          class="primary-button hero-cta"
+        >
+          Book Free Consultation
+          ${ARROW_ICON}
+        </a>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3264,95 +3241,6 @@ function createPage() {
     </section>
 
     <section class="chapter chapter-morph chapter-morph-a">
-      <div class="copy copy-center copy-mid t2-block">
-        <div class="page2-eyebrow">Virtual Tutoring. Real Results.</div>
-        <h2>Expert mentors. Personalized learning. Stronger futures.</h2>
-        <p>
-          MetaMinds provides virtual STEM tutoring and academic
-          mentorship for students across the U.S. Our mentors build
-          confidence, strengthen skills, and inspire a love for
-          learning.
-        </p>
-
-        <div class="page2-features">
-          <div class="page2-feature-item">
-            ${GLOBE_ICON}
-            <h4>Virtual First</h4>
-            <p>
-              All sessions are online so students can learn from the
-              best mentors anywhere.
-            </p>
-          </div>
-          <div class="page2-feature-item">
-            ${PIN_ICON}
-            <h4>In-Person Options</h4>
-            <p>
-              In-person tutoring may be available in select areas
-              depending on tutor availability.
-            </p>
-          </div>
-          <div class="page2-feature-item">
-            ${USERS_ICON.replace('hero-trust-icon', 'page2-feature-icon')}
-            <h4>Personalized 1:1</h4>
-            <p>
-              Every student gets a custom learning plan designed
-              around their goals.
-            </p>
-          </div>
-        </div>
-
-        <div class="hero-actions page2-actions">
-          <a
-            href="/consult"
-            class="primary-button hero-cta"
-          >
-            Book Free Consultation
-            ${ARROW_ICON}
-          </a>
-          <a href="/about#programs" class="hero-secondary-cta">
-            Explore Programs
-          </a>
-        </div>
-
-        <div class="page2-stats" id="results">
-          <div class="page2-stat-item">
-            ${CAP_ICON}
-            <div>
-              <div class="page2-stat-value">500+</div>
-              <div class="page2-stat-label">Students Mentored</div>
-              <p>Across all grade levels and skill areas</p>
-            </div>
-          </div>
-          <div class="page2-stat-item">
-            ${TRENDING_ICON}
-            <div>
-              <div class="page2-stat-value">95%</div>
-              <div class="page2-stat-label">Improvement Rate</div>
-              <p>Students see stronger grades and test scores</p>
-            </div>
-          </div>
-          <div class="page2-stat-item">
-            ${STAR_ICON}
-            <div>
-              <div class="page2-stat-label">Expert Mentors</div>
-              <p>College mentors, engineers, and STEM specialists</p>
-            </div>
-          </div>
-          <div class="page2-stat-item">
-            ${SHIELD_ICON.replace('hero-trust-icon', 'page2-stat-icon')}
-            <div>
-              <div class="page2-stat-label">Safe & Supportive</div>
-              <p>Selected mentors and a student-first environment</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="page2-trust">
-          <div class="placeholder-chip">Layout placeholder</div>
-          <div class="page2-trust-label">Sample figures for spacing — not audited results.</div>
-        </div>
-      </div>
-
       <div class="copy copy-center copy-mid t3-intro">
         <h2>Understanding changes everything.</h2>
         <p>
@@ -3476,6 +3364,13 @@ function createPage() {
       </div>
     </section>
 
+    <section class="chapter chapter-results" id="results">
+      <div class="copy copy-center copy-mid copy-results">
+        <h2>A plan you can see.</h2>
+        <p>Notes after every session. Skill tracking. Parent updates.</p>
+      </div>
+    </section>
+
     <section
       class="chapter chapter-morph chapter-morph-c"
       aria-hidden="true"
@@ -3509,6 +3404,10 @@ function createPage() {
           Book a Free Consultation
           ${ARROW_ICON}
         </a>
+        <div class="consult-more">
+          <a href="/pricing">Pricing</a>
+          <a href="/about">About</a>
+        </div>
       </div>
     </section>
 
