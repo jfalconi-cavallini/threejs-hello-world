@@ -15,7 +15,7 @@ mountPage({
     </section>
 
     <section class="tier-grid" aria-label="Mentoring tiers">
-      <article class="tier-card tier-card--premium">
+      <article class="tier-card tier-card--premium" id="premium">
         <p class="tier-kicker">Premium</p>
         <h2>Experienced specialists</h2>
         <p class="tier-rate">From $70/hr</p>

@@ -1932,8 +1932,7 @@ function setHoldShot(
   _x = 0
 ) {
   stageIsTransform = false
-  morphLerp =
-    POSITION_LERP * 0.55
+  morphLerp = Math.max(POSITION_LERP, 0.22)
   transformTarget.s = 1
   // Holds carry copy. Bloom under letters was the session-notes
   // column — keep the lane black.
@@ -2956,13 +2955,12 @@ function syncCopySlot() {
 
 function copyAnchor(el, desktop) {
   const mid = desktop && el.classList.contains('copy-mid')
-  const team = desktop && el.classList.contains('copy-team')
   const consult = desktop && el.classList.contains('copy-consult')
   const rightMid = desktop && el.classList.contains('copy-right-mid')
 
   return {
     xPercent: mid || consult ? -50 : 0,
-    yPercent: mid || team || rightMid ? -50 : 0,
+    yPercent: mid || rightMid ? -50 : 0,
     force3D: true,
   }
 }
@@ -3155,11 +3153,11 @@ function setupCopyTravel() {
       ['.t5-main'],
       {
         trigger: morphB,
-        start: '42% top',
-        end: 'bottom 12%',
+        start: 'top 78%',
+        end: 'bottom top',
       },
       [
-        { enter: 0.08, hold: 0.80, exit: 0.08, fadeWait: 0 },
+        { enter: 0.10, hold: 0.80, exit: 0.08, stay: true, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3201,10 +3199,10 @@ function setupCopyTravel() {
         {
           trigger: resultsChapter,
           start: 'top 82%',
-          end: 'bottom 18%',
+          end: 'bottom top',
         },
         [
-          { enter: 0.10, hold: 0.72, exit: 0.10, fadeWait: 0 },
+          { enter: 0.10, hold: 0.72, exit: 0.08, stay: true, fadeWait: 0 },
         ],
         copyScrub
       )
@@ -3224,8 +3222,8 @@ function setupCopyTravel() {
         defaults: {},
         scrollTrigger: {
           trigger: morphC,
-          start: 'top 24%',
-          end: 'top+=22% top',
+          start: 'top 50%',
+          end: 'bottom top',
           scrub: REDUCED_MOTION ? true : copyScrub,
           onUpdate: syncCopySlot,
         },
@@ -3235,11 +3233,11 @@ function setupCopyTravel() {
         tl,
         consult,
         0,
-        PAGE_TURN.enter,
-        PAGE_TURN.hold,
-        PAGE_TURN.exit,
+        0.14,
+        0.72,
+        0.08,
         true,
-        0.42
+        0
       )
     }
   }
@@ -3290,41 +3288,41 @@ function createPage() {
     </section>
 
     <section class="chapter chapter-morph chapter-morph-a">
-      <div class="copy copy-center copy-mid t3-intro">
+      <div class="copy copy-lane t3-intro">
         <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
         <p class="teach-range">K–12 through college.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item" id="plan">
-      <div class="copy copy-center copy-mid lb-intro">
+      <div class="copy copy-lane lb-intro">
         <h2>Tutoring shouldn't disappear when the call ends.</h2>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-center copy-mid lb-feature-1">
+      <div class="copy copy-lane lb-feature-1">
         <h2>Session notes</h2>
         <p>What we covered and what comes next.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-center copy-mid lb-feature-2">
+      <div class="copy copy-lane lb-feature-2">
         <h2>Targeted practice</h2>
         <p>Assignments based on what the student actually needs.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-center copy-mid lb-feature-3">
+      <div class="copy copy-lane lb-feature-3">
         <h2>Skill tracking</h2>
         <p>See what's improving and what still needs work.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item" id="notes">
-      <div class="copy copy-center copy-mid lb-feature-4">
+      <div class="copy copy-lane lb-feature-4">
         <h2>Parent updates</h2>
         <p>You're not left wondering how tutoring is going.</p>
       </div>
@@ -3392,7 +3390,7 @@ function createPage() {
     </section>
 
     <section class="chapter chapter-results" id="results">
-      <div class="copy copy-center copy-mid copy-results">
+      <div class="copy copy-lane copy-results">
         <h2>A plan you can see.</h2>
         <p>Notes after every session. Skill tracking. Parent updates.</p>
       </div>
@@ -4184,15 +4182,12 @@ function animate() {
         dt *
         0.008
 
-      field.position.x =
-        camera.position.x * 0.22
-
       field.position.y =
         camera.position.y * 0.16
     }
 
     debris.position.x =
-      camera.position.x * 0.09
+      camera.position.x * 0.09 + 2.2
 
     debris.position.y =
       camera.position.y * 0.07
@@ -4200,9 +4195,6 @@ function animate() {
     if (volumeField) {
       volumeField.rotation.y -=
         dt * 0.011
-
-      volumeField.position.x =
-        camera.position.x * 0.16
 
       volumeField.position.y =
         camera.position.y * 0.12
@@ -4221,7 +4213,8 @@ function animate() {
     const onCopyHold =
       onBrainHold ||
       currentStage === 'lightbulb' ||
-      currentStage === 'earth'
+      currentStage === 'earth' ||
+      currentStage === 'earth-forming'
 
     if (onLogoHold) {
       logoStill.value = 1
@@ -4238,10 +4231,12 @@ function animate() {
     // Snap off — a 0.1 lerp left a white logo bloom over the headline.
     if (onLogo) {
       particles.visible = false
+      debris.visible = false
       particleMaterial.uniforms.uAlpha.value = 0
       debrisMaterial.uniforms.uAlpha.value = 0
 
       if (FIELD_COUNT > 0) {
+        field.visible = false
         fieldMaterial.uniforms.uAlpha.value = 0
       }
 
@@ -4259,34 +4254,55 @@ function animate() {
       }
     } else {
       particles.visible = true
+      debris.visible = true
 
       if (FIELD_COUNT > 0) {
+        field.visible = true
         const fieldAlpha =
-          onCopyHold ? 0 : 0.55
+          onCopyHold ? 0 : 0.42
+        const fieldX = onCopyHold ? 4.8 : 2.6
+
+        field.position.x +=
+          (
+            fieldX +
+            camera.position.x * 0.22 -
+            field.position.x
+          ) *
+          0.12
 
         fieldMaterial.uniforms.uAlpha.value +=
           (
             fieldAlpha -
             fieldMaterial.uniforms.uAlpha.value
           ) *
-          0.1
+          0.16
       }
 
       debrisMaterial.uniforms.uAlpha.value +=
         (
-          (onCopyHold ? 0.08 : 0.22) -
+          (onCopyHold ? 0.06 : 0.18) -
           debrisMaterial.uniforms.uAlpha.value
         ) *
-        0.1
+        0.16
 
       if (volumeField) {
         volumeField.visible = true
+        const volumeX = onCopyHold ? 4.6 : 2.4
+
+        volumeField.position.x +=
+          (
+            volumeX +
+            camera.position.x * 0.16 -
+            volumeField.position.x
+          ) *
+          0.12
+
         volumeField.material.uniforms.uAlpha.value +=
           (
-            (onCopyHold ? 0 : 0.62) -
+            (onCopyHold ? 0 : 0.42) -
             volumeField.material.uniforms.uAlpha.value
           ) *
-          0.1
+          0.16
       }
 
       particleMaterial.uniforms.uAlpha.value +=

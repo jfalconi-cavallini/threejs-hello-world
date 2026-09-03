@@ -529,8 +529,8 @@ button {
 }
 
 .chapter-morph-b {
-  min-height: 200vh;
-  min-height: 200svh;
+  min-height: 280vh;
+  min-height: 280svh;
 }
 
 .chapter-morph-c {
@@ -587,10 +587,22 @@ button {
 }
 
 .copy-hero {
-  width: min(760px, 52vw);
+  width: min(720px, 48vw);
   max-width: none;
   top: 128px;
   text-shadow: none;
+}
+
+.copy-lane {
+  left: clamp(36px, 5.2vw, 88px);
+  top: 136px;
+  width: min(640px, 46vw);
+  max-width: none;
+  text-align: left;
+}
+
+.t3-intro {
+  max-height: 567px;
 }
 
 .grad-accent {
@@ -699,8 +711,8 @@ button {
 
 .copy-team {
   left: clamp(36px, 5.2vw, 88px);
-  top: 50%;
-  width: min(760px, 52vw);
+  top: 136px;
+  width: min(720px, 46vw);
   max-width: none;
   text-align: left;
 }
@@ -710,6 +722,7 @@ button {
   line-height: 0.92;
   letter-spacing: -0.06em;
   text-wrap: pretty;
+  color: #fff;
 }
 
 .copy-right {
@@ -1249,8 +1262,8 @@ button {
   }
 
   .chapter-morph-b {
-    min-height: 200vh;
-    min-height: 200svh;
+    min-height: 280vh;
+    min-height: 280svh;
   }
 
   .chapter-morph-c {
@@ -1284,6 +1297,7 @@ button {
   .copy,
   .copy-hero,
   .copy-mid,
+  .copy-lane,
   .copy-team {
     position: fixed;
     left: 20px;
@@ -1362,9 +1376,11 @@ button {
     text-align: left;
   }
 
+  .copy-lane,
   .t3-intro {
-    top: 18vh;
-    width: min(88vw, 340px);
+    top: 104px;
+    width: min(82vw, 320px);
+    max-height: 390px;
   }
 
   .teach-subjects {
@@ -1378,7 +1394,7 @@ button {
   }
 
   .copy-team {
-    top: 16vh;
+    top: 104px;
     width: min(82vw, 320px);
     transform: none;
     text-align: left;
@@ -1388,6 +1404,7 @@ button {
     font-size: clamp(40px, 11.4vw, 52px);
     line-height: 0.94;
     text-wrap: pretty;
+    color: #fff;
   }
 
   .copy-consult {
@@ -1879,7 +1896,9 @@ body.is-site-page .metaminds-nav {
   }
 
   .tier-card--premium,
-  .tier-card--premium h2 {
+  .tier-card--premium h2,
+  .tier-kicker,
+  #premium {
     scroll-margin-top: 136px;
   }
 
