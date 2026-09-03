@@ -137,13 +137,13 @@ const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
-const RIGHT_X = 3.55
-const HERO_BRAIN_X = 2.85
+const RIGHT_X = 3.85
+const HERO_BRAIN_X = 3.2
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
-const NOTES_X = 3.65
-const EARTH_X = 4.2
+const NOTES_X = 3.95
+const EARTH_X = 4.65
 
 // Phone type sits top-left. Park the form stage-right / low —
 // never under the letters. (Was 0: centered on the H1.)
@@ -2216,6 +2216,11 @@ function updateStory() {
         ? MOBILE_HERO_Y
         : 0
 
+    transformTarget.s =
+      isMobile()
+        ? 0.7
+        : 0.86
+
     transformTarget.rx =
       -0.02
 
@@ -4210,11 +4215,28 @@ function animate() {
     const onBrainHold =
       currentStage === 'brain'
 
+    const consultLive =
+      document.querySelector('.copy-consult')
+        ?.classList.contains('is-live') === true
+
+    const teamLive =
+      document.querySelector('.t5-main')
+        ?.classList.contains('is-live') === true
+
+    const hideStage =
+      onLogo || consultLive
+
+    document.body.classList.toggle(
+      'is-close-hold',
+      hideStage
+    )
+
     const onCopyHold =
       onBrainHold ||
       currentStage === 'lightbulb' ||
       currentStage === 'earth' ||
-      currentStage === 'earth-forming'
+      currentStage === 'earth-forming' ||
+      teamLive
 
     if (onLogoHold) {
       logoStill.value = 1
@@ -4228,12 +4250,14 @@ function animate() {
     }
 
     // Phone close is the target: plate + type, no particle wash.
-    // Snap off — a 0.1 lerp left a white logo bloom over the headline.
-    if (onLogo) {
+    // Snap the whole stage off — a 0.1 lerp left a white logo bloom
+    // over "Let's find the" on desktop.
+    if (hideStage) {
       particles.visible = false
       debris.visible = false
       particleMaterial.uniforms.uAlpha.value = 0
       debrisMaterial.uniforms.uAlpha.value = 0
+      bloomPass.strength = 0
 
       if (FIELD_COUNT > 0) {
         field.visible = false
@@ -4280,7 +4304,7 @@ function animate() {
 
       debrisMaterial.uniforms.uAlpha.value +=
         (
-          (onCopyHold ? 0.06 : 0.18) -
+          (onCopyHold ? 0 : 0.18) -
           debrisMaterial.uniforms.uAlpha.value
         ) *
         0.16
@@ -4333,7 +4357,7 @@ function animate() {
 
     if (heroBrainDetail) {
       const heroDetailTarget =
-        onBrainHold ? 0.95 : 0
+        hideStage ? 0 : onBrainHold ? 0.95 : 0
 
       heroBrainDetail.material.uniforms.uAlpha.value +=
         (
