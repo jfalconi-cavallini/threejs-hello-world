@@ -122,47 +122,8 @@ export function createNavbar({ page = 'home' } = {}) {
     </a>
 
     <div class="nav-inline">
-      <div class="nav-dropdown">
-        <button
-          class="nav-dropdown-trigger"
-          type="button"
-          aria-haspopup="true"
-          aria-expanded="false"
-        >
-          Programs
-          <svg class="nav-caret" width="9" height="6" viewBox="0 0 9 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M1 1l3.5 3.5L8 1" />
-          </svg>
-        </button>
-        <div class="nav-dropdown-menu">
-          <a href="/about#academic">Academic Tutoring</a>
-          <a href="/about#test-prep">SAT &amp; ACT Prep</a>
-          <a href="/about#ap">AP &amp; Advanced Courses</a>
-          <a href="/about#stem">Programming &amp; STEM</a>
-        </div>
-      </div>
-      <a href="/#notes">How It Works</a>
-      <a href="/#results">Results</a>
       <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
       <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
-    </div>
-
-    <div class="nav-signin-wrap">
-      <button
-        class="nav-signin"
-        type="button"
-        aria-expanded="false"
-        aria-controls="signin-panel"
-      >
-        Sign In
-      </button>
-      <div id="signin-panel" class="nav-signin-panel" hidden>
-        <p>
-          Parents get session notes after every session. A login
-          portal is not on this preview.
-        </p>
-        <a href="/consult">Book a free consult${ARROW_ICON}</a>
-      </div>
     </div>
 
     ${CONSULT_CTA}
@@ -179,29 +140,8 @@ export function createNavbar({ page = 'home' } = {}) {
 
     <div class="nav-panel">
       <div class="nav-links">
-        <a href="/about#academic">Academic Tutoring</a>
-        <a href="/about#test-prep">SAT &amp; ACT Prep</a>
-        <a href="/about#ap">AP &amp; Advanced Courses</a>
-        <a href="/about#stem">Programming &amp; STEM</a>
-        <a href="/#notes">How It Works</a>
-        <a href="/#results">Results</a>
         <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
         <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
-      </div>
-      <button
-        class="nav-signin nav-panel-signin"
-        type="button"
-        aria-expanded="false"
-        aria-controls="signin-panel-mobile"
-      >
-        Sign In
-      </button>
-      <div id="signin-panel-mobile" class="nav-signin-panel nav-signin-panel--mobile" hidden>
-        <p>
-          Parents get session notes after every session. A login
-          portal is not on this preview.
-        </p>
-        <a href="/consult">Book a free consult${ARROW_ICON}</a>
       </div>
       <a href="/consult" class="primary-button nav-panel-cta">
         Book Free Consultation

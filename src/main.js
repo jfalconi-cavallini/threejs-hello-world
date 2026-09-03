@@ -137,13 +137,19 @@ const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
-const RIGHT_X = 3.22
-const HERO_BRAIN_X = 2.45
+const RIGHT_X = 3.55
+const HERO_BRAIN_X = 2.85
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
+const NOTES_X = 3.65
+const EARTH_X = 4.2
 
-const MOBILE_X = 0
+// Phone type sits top-left. Park the form stage-right / low —
+// never under the letters. (Was 0: centered on the H1.)
+const MOBILE_X = 2.15
+const MOBILE_HOLD_Y = -1.55
+const MOBILE_HERO_Y = -2.18
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -1929,7 +1935,9 @@ function setHoldShot(
   morphLerp =
     POSITION_LERP * 0.55
   transformTarget.s = 1
-  bloomTarget = MOBILE_AT_LOAD ? 0 : 0.14
+  // Holds carry copy. Bloom under letters was the session-notes
+  // column — keep the lane black.
+  bloomTarget = 0
 }
 
 function setTransformShot(
@@ -1963,18 +1971,18 @@ function applyScrollCamera(p) {
   // Copy holds stay OUT so type sits in a dark lane or over a
   // distant silhouette. Dolly IN only during morphs — no copy.
   const keys = [
-    { p: 0.000, z: 4.55, fov: 50, x: -0.68 },
-    { p: STAGE.brainHold, z: 4.40, fov: 51, x: -0.62 },
+    { p: 0.000, z: 4.55, fov: 50, x: -0.88 },
+    { p: STAGE.brainHold, z: 4.40, fov: 51, x: -0.82 },
     // Hold wide through the page-2 block — no dolly-in while there's
     // copy on screen — then ease in across the longer explosion.
-    { p: STAGE.brainMove, z: 4.40, fov: 51, x: -0.62 },
+    { p: STAGE.brainMove, z: 4.40, fov: 51, x: -0.82 },
     { p: STAGE.brainExplode, z: 1.38, fov: 74, x:  0.00 },
-    { p: STAGE.bulbForm, z: 5.35, fov: 46, x:  0.00 },
-    { p: STAGE.bulbHold, z: 5.20, fov: 46, x:  0.00 },
+    { p: STAGE.bulbForm, z: 5.35, fov: 46, x: -0.92 },
+    { p: STAGE.bulbHold, z: 5.20, fov: 46, x: -0.92 },
     { p: (STAGE.bulbHold + STAGE.bulbExplode) * 0.5, z: 1.55, fov: 72, x:  0.00 },
     { p: (STAGE.bulbExplode + STAGE.earthForm) * 0.5, z: 1.72, fov: 68, x:  0.00 },
-    { p: STAGE.earthForm, z: 4.70, fov: 48, x: -0.72 },
-    { p: STAGE.earthHold - 0.023, z: 4.55, fov: 48, x: -0.68 },
+    { p: STAGE.earthForm, z: 4.70, fov: 48, x: -1.18 },
+    { p: STAGE.earthHold - 0.023, z: 4.55, fov: 48, x: -1.12 },
     { p: (STAGE.earthHold + STAGE.earthExplode) * 0.5, z: 1.62, fov: 70, x:  0.00 },
     { p: (STAGE.earthExplode + STAGE.logoForm) * 0.5, z: 3.55, fov: 48, x:  0.00 },
     { p: STAGE.logoForm + 0.019, z: 7.80, fov: 40, x:  0.00 },
@@ -2011,8 +2019,12 @@ function applyScrollCamera(p) {
     cameraTarget.z *= onLogo
       ? 2.05
       : onCopyHold
-        ? 2.15
+        ? 1.42
         : 1.28
+
+    if (onCopyHold && !onLogo) {
+      cameraTarget.x -= 0.72
+    }
   }
 
   if (MOBILE_AT_LOAD || p >= STAGE.earthExplode) {
@@ -2041,6 +2053,16 @@ function desktopOrMobileX(
   )
 }
 
+function copyHoldY(
+  desktopY = 0
+) {
+  return (
+    isMobile()
+      ? MOBILE_HOLD_Y
+      : desktopY
+  )
+}
+
 // ======================================================
 // REDUCED MOTION STORY
 // ======================================================
@@ -2064,10 +2086,10 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        progress < STAGE.brainMove
-          ? RIGHT_X
-          : LEFT_X
+        RIGHT_X
       )
+    transformTarget.y =
+      copyHoldY(0)
   }
 
   else if (progress < STAGE.earthForm) {
@@ -2079,7 +2101,7 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        CENTER_X
+        NOTES_X
       )
   }
 
@@ -2092,7 +2114,7 @@ function updateReducedMotionStory(
 
     transformTarget.x =
       desktopOrMobileX(
-        RIGHT_X
+        EARTH_X
       )
   }
 
@@ -2109,7 +2131,10 @@ function updateReducedMotionStory(
       )
   }
 
-  transformTarget.y = 0
+  transformTarget.y =
+    currentStage === 'logo'
+      ? 0
+      : copyHoldY(0)
 
   transformTarget.rx = 0
   transformTarget.ry = 0
@@ -2184,12 +2209,12 @@ function updateStory() {
 
     transformTarget.x =
       isMobile()
-        ? 0.6
+        ? MOBILE_X
         : HERO_BRAIN_X
 
     transformTarget.y =
       isMobile()
-        ? -1.2
+        ? MOBILE_HERO_Y
         : 0
 
     transformTarget.rx =
@@ -2248,17 +2273,19 @@ function updateStory() {
       desktopOrMobileX(
         lerp(
           HERO_BRAIN_X,
-          LEFT_X,
+          RIGHT_X,
           t
         )
       )
 
     transformTarget.y =
-      Math.sin(
-        t *
-        Math.PI
-      ) *
-      0.55
+      copyHoldY(
+        Math.sin(
+          t *
+          Math.PI
+        ) *
+        0.35
+      )
 
     transformTarget.ry =
       0.08 +
@@ -2317,10 +2344,11 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        LEFT_X
+        RIGHT_X
       )
 
-    transformTarget.y = 0
+    transformTarget.y =
+      copyHoldY(0)
 
     transformTarget.ry =
       Math.PI *
@@ -2370,10 +2398,11 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        CENTER_X
+        NOTES_X
       )
 
-    transformTarget.y = 0
+    transformTarget.y =
+      copyHoldY(0)
 
     transformTarget.ry =
       lerp(
@@ -2414,10 +2443,16 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        CENTER_X
+        NOTES_X
       )
 
-    transformTarget.y = 0
+    transformTarget.y =
+      copyHoldY(0)
+
+    transformTarget.s =
+      isMobile()
+        ? 0.78
+        : 0.88
 
     transformTarget.rx = 0
 
@@ -2508,10 +2543,11 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        RIGHT_X
+        EARTH_X
       )
 
-    transformTarget.y = 0
+    transformTarget.y =
+      copyHoldY(0)
 
     transformTarget.ry =
       lerp(
@@ -2552,10 +2588,16 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        RIGHT_X
+        EARTH_X
       )
 
-    transformTarget.y = 0
+    transformTarget.y =
+      copyHoldY(0)
+
+    transformTarget.s =
+      isMobile()
+        ? 0.7
+        : 0.82
 
     // Spin is handled cheaply in animate().
     transformTarget.rx =
@@ -2600,10 +2642,11 @@ function updateStory() {
 
     transformTarget.x =
       desktopOrMobileX(
-        CENTER_X
+        EARTH_X
       )
 
-    transformTarget.y = 0
+    transformTarget.y =
+      copyHoldY(0)
 
     transformTarget.rx =
       -0.05
@@ -2886,8 +2929,21 @@ function syncCopySlot() {
     i,
     op: copyFadeOf(el),
   }))
-  const painted = scored.filter((item) => item.op > COPY_PAINT_EPS)
-  const keeper = painted.length ? painted[0] : null
+  // Highest fade wins so an incoming beat can reach full white
+  // even if an earlier DOM node is still decaying. Tie → later beat.
+  const keeper = scored.reduce((best, item) => {
+    if (item.op <= COPY_PAINT_EPS) {
+      return best
+    }
+    if (
+      !best ||
+      item.op > best.op + 0.0001 ||
+      (Math.abs(item.op - best.op) <= 0.0001 && item.i > best.i)
+    ) {
+      return item
+    }
+    return best
+  }, null)
 
   scored.forEach((item) => {
     const on = keeper !== null && item.el === keeper.el
@@ -2932,12 +2988,17 @@ function addPageTurnBeat(tl, el, t, enter, hold, exit, stay, fadeWait) {
   tl.to(el, { y: 10, duration: enter, ease: 'power1.out' }, t)
   // Fade in only after the previous beat's fade-out (exit * 0.5)
   // has reached 0. Y travel still starts at t — page-turn unchanged.
-  const fadeInAt = t + (fadeWait == null ? exit * 0.5 : fadeWait)
+  const fadeInAt = t + (fadeWait == null ? 0 : fadeWait)
   tl.to(fadeProxy(el), {
     copyFade: 1,
-    duration: enter * 0.5,
-    ease: 'power2.in',
+    duration: enter,
+    ease: 'none',
   }, fadeInAt)
+  tl.to(fadeProxy(el), {
+    copyFade: 1,
+    duration: hold,
+    ease: 'none',
+  }, tHold)
   tl.to(el, { y: -24, duration: hold, ease: 'none' }, tHold)
 
   if (stay) {
@@ -3052,17 +3113,14 @@ function setupCopyTravel() {
 
     wireCopyCluster(
       desktop,
-      ['.t3-intro', '.t3-line1', '.t3-line2', '.t3-line3'],
+      ['.t3-intro'],
       {
         trigger: morphA,
         start: 'top 82%',
-        end: 'bottom 18%',
+        end: '18% top',
       },
       [
-        { ...PAGE_TURN, fadeWait: 0.06 },
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
+        { enter: 0.10, hold: 0.72, exit: 0.10, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3094,15 +3152,14 @@ function setupCopyTravel() {
 
     wireCopyCluster(
       desktop,
-      ['.t5-main', '.t5-caveat'],
+      ['.t5-main'],
       {
         trigger: morphB,
-        start: '38% top',
-        end: 'bottom 14%',
+        start: '42% top',
+        end: 'bottom 12%',
       },
       [
-        { ...PAGE_TURN, fadeWait: 0.05 },
-        PAGE_TURN,
+        { enter: 0.08, hold: 0.80, exit: 0.08, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3147,7 +3204,7 @@ function setupCopyTravel() {
           end: 'bottom 18%',
         },
         [
-          { ...PAGE_TURN, fadeWait: 0.08 },
+          { enter: 0.10, hold: 0.72, exit: 0.10, fadeWait: 0 },
         ],
         copyScrub
       )
@@ -3225,14 +3282,6 @@ function createPage() {
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
         <h1>A mentor who stays with your kid.</h1>
-        <p>One dedicated tutor. Session notes after every session.</p>
-        <a
-          href="/consult"
-          class="primary-button hero-cta"
-        >
-          Book Free Consultation
-          ${ARROW_ICON}
-        </a>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3242,24 +3291,8 @@ function createPage() {
 
     <section class="chapter chapter-morph chapter-morph-a">
       <div class="copy copy-center copy-mid t3-intro">
-        <h2>Understanding changes everything.</h2>
-        <p>
-          We don't want students memorizing steps just long enough to
-          pass Friday's quiz. We want them to understand why
-          something works, recognize it again later, and become
-          increasingly capable without us.
-        </p>
         <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
         <p class="teach-range">K–12 through college.</p>
-      </div>
-      <div class="copy copy-center copy-mid t3-line1">
-        <h2>Teach the concept.</h2>
-      </div>
-      <div class="copy copy-center copy-mid t3-line2">
-        <h2>Practice it intentionally.</h2>
-      </div>
-      <div class="copy copy-center copy-mid t3-line3">
-        <h2>See if it sticks.</h2>
       </div>
     </section>
 
@@ -3300,12 +3333,6 @@ function createPage() {
     <section class="chapter chapter-morph chapter-morph-b">
       <div class="copy copy-team t5-main">
         <h2>Mentors who stay.</h2>
-      </div>
-      <div class="copy copy-team copy-caveat t5-caveat">
-        <p>
-          In-person tutoring may also be available in select areas
-          across the U.S. depending on tutor availability.
-        </p>
       </div>
     </section>
 
@@ -4188,6 +4215,14 @@ function animate() {
       onLogoHold ||
       currentStage === 'logo-forming'
 
+    const onBrainHold =
+      currentStage === 'brain'
+
+    const onCopyHold =
+      onBrainHold ||
+      currentStage === 'lightbulb' ||
+      currentStage === 'earth'
+
     if (onLogoHold) {
       logoStill.value = 1
     } else {
@@ -4199,64 +4234,84 @@ function animate() {
         0.14
     }
 
-    if (FIELD_COUNT > 0) {
-      const fieldAlpha =
-        onLogo ? 0 : 0.55
+    // Phone close is the target: plate + type, no particle wash.
+    // Snap off — a 0.1 lerp left a white logo bloom over the headline.
+    if (onLogo) {
+      particles.visible = false
+      particleMaterial.uniforms.uAlpha.value = 0
+      debrisMaterial.uniforms.uAlpha.value = 0
 
-      fieldMaterial.uniforms.uAlpha.value +=
-        (
-          fieldAlpha -
-          fieldMaterial.uniforms.uAlpha.value
-        ) *
-        0.1
-    }
+      if (FIELD_COUNT > 0) {
+        fieldMaterial.uniforms.uAlpha.value = 0
+      }
 
-    debrisMaterial.uniforms.uAlpha.value +=
-      (
-        (onLogo ? 0 : 0.22) -
-        debrisMaterial.uniforms.uAlpha.value
-      ) *
-      0.1
+      if (volumeField) {
+        volumeField.material.uniforms.uAlpha.value = 0
+        volumeField.visible = false
+      }
 
-    if (volumeField) {
-      volumeField.material.uniforms.uAlpha.value +=
-        (
-          (onLogo ? 0 : 0.62) -
-          volumeField.material.uniforms.uAlpha.value
-        ) *
-        0.1
-    }
+      if (logoDetail) {
+        for (let li = 0; li < logoDetail.length; li++) {
+          const detailMesh = logoDetail[li]
+          detailMesh.material.uniforms.uAlpha.value = 0
+          detailMesh.visible = false
+        }
+      }
+    } else {
+      particles.visible = true
 
-    const onBrainHold =
-      currentStage === 'brain'
+      if (FIELD_COUNT > 0) {
+        const fieldAlpha =
+          onCopyHold ? 0 : 0.55
 
-    particleMaterial.uniforms.uAlpha.value +=
-      (
-        (
-          onLogoHold ? 0 :
-          onBrainHold ? 0.45 :
-          0.9
-        ) -
-        particleMaterial.uniforms.uAlpha.value
-      ) *
-      0.1
-
-    if (logoDetail) {
-      const detailTarget =
-        onLogoHold ? 0 : onLogo ? 0.95 : 0
-
-      for (let li = 0; li < logoDetail.length; li++) {
-        const detailMesh = logoDetail[li]
-
-        detailMesh.material.uniforms.uAlpha.value +=
+        fieldMaterial.uniforms.uAlpha.value +=
           (
-            detailTarget -
-            detailMesh.material.uniforms.uAlpha.value
+            fieldAlpha -
+            fieldMaterial.uniforms.uAlpha.value
           ) *
-          0.12
+          0.1
+      }
 
-        detailMesh.visible =
-          detailMesh.material.uniforms.uAlpha.value > 0.02
+      debrisMaterial.uniforms.uAlpha.value +=
+        (
+          (onCopyHold ? 0.08 : 0.22) -
+          debrisMaterial.uniforms.uAlpha.value
+        ) *
+        0.1
+
+      if (volumeField) {
+        volumeField.visible = true
+        volumeField.material.uniforms.uAlpha.value +=
+          (
+            (onCopyHold ? 0 : 0.62) -
+            volumeField.material.uniforms.uAlpha.value
+          ) *
+          0.1
+      }
+
+      particleMaterial.uniforms.uAlpha.value +=
+        (
+          (
+            onBrainHold ? 0.45 :
+            0.9
+          ) -
+          particleMaterial.uniforms.uAlpha.value
+        ) *
+        0.1
+
+      if (logoDetail) {
+        for (let li = 0; li < logoDetail.length; li++) {
+          const detailMesh = logoDetail[li]
+          detailMesh.material.uniforms.uAlpha.value +=
+            (
+              0 -
+              detailMesh.material.uniforms.uAlpha.value
+            ) *
+            0.12
+
+          detailMesh.visible =
+            detailMesh.material.uniforms.uAlpha.value > 0.02
+        }
       }
     }
 
