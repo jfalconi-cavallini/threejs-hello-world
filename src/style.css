@@ -1323,7 +1323,7 @@ body.is-close-hold .scene-canvas {
 
   .copy-hero {
     top: 104px;
-    width: min(82vw, 320px);
+    width: min(68vw, 248px);
   }
 
   .t2-block {

@@ -147,9 +147,9 @@ const EARTH_X = 4.65
 
 // Phone type sits top-left. Park the form stage-right / low —
 // never under the letters. (Was 0: centered on the H1.)
-const MOBILE_X = 2.55
+const MOBILE_X = 2.85
 const MOBILE_HOLD_Y = -1.85
-const MOBILE_HERO_Y = -2.18
+const MOBILE_HERO_Y = -2.85
 const MOBILE_RESULTS_Y = -2.62
 const MOBILE_RESULTS_X = 2.9
 
@@ -2025,7 +2025,8 @@ function applyScrollCamera(p) {
 
     if (onCopyHold && !onLogo) {
       cameraTarget.x -= 0.95
-      cameraTarget.z *= 1.12
+      // Do not zoom out further on hero — extra dolly recenters
+      // the brain onto "your kid."
     }
   }
 
@@ -2221,7 +2222,7 @@ function updateStory() {
 
     transformTarget.s =
       isMobile()
-        ? 0.7
+        ? 0.5
         : 0.86
 
     transformTarget.rx =
