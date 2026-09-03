@@ -4441,8 +4441,15 @@ function animate() {
       document.querySelector('.copy-results')
         ?.classList.contains('is-live') === true
 
+    const copyTeamLive =
+      document.querySelector('.copy-team.is-live') != null
+
+    // Phone TEAM / programs: exploding triangles filled the type.
+    // Empty black behind "Mentors who stay." is the hold look.
     const hideStage =
-      onLogo || consultLive
+      onLogo ||
+      consultLive ||
+      (isMobile() && copyTeamLive)
 
     document.body.classList.toggle(
       'is-close-hold',
