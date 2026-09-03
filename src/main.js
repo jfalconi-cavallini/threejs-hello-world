@@ -2948,10 +2948,20 @@ function copyFadeOf(el) {
 // only; this is the only writer of CSS opacity/visibility. At most
 // one .copy may have computed opacity > 0. Incoming stays at 0 until
 // the outgoing beat's copyFade has reached 0.
+let copyJumpLock = null
+
 function syncCopySlot() {
   const copies = [...document.querySelectorAll('.copy')]
   if (!copies.length) {
     return
+  }
+
+  if (copyJumpLock && document.body.contains(copyJumpLock)) {
+    copies.forEach((el) => {
+      fadeProxy(el).copyFade = el === copyJumpLock ? 1 : 0
+    })
+  } else {
+    copyJumpLock = null
   }
 
   const scored = copies.map((el, i) => ({
@@ -3287,6 +3297,186 @@ function setupCopyTravel() {
   syncCopySlot()
 }
 
+const HASH_COPY = {
+  '#s1': '.copy-hero',
+  '#plan': '.lb-intro',
+  '#notes': '.lb-feature-4',
+  '#team': '.t5-main',
+  '#results': '.copy-results',
+  '#consultation': '.copy-consult',
+}
+
+function liveCopyForGeometry() {
+  const pairs = [
+    ['.logo-hold-chapter', '.copy-consult'],
+    ['.chapter-results', '.copy-results'],
+    ['.chapter-morph-b', '.t5-main'],
+    ['.chapter-team', '.earth-intro'],
+    ['.chapter-morph-a', '.t3-intro'],
+    ['.chapter-hero', '.copy-hero'],
+  ]
+
+  const mid = window.innerHeight * 0.38
+  for (let i = 0; i < pairs.length; i++) {
+    const chapter = document.querySelector(pairs[i][0])
+    if (!chapter) {
+      continue
+    }
+    const r = chapter.getBoundingClientRect()
+    if (r.top <= mid && r.bottom >= mid) {
+      if (pairs[i][0] === '.chapter-team') {
+        const items = [
+          '.earth-intro',
+          '.earth-path-1',
+          '.earth-path-2',
+          '.earth-path-3',
+          '.earth-path-4',
+          '.earth-phil-intro',
+          '.earth-phil-para',
+          '.earth-phil-close',
+        ]
+        const local = (mid - r.top) / (r.height || 1)
+        const idx = Math.min(items.length - 1, Math.floor(local * items.length))
+        return document.querySelector(items[idx])
+      }
+      return document.querySelector(pairs[i][1])
+    }
+  }
+
+  const lbs = [...document.querySelectorAll('.chapter-lb-hold-item')]
+  for (let i = 0; i < lbs.length; i++) {
+    const r = lbs[i].getBoundingClientRect()
+    if (r.top <= mid && r.bottom >= mid) {
+      return lbs[i].querySelector('.copy')
+    }
+  }
+
+  return null
+}
+
+function liveCopyForJump() {
+  const hashed = HASH_COPY[location.hash]
+  if (hashed) {
+    return document.querySelector(hashed)
+  }
+  return liveCopyForGeometry()
+}
+
+function flushScrubbedTriggers() {
+  ScrollTrigger.update()
+  ScrollTrigger.getAll().forEach((st) => {
+    if (!st.animation) {
+      return
+    }
+    const tween = typeof st.getTween === 'function' ? st.getTween() : null
+    if (tween && tween.resetTo) {
+      const dur = st.animation.totalDuration() || 1
+      tween.resetTo('totalProgress', st.progress, st.animation.totalTime() / dur)
+      tween.progress(1)
+    } else if (tween) {
+      tween.progress(1)
+    }
+    st.animation.progress(st.progress)
+  })
+}
+
+function snapCopyToScroll() {
+  flushScrubbedTriggers()
+
+  const copies = [...document.querySelectorAll('.copy')]
+  if (!copies.length) {
+    return
+  }
+
+  const jumped = liveCopyForJump()
+  if (!jumped) {
+    syncCopySlot()
+    return
+  }
+
+  copyJumpLock = jumped
+  copies.forEach((el) => {
+    fadeProxy(el).copyFade = el === jumped ? 1 : 0
+    if (el === jumped) {
+      gsap.set(el, { y: 0 })
+    }
+  })
+
+  syncCopySlot()
+}
+
+function releaseCopyJumpLock() {
+  if (!copyJumpLock) {
+    return
+  }
+  const live = liveCopyForGeometry()
+  if (live === copyJumpLock) {
+    return
+  }
+  copyJumpLock = null
+}
+
+function setupCopyJumpSnap() {
+  if (setupCopyJumpSnap.bound) {
+    return
+  }
+  setupCopyJumpSnap.bound = true
+
+  const run = () => {
+    requestAnimationFrame(() => {
+      snapCopyToScroll()
+    })
+  }
+
+  window.addEventListener('hashchange', run)
+  window.addEventListener('popstate', run)
+
+  ScrollTrigger.addEventListener('refresh', () => {
+    if (copyJumpLock) {
+      run()
+    }
+  })
+
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href]')
+    if (!link) {
+      return
+    }
+    const href = link.getAttribute('href') || ''
+    if (href.includes('#')) {
+      setTimeout(run, 0)
+      setTimeout(run, 60)
+      setTimeout(run, 180)
+    }
+  })
+
+  window.addEventListener('wheel', releaseCopyJumpLock, { passive: true })
+  window.addEventListener('touchmove', releaseCopyJumpLock, { passive: true })
+  window.addEventListener('keydown', (event) => {
+    if (
+      event.key === 'ArrowDown' ||
+      event.key === 'ArrowUp' ||
+      event.key === 'PageDown' ||
+      event.key === 'PageUp' ||
+      event.key === 'Home' ||
+      event.key === 'End' ||
+      event.key === ' '
+    ) {
+      releaseCopyJumpLock()
+    }
+  })
+
+  if (location.hash) {
+    const target = document.querySelector(location.hash)
+    if (target) {
+      target.scrollIntoView({ block: 'start' })
+    }
+    run()
+    setTimeout(run, 80)
+    setTimeout(run, 240)
+  }
+}
+
 // ======================================================
 // PAGE
 // ======================================================
@@ -3357,13 +3547,13 @@ function createPage() {
       </div>
     </section>
 
-    <section class="chapter chapter-morph chapter-morph-b">
+    <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
         <h2>Mentors who stay.</h2>
       </div>
     </section>
 
-    <section class="chapter chapter-team" id="team">
+    <section class="chapter chapter-team">
       <div class="copy copy-team earth-intro">
         <h2>Support that can grow with them.</h2>
       </div>
@@ -3553,6 +3743,7 @@ function createPage() {
 
   setupCopyTravel()
   ScrollTrigger.refresh()
+  setupCopyJumpSnap()
 
   setupVisibilityObserver()
 }

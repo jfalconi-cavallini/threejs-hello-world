@@ -8,6 +8,7 @@
   --mm-void: #000000;
   --mm-copper: #a65335;
   --mm-paper: #ffffff;
+  --mm-nav-h: 108px;
   --font-display: "Syne", Arial, Helvetica, sans-serif;
   --font-body: "Manrope", Arial, Helvetica, sans-serif;
 }
@@ -1778,6 +1779,10 @@ body.is-site-page .metaminds-nav {
   border-color: rgba(42, 79, 145, 0.55);
 }
 
+#team {
+  scroll-margin-top: calc(var(--mm-nav-h) + 16px);
+}
+
 .tier-kicker {
   margin: 0;
   font-size: 11px;
@@ -1906,8 +1911,33 @@ body.is-site-page .metaminds-nav {
 }
 
 @media (max-width: 767px) {
+  :root {
+    --mm-nav-h: 84px;
+  }
+
   body.is-site-page {
     scroll-padding-top: 168px;
+  }
+
+  /* First lines stay below the 84px bar for the whole scroll
+     through both cards — not only scrollIntoView at rest. */
+  #premium,
+  #college,
+  .tier-card,
+  .tier-card .tier-head,
+  .tier-card h2,
+  .tier-card .tier-kicker {
+    scroll-margin-top: calc(var(--mm-nav-h) + 16px);
+  }
+
+  .tier-card .tier-head {
+    position: sticky;
+    top: var(--mm-nav-h);
+    z-index: 6;
+    background: #080c16;
+    box-shadow: 0 14px 18px -6px #080c16;
+    padding: 10px 0 12px;
+    margin: -4px 0 0;
   }
 
   .site-shell {

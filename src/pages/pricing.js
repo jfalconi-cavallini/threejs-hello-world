@@ -16,8 +16,10 @@ mountPage({
 
     <section class="tier-grid" aria-label="Mentoring tiers">
       <article class="tier-card tier-card--premium" id="premium">
-        <p class="tier-kicker">Premium</p>
-        <h2>Experienced specialists</h2>
+        <div class="tier-head">
+          <p class="tier-kicker">Premium</p>
+          <h2>Experienced specialists</h2>
+        </div>
         <p class="tier-rate">From $70/hr</p>
         <p>
           Practicing engineers, scientists, and subject specialists
@@ -34,8 +36,10 @@ mountPage({
       </article>
 
       <article class="tier-card tier-card--college" id="college">
-        <p class="tier-kicker">College Mentor</p>
-        <h2>Close to the coursework</h2>
+        <div class="tier-head">
+          <p class="tier-kicker">College Mentor</p>
+          <h2>Close to the coursework</h2>
+        </div>
         <p class="tier-rate">From $50/hr</p>
         <p>
           High-achieving college students, selected and supervised
