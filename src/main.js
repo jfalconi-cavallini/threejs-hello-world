@@ -8,6 +8,21 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
+import {
+  mountAtmosphere,
+  createNavbar,
+  createFooter,
+  setupNav,
+  ARROW_ICON,
+  USERS_ICON,
+  SHIELD_ICON,
+  GLOBE_ICON,
+  PIN_ICON,
+  CAP_ICON,
+  TRENDING_ICON,
+  STAR_ICON,
+} from './chrome.js'
+
 import './style.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -16,25 +31,7 @@ let scrollProgressBar = null
 let bootScreen = null
 
 function mountChrome() {
-  const atmosphere =
-    document.createElement('div')
-
-  atmosphere.className =
-    'atmosphere'
-
-  atmosphere.setAttribute(
-    'aria-hidden',
-    'true'
-  )
-
-  atmosphere.innerHTML = `
-    <div class="atmosphere-vignette"></div>
-    <div class="atmosphere-grain"></div>
-  `
-
-  document.body.appendChild(
-    atmosphere
-  )
+  mountAtmosphere()
 
   const progress =
     document.createElement('div')
@@ -68,7 +65,7 @@ function mountChrome() {
   boot.innerHTML = `
     <div class="boot-screen-inner">
       <img
-        src="/metaminds-logo.png"
+        src="/metaminds-logo-lock.png"
         alt="MetaMinds STEM Academy"
         class="boot-logo"
       >
@@ -137,15 +134,6 @@ const PIXEL_RATIO =
 
 const USE_COMPOSER =
   !MOBILE_AT_LOAD
-
-console.log({
-  PARTICLE_COUNT,
-  PIXEL_RATIO,
-  PIXEL_RATIO_CAP,
-  USE_COMPOSER,
-  TOUCH_DEVICE,
-  REDUCED_MOTION,
-})
 
 // ======================================================
 // VISUAL SETTINGS
@@ -864,12 +852,6 @@ const VOLUME_COUNT =
   MOBILE_AT_LOAD
     ? 0
     : 1150
-
-console.log({
-  FIELD_COUNT,
-  DEBRIS_COUNT,
-  VOLUME_COUNT,
-})
 
 if (VOLUME_COUNT > 0)
 {
@@ -2854,10 +2836,6 @@ Promise.all([
       )
 
       updateStory()
-
-      console.log(
-        'MetaMinds visual story ready.'
-      )
     }
   )
   .catch(
@@ -2873,375 +2851,11 @@ Promise.all([
 
         if (label) {
           label.textContent =
-            'Could not load the sketch'
+            "Couldn't load the page. Refresh to try again."
         }
       }
     }
   )
-
-// ======================================================
-// NAV
-// ======================================================
-
-const ARROW_ICON = `
-  <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M9 6l6 6-6 6" />
-  </svg>
-`
-
-const USERS_ICON = `
-  <svg class="hero-trust-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-`
-
-const SHIELD_ICON = `
-  <svg class="hero-trust-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-    <path d="m9 12 2 2 4-4" />
-  </svg>
-`
-
-function iconSvg(cls, paths) {
-  return `
-  <svg class="${cls}" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    ${paths}
-  </svg>
-`
-}
-
-const GLOBE_ICON = iconSvg(
-  'page2-feature-icon',
-  `<circle cx="12" cy="12" r="10" />
-   <line x1="2" y1="12" x2="22" y2="12" />
-   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />`
-)
-
-const PIN_ICON = iconSvg(
-  'page2-feature-icon',
-  `<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-   <circle cx="12" cy="10" r="3" />`
-)
-
-const CAP_ICON = iconSvg(
-  'page2-stat-icon',
-  `<path d="M22 10 12 5 2 10l10 5 10-5z" />
-   <path d="M6 12.5V17a1 1 0 0 0 .3.7c1.2 1.2 3.4 2.3 5.7 2.3s4.5-1.1 5.7-2.3a1 1 0 0 0 .3-.7v-4.5" />
-   <path d="M22 10v6" />`
-)
-
-const TRENDING_ICON = iconSvg(
-  'page2-stat-icon',
-  `<polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-   <polyline points="17 6 23 6 23 12" />`
-)
-
-const STAR_ICON = iconSvg(
-  'page2-stat-icon',
-  `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />`
-)
-
-let navLinks = []
-
-function createNavbar() {
-  const nav =
-    document.createElement(
-      'nav'
-    )
-
-  nav.className =
-    'metaminds-nav'
-
-  nav.setAttribute(
-    'aria-label',
-    'MetaMinds'
-  )
-
-  nav.innerHTML = `
-    <a class="brand" href="#s1">
-      <img
-        src="/metaminds-logo.png"
-        alt="MetaMinds STEM Academy"
-        class="brand-logo"
-      >
-    </a>
-
-    <div class="nav-inline">
-      <div class="nav-dropdown">
-        <button
-          class="nav-dropdown-trigger"
-          type="button"
-          aria-haspopup="true"
-          aria-expanded="false"
-        >
-          Programs
-          <svg class="nav-caret" width="9" height="6" viewBox="0 0 9 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M1 1l3.5 3.5L8 1" />
-          </svg>
-        </button>
-        <div class="nav-dropdown-menu">
-          <a href="#">Academic Tutoring</a>
-          <a href="#">SAT & ACT Prep</a>
-          <a href="#">AP & Advanced Courses</a>
-          <a href="#">Programming & STEM</a>
-        </div>
-      </div>
-      <a href="#">How It Works</a>
-      <a href="#">Results</a>
-      <a href="#">Pricing</a>
-      <a href="#">About</a>
-    </div>
-
-    <a
-      class="nav-signin"
-      href="#"
-    >
-      Sign In
-    </a>
-
-    <a
-      class="nav-cta"
-      href="https://www.metamindsstemacademy.com/consultation"
-    >
-      Book Free Consultation
-      ${ARROW_ICON}
-    </a>
-
-    <button
-      class="menu-button"
-      type="button"
-      aria-expanded="false"
-      aria-label="Open chapters"
-    >
-      <span></span>
-      <span></span>
-    </button>
-
-    <div class="nav-panel">
-      <div class="nav-links">
-        <a href="#">Academic Tutoring</a>
-        <a href="#">SAT & ACT Prep</a>
-        <a href="#">AP & Advanced Courses</a>
-        <a href="#">Programming & STEM</a>
-        <a href="#">How It Works</a>
-        <a href="#">Results</a>
-        <a href="#">Pricing</a>
-        <a href="#">About</a>
-      </div>
-      <a href="#" class="nav-signin nav-panel-signin">Sign In</a>
-      <a
-        href="https://www.metamindsstemacademy.com/consultation"
-        class="primary-button nav-panel-cta"
-      >
-        Book Free Consultation
-        ${ARROW_ICON}
-      </a>
-    </div>
-  `
-
-  document.body.appendChild(
-    nav
-  )
-}
-
-function closeNav() {
-  const nav =
-    document.querySelector(
-      '.metaminds-nav'
-    )
-
-  if (!nav) {
-    return
-  }
-
-  const button =
-    nav.querySelector(
-      '.menu-button'
-    )
-
-  nav.classList.remove(
-    'is-open'
-  )
-
-  document.body.classList.remove(
-    'nav-open'
-  )
-
-  if (button) {
-    button.setAttribute(
-      'aria-expanded',
-      'false'
-    )
-
-    button.setAttribute(
-      'aria-label',
-      'Open chapters'
-    )
-  }
-}
-
-function openNav() {
-  const nav =
-    document.querySelector(
-      '.metaminds-nav'
-    )
-
-  if (!nav) {
-    return
-  }
-
-  const button =
-    nav.querySelector(
-      '.menu-button'
-    )
-
-  nav.classList.add(
-    'is-open'
-  )
-
-  document.body.classList.add(
-    'nav-open'
-  )
-
-  if (button) {
-    button.setAttribute(
-      'aria-expanded',
-      'true'
-    )
-
-    button.setAttribute(
-      'aria-label',
-      'Close chapters'
-    )
-  }
-}
-
-function setupNav() {
-  const nav =
-    document.querySelector(
-      '.metaminds-nav'
-    )
-
-  if (!nav) {
-    return
-  }
-
-  nav.querySelector(
-    '.brand'
-  )?.addEventListener(
-    'click',
-    closeNav
-  )
-
-  nav.querySelectorAll(
-    '.nav-cta'
-  ).forEach(
-    (link) => {
-      link.addEventListener(
-        'click',
-        closeNav
-      )
-    }
-  )
-
-  const menuButton =
-    nav.querySelector(
-      '.menu-button'
-    )
-
-  menuButton?.addEventListener(
-    'click',
-    () => {
-      if (
-        nav.classList.contains(
-          'is-open'
-        )
-      ) {
-        closeNav()
-      } else {
-        openNav()
-      }
-    }
-  )
-
-  nav.querySelector(
-    '.nav-panel'
-  )?.querySelectorAll(
-    'a'
-  ).forEach(
-    (link) => {
-      link.addEventListener(
-        'click',
-        closeNav
-      )
-    }
-  )
-
-  const dropdown =
-    nav.querySelector(
-      '.nav-dropdown'
-    )
-
-  const dropdownTrigger =
-    dropdown?.querySelector(
-      '.nav-dropdown-trigger'
-    )
-
-  if (dropdown && dropdownTrigger) {
-    const setDropdownOpen = (open) => {
-      dropdownTrigger.setAttribute(
-        'aria-expanded',
-        open ? 'true' : 'false'
-      )
-    }
-
-    dropdown.addEventListener(
-      'mouseenter',
-      () => setDropdownOpen(true)
-    )
-
-    dropdown.addEventListener(
-      'mouseleave',
-      () => setDropdownOpen(false)
-    )
-
-    dropdown.addEventListener(
-      'focusin',
-      () => setDropdownOpen(true)
-    )
-
-    dropdown.addEventListener(
-      'focusout',
-      (event) => {
-        if (
-          !dropdown.contains(
-            event.relatedTarget
-          )
-        ) {
-          setDropdownOpen(false)
-        }
-      }
-    )
-
-    // Touch devices don't get :hover — tap the trigger to toggle.
-    dropdownTrigger.addEventListener(
-      'click',
-      (event) => {
-        event.preventDefault()
-
-        const isOpen =
-          dropdownTrigger.getAttribute(
-            'aria-expanded'
-          ) === 'true'
-
-        setDropdownOpen(!isOpen)
-      }
-    )
-  }
-}
 
 function syncNavHighlight(
   _progress
@@ -3587,7 +3201,7 @@ function setupCopyTravel() {
 let experienceElement = null
 
 function createPage() {
-  createNavbar()
+  createNavbar({ page: 'home' })
 
   const main =
     document.createElement(
@@ -3602,17 +3216,16 @@ function createPage() {
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
         <h1>
-          A mentor who stays with <span class="grad-accent">your child.</span>
+          A mentor who stays with <span class="grad-accent">your kid.</span>
         </h1>
         <p>
-          Personalized virtual tutoring with a dedicated mentor, a
-          clear learning plan, and progress you can actually follow.
+          One dedicated tutor. A plan you can see. Session notes
+          after every session.
         </p>
         <div class="copy-caveat">
           <p>
-            SAT & ACT prep, K–12 academics, AP support, coding, and
-            STEM. In-person sessions may be available in select areas
-            based on tutor availability.
+            SAT, ACT, AP, math, and coding. Dallas–Fort Worth,
+            virtual first. AI assists. It never replaces.
           </p>
         </div>
         <div class="hero-divider"></div>
@@ -3620,26 +3233,26 @@ function createPage() {
           <div class="hero-trust-item hero-trust-item--families">
             ${USERS_ICON}
             <span class="hero-trust-text">
-              Trusted by Families<br>Across the Country
+              One dedicated tutor.<br>Notes after every session.
             </span>
           </div>
           <div class="hero-trust-sep"></div>
           <div class="hero-trust-item hero-trust-item--vetted">
             ${SHIELD_ICON}
             <span class="hero-trust-text">
-              Vetted Tutors.<br>From Prestigious Universities.
+              SAT, ACT, AP, math,<br>and coding.
             </span>
           </div>
         </div>
         <div class="hero-actions">
           <a
-            href="https://www.metamindsstemacademy.com/consultation"
+            href="/consult"
             class="primary-button hero-cta"
           >
             Book Free Consultation
             ${ARROW_ICON}
           </a>
-          <a href="#team" class="hero-secondary-cta">
+          <a href="/about#programs" class="hero-secondary-cta">
             Explore Programs
           </a>
         </div>
@@ -3690,18 +3303,18 @@ function createPage() {
 
         <div class="hero-actions page2-actions">
           <a
-            href="https://www.metamindsstemacademy.com/consultation"
+            href="/consult"
             class="primary-button hero-cta"
           >
             Book Free Consultation
             ${ARROW_ICON}
           </a>
-          <a href="#team" class="hero-secondary-cta">
+          <a href="/about#programs" class="hero-secondary-cta">
             Explore Programs
           </a>
         </div>
 
-        <div class="page2-stats">
+        <div class="page2-stats" id="results">
           <div class="page2-stat-item">
             ${CAP_ICON}
             <div>
@@ -3722,20 +3335,21 @@ function createPage() {
             ${STAR_ICON}
             <div>
               <div class="page2-stat-label">Expert Mentors</div>
-              <p>Top college students, engineers, and STEM professionals</p>
+              <p>College mentors, engineers, and STEM specialists</p>
             </div>
           </div>
           <div class="page2-stat-item">
             ${SHIELD_ICON.replace('hero-trust-icon', 'page2-stat-icon')}
             <div>
               <div class="page2-stat-label">Safe & Supportive</div>
-              <p>Carefully vetted mentors and a student-first environment</p>
+              <p>Selected mentors and a student-first environment</p>
             </div>
           </div>
         </div>
 
         <div class="page2-trust">
-          <div class="page2-trust-label">Trusted by Families Across the U.S.</div>
+          <div class="placeholder-chip">Layout placeholder</div>
+          <div class="page2-trust-label">Sample figures for spacing — not audited results.</div>
         </div>
       </div>
 
@@ -3795,11 +3409,7 @@ function createPage() {
 
     <section class="chapter chapter-morph chapter-morph-b">
       <div class="copy copy-team t5-main">
-        <h2>The right mentor doesn't have to live down the street.</h2>
-        <p>
-          MetaMinds is built around virtual tutoring, so students can
-          work with the right mentor regardless of where they live.
-        </p>
+        <h2>Mentors who stay.</h2>
       </div>
       <div class="copy copy-team copy-caveat t5-caveat">
         <p>
@@ -3875,16 +3485,15 @@ function createPage() {
     >
       <div class="copy copy-center copy-consult">
         <h2>
-          One student. One plan. Years of growth.
+          Free 30-minute consult. Dallas–Fort Worth.
         </h2>
         <p>
-          MetaMinds is designed to give students a consistent
-          academic support system as their goals change—from
-          foundational learning to advanced coursework, test
-          preparation, and future-ready skills.
+          One dedicated tutor. Session notes after every session.
+          SAT, ACT, AP, math, and coding. A mentor who stays with
+          your kid. AI assists. It never replaces.
         </p>
         <a
-          href="https://www.metamindsstemacademy.com/consultation"
+          href="/consult"
           class="primary-button"
         >
           Book a Free Consultation
@@ -3893,15 +3502,14 @@ function createPage() {
       </div>
     </section>
 
-    <footer class="sketch-footer">
-      <span>MetaMinds STEM Academy</span>
-      <a href="mailto:metamindsstemacademy@gmail.com">metamindsstemacademy@gmail.com</a>
-    </footer>
-
   `
 
   document.body.appendChild(
     main
+  )
+
+  document.body.appendChild(
+    createFooter()
   )
 
   experienceElement =
@@ -3989,40 +3597,6 @@ function createPage() {
   ScrollTrigger.refresh()
 
   setupVisibilityObserver()
-
-  window.__mmCopyPaintCount = () =>
-    [...document.querySelectorAll('.copy')].filter((el) => {
-      const cs = getComputedStyle(el)
-      return Number(cs.opacity) > 0.01 && cs.visibility !== 'hidden'
-    }).length
-
-  window.__mmSetProgress = (p) => {
-    const next = Math.max(0, Math.min(1, Number(p) || 0))
-    story.progress = next
-    const st = storyTween.scrollTrigger
-    if (st) {
-      st.scroll(st.start + (st.end - st.start) * next)
-    }
-    storyTween.progress(next)
-    const prevLerp = morphLerp
-    morphLerp = 1
-    updateStory()
-    currentPositions.set(storyTargetPositions)
-    displayPositions.set(storyTargetPositions)
-    particleGeometry.attributes.position.needsUpdate = true
-    particles.position.x = transformTarget.x
-    particles.position.y = transformTarget.y
-    particles.scale.setScalar(transformTarget.s)
-    camera.position.z = cameraTarget.z
-    camera.position.x = cameraTarget.x
-    camera.position.y = cameraTarget.y
-    camera.fov = cameraTarget.fov
-    camera.updateProjectionMatrix()
-    bloomPass.strength = bloomTarget
-    morphLerp = prevLerp
-    updateParticleInstances(true)
-    ScrollTrigger.update()
-  }
 }
 
 
