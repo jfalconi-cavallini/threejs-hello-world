@@ -148,7 +148,8 @@ export function createNavbar({ page = 'home' } = {}) {
     </div>
 
     <a class="nav-cta" href="/consult">
-      Book Free Consultation
+      <span class="nav-cta-full">Book Free Consultation</span>
+      <span class="nav-cta-short">Consult</span>
       ${ARROW_ICON}
     </a>
 

@@ -181,6 +181,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
   border: 0;
   border-radius: 999px;
   padding: 10px 18px;
@@ -192,6 +193,10 @@ button {
   color: #fff;
   background: var(--mm-orange);
   transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.nav-cta-short {
+  display: none;
 }
 
 .nav-cta:hover {
@@ -369,7 +374,9 @@ button {
   display: none;
   position: relative;
   z-index: 102;
+  flex-shrink: 0;
   width: 44px;
+  min-width: 44px;
   height: 44px;
   margin-right: -8px;
   background: none;
@@ -1070,6 +1077,14 @@ button {
     font-size: 10px;
   }
 
+  .nav-cta-full {
+    display: none;
+  }
+
+  .nav-cta-short {
+    display: inline;
+  }
+
   /* Sign In moves into the menu panel on mobile — Book Free
      Consultation stays put in the collapsed bar where it's always
      reachable. */
@@ -1102,8 +1117,16 @@ button {
     display: block;
   }
 
+  .brand {
+    min-width: 0;
+    margin-right: auto;
+  }
+
   .brand-logo {
-    height: 56px;
+    height: 52px;
+    max-width: min(220px, calc(100vw - 148px));
+    object-fit: contain;
+    object-position: left center;
   }
 
   .chapter {
