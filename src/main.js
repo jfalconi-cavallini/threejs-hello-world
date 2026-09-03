@@ -3404,10 +3404,6 @@ function createPage() {
           Book a Free Consultation
           ${ARROW_ICON}
         </a>
-        <div class="consult-more">
-          <a href="/pricing">Pricing</a>
-          <a href="/about">About</a>
-        </div>
       </div>
     </section>
 
