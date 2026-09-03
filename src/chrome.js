@@ -96,11 +96,13 @@ export function createNavbar({ page = 'home' } = {}) {
 
   nav.innerHTML = `
     <a class="brand" href="${brandHref}">
-      <img
-        src="/metaminds-logo-lock.png"
-        alt="MetaMinds STEM Academy"
-        class="brand-logo"
-      >
+      <span class="brand-plate">
+        <img
+          src="/metaminds-logo-lock.png"
+          alt="MetaMinds STEM Academy"
+          class="brand-logo"
+        >
+      </span>
     </a>
 
     <div class="nav-inline">
@@ -205,11 +207,13 @@ export function createFooter() {
   footer.className = 'sketch-footer site-footer'
   footer.innerHTML = `
     <a class="footer-brand" href="/">
-      <img
-        src="/metaminds-logo-lock.png"
-        alt="MetaMinds STEM Academy"
-        class="footer-logo"
-      >
+      <span class="brand-plate footer-plate">
+        <img
+          src="/metaminds-logo-lock.png"
+          alt="MetaMinds STEM Academy"
+          class="footer-logo"
+        >
+      </span>
     </a>
     <nav class="footer-links" aria-label="Footer">
       <a href="/about">About</a>

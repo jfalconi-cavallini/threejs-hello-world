@@ -169,8 +169,17 @@ button {
   z-index: 102;
 }
 
+.brand-plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 8px 14px;
+}
+
 .brand-logo {
-  height: 84px;
+  height: 72px;
   width: auto;
   display: block;
 }
@@ -728,9 +737,25 @@ button {
   left: 50%;
   top: auto;
   bottom: 7vh;
-  width: min(560px, 86vw);
+  width: min(720px, 86vw);
   text-align: center;
   text-shadow: none;
+}
+
+.end-mark-plate {
+  display: flex;
+  margin: 0 auto 22px;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 22px;
+  padding: 18px 24px;
+}
+
+.end-mark {
+  width: min(640px, 78vw);
+  height: auto;
+  display: block;
+  background: transparent;
 }
 
 .copy-consult h2 {
@@ -793,6 +818,21 @@ button {
 .copy-mid h2 {
   font-size: clamp(48px, 6.8vw, 100px);
   letter-spacing: -0.06em;
+}
+
+.teach-subjects {
+  margin-top: 22px;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.6vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.teach-range {
+  margin-top: 8px;
+  font-size: clamp(16px, 1.4vw, 20px);
+  color: var(--mm-mute);
 }
 
 .t2-block {
@@ -1014,8 +1054,13 @@ button {
   align-items: center;
 }
 
+.footer-plate {
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+
 .footer-logo {
-  height: 44px;
+  height: 40px;
   width: auto;
 }
 
@@ -1122,11 +1167,25 @@ button {
     margin-right: auto;
   }
 
+  .brand-plate {
+    border-radius: 12px;
+    padding: 5px 8px;
+  }
+
   .brand-logo {
-    height: 52px;
-    max-width: min(220px, calc(100vw - 148px));
+    height: 44px;
+    max-width: min(168px, calc(100vw - 168px));
     object-fit: contain;
     object-position: left center;
+  }
+
+  .end-mark-plate {
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+
+  .end-mark {
+    width: min(280px, 78vw);
   }
 
   .chapter {

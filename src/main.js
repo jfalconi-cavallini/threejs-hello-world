@@ -101,8 +101,8 @@ const REDUCED_MOTION =
 // Phone-first 60fps-class budget. Density is secondary.
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
-    ? 1800
-    : 4200
+    ? 4000
+    : 10000
 
 // Extra, dedicated fill just for the closing MetaMinds mark — never
 // drawn until the final hold, so it costs nothing during the rest of
@@ -524,8 +524,8 @@ scene.add(particles)
 
 const DEBRIS_COUNT =
   MOBILE_AT_LOAD
-    ? 10
-    : 28
+    ? 14
+    : 42
 
 const debrisPositions =
   new Float32Array(
@@ -640,7 +640,7 @@ scene.add(debris)
 const FIELD_COUNT =
   MOBILE_AT_LOAD
     ? 0
-    : 900
+    : 2000
 
 const fieldPositions =
   new Float32Array(
@@ -3361,6 +3361,8 @@ function createPage() {
           something works, recognize it again later, and become
           increasingly capable without us.
         </p>
+        <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
+        <p class="teach-range">K–12 through college.</p>
       </div>
       <div class="copy copy-center copy-mid t3-line1">
         <h2>Teach the concept.</h2>
@@ -3484,13 +3486,21 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
       <div class="copy copy-center copy-consult">
+        <span class="brand-plate end-mark-plate">
+          <img
+            class="end-mark"
+            src="/metaminds-logo-lock.png"
+            alt="MetaMinds STEM Academy"
+          >
+        </span>
         <h2>
-          Free 30-minute consult. Dallas–Fort Worth.
+          Let's find the right tutor.
         </h2>
         <p>
-          One dedicated tutor. Session notes after every session.
-          SAT, ACT, AP, math, and coding. A mentor who stays with
-          your kid. AI assists. It never replaces.
+          Free. 30 minutes.
+        </p>
+        <p>
+          DFW. Zoom.
         </p>
         <a
           href="/consult"
@@ -4328,7 +4338,7 @@ function animate() {
     particleMaterial.uniforms.uAlpha.value +=
       (
         (
-          onLogoHold ? 0.4 :
+          onLogoHold ? 0 :
           onBrainHold ? 0.45 :
           0.9
         ) -
@@ -4338,7 +4348,7 @@ function animate() {
 
     if (logoDetail) {
       const detailTarget =
-        onLogo ? 0.95 : 0
+        onLogoHold ? 0 : onLogo ? 0.95 : 0
 
       for (let li = 0; li < logoDetail.length; li++) {
         const detailMesh = logoDetail[li]
