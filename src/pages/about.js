@@ -6,12 +6,39 @@ mountPage({
   html: `
     <section class="page-hero">
       <p class="eyebrow">About MetaMinds</p>
-      <h1>Mentors who stay.</h1>
+      <h1>Mentors who<br>stay.</h1>
       <p class="page-lead">
         A dedicated tutor for your kid. A plan you can actually see.
         Dallas–Fort Worth roots, virtual first, so the right mentor
         does not have to live down the street.
       </p>
+    </section>
+
+    <section class="founders" id="founders" aria-label="Founders">
+      <article class="founder">
+        <h2>Jose Falconi-Cavallini</h2>
+        <p>CEO &amp; Co-Founder. CS and SAT/ACT.</p>
+      </article>
+      <article class="founder">
+        <h2>Emma Brugman</h2>
+        <p>Co-Founder. ML, data, and SAT/ACT.</p>
+      </article>
+      <article class="founder">
+        <h2>Johan Falconi-Cavallini</h2>
+        <p>Co-Founder. Engineering and math.</p>
+      </article>
+      <article class="founder">
+        <h2>Roberto Medina</h2>
+        <p>R&amp;D design engineer. STEM.</p>
+      </article>
+      <article class="founder">
+        <h2>Alan Martinez</h2>
+        <p>Hardware validation engineer. STEM.</p>
+      </article>
+      <article class="founder">
+        <h2>Christian Tapia</h2>
+        <p>Math and CS. MBA candidate.</p>
+      </article>
     </section>
 
     <section class="page-block about-voice">

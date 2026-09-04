@@ -137,21 +137,21 @@ const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
-const RIGHT_X = 3.85
-const HERO_BRAIN_X = 3.2
+const RIGHT_X = 4.15
+const HERO_BRAIN_X = 3.45
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
-const NOTES_X = 3.95
-const EARTH_X = 4.65
+const NOTES_X = 4.55
+const EARTH_X = 4.85
 
-// Phone type sits top-left. Park the form stage-right / low —
+// Phone type sits top-left. Park the form stage-right / below —
 // never under the letters. (Was 0: centered on the H1.)
-const MOBILE_X = 2.85
-const MOBILE_HOLD_Y = -1.85
-const MOBILE_HERO_Y = -2.85
-const MOBILE_RESULTS_Y = -2.62
-const MOBILE_RESULTS_X = 2.9
+const MOBILE_X = 3.35
+const MOBILE_HOLD_Y = -2.45
+const MOBILE_HERO_Y = -3.05
+const MOBILE_RESULTS_Y = -2.85
+const MOBILE_RESULTS_X = 3.15
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -2222,8 +2222,8 @@ function updateStory() {
 
     transformTarget.s =
       isMobile()
-        ? 0.5
-        : 0.86
+        ? 0.46
+        : 0.82
 
     transformTarget.rx =
       -0.02
@@ -2459,8 +2459,8 @@ function updateStory() {
 
     transformTarget.s =
       isMobile()
-        ? 0.78
-        : 0.88
+        ? 0.56
+        : 0.82
 
     transformTarget.rx = 0
 
@@ -3498,7 +3498,7 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <h1>A mentor who stays with your kid.</h1>
+        <h1>A mentor who<br>stays with<br>your kid.</h1>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3549,7 +3549,7 @@ function createPage() {
 
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
-        <h2>Mentors who stay.</h2>
+        <h2>Mentors who<br>stay.</h2>
       </div>
     </section>
 
