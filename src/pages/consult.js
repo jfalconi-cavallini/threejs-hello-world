@@ -115,7 +115,12 @@ mountPage({
           <a data-mail-link href="mailto:${EMAIL}">email the academy</a>
           below.
         </p>
-        <a class="primary-button" href="/pricing">See Mentoring rates${ARROW_ICON}</a>
+        <a class="primary-button" data-mail-cta href="mailto:${EMAIL}">
+          Email the academy${ARROW_ICON}
+        </a>
+        <p class="page-quiet">
+          Or <a href="/pricing">see Mentoring rates</a>.
+        </p>
       </div>
       </div>
     </section>
@@ -153,9 +158,8 @@ form?.addEventListener('submit', (event) => {
     `Parent: ${parent}\nEmail: ${email}\nPhone: ${phone}\nGrade: ${grade}\nFocus: ${focus}\nNotes: ${notes}`
   )
   const mailto = `mailto:${EMAIL}?subject=${subject}&body=${body}`
-  const mailLink = success.querySelector('[data-mail-link]')
-  if (mailLink) {
-    mailLink.href = mailto
-  }
+  success.querySelectorAll('[data-mail-link], [data-mail-cta]').forEach((el) => {
+    el.href = mailto
+  })
   window.location.assign(mailto)
 })

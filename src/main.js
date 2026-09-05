@@ -152,16 +152,16 @@ const EARTH_X = 2.12
 // top-left lane; the form is centered under it, fully in frustum.
 // 3.15–3.35 + a left camera dolly left only a right-edge sliver.
 const MOBILE_X = 0.14
-const MOBILE_HOLD_Y = -0.88
+const MOBILE_HOLD_Y = -0.42
 const MOBILE_HERO_Y = -1.12
-const MOBILE_RESULTS_Y = -0.96
+const MOBILE_RESULTS_Y = -0.52
 const MOBILE_RESULTS_X = 0.14
 
 const MOBILE_HERO_SCALE = 0.70
-const MOBILE_HOLD_SCALE = 0.64
-const MOBILE_RESULTS_SCALE = 0.60
-const MOBILE_MORPH_SCALE = 0.76
-const DESKTOP_HOLD_SCALE = 0.92
+const MOBILE_HOLD_SCALE = 0.50
+const MOBILE_RESULTS_SCALE = 0.48
+const MOBILE_MORPH_SCALE = 0.58
+const DESKTOP_HOLD_SCALE = 0.86
 const DESKTOP_HERO_SCALE = 0.98
 
 // Tighter hover effect.
@@ -2028,7 +2028,8 @@ function applyScrollCamera(p) {
       p < STAGE.brainHold ||
       (p >= STAGE.brainHold + 0.036 && p < STAGE.brainMove) ||
       (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
-      (p >= STAGE.earthForm && p < STAGE.earthHold)
+      (p >= STAGE.earthForm && p < STAGE.earthHold) ||
+      midScrollCopyLive()
 
     // Dolly back so the full form fits the tall-phone FOV. Do not
     // yaw the camera left — that used to shove the mesh into a
@@ -2036,8 +2037,8 @@ function applyScrollCamera(p) {
     cameraTarget.z *= onLogo
       ? 2.05
       : onCopyHold
-        ? 1.62
-        : 1.36
+        ? 1.78
+        : 1.48
 
     if (onCopyHold && !onLogo) {
       cameraTarget.x *= 0.18
@@ -2080,6 +2081,26 @@ function copyHoldY(
   )
 }
 
+function copyIsLive(selector) {
+  return (
+    document.querySelector(selector)
+      ?.classList.contains('is-live') === true
+  )
+}
+
+function midScrollCopyLive() {
+  return (
+    copyIsLive('.t3-intro') ||
+    copyIsLive('.lb-intro') ||
+    copyIsLive('.lb-feature-1') ||
+    copyIsLive('.lb-feature-2') ||
+    copyIsLive('.lb-feature-3') ||
+    copyIsLive('.lb-feature-4') ||
+    copyIsLive('.earth-hold') ||
+    copyIsLive('.copy-results')
+  )
+}
+
 function formSizeForStage() {
   if (
     currentStage === 'lightbulb' ||
@@ -2109,7 +2130,9 @@ function formSizeForStage() {
 
 // Keep the particle AABB inside the camera frustum at z=0.
 // Phone gets extra top pad so the form sits under the type lane
-// instead of recentering onto the H1.
+// instead of recentering onto the H1. Mid-scroll holds (brain-teach,
+// bulb, earth) use a tighter bottom pad so the whole silhouette
+// stays in-frame instead of a bottom-clipped slice.
 function containFormInView() {
   if (
     currentStage === 'logo' ||
@@ -2121,22 +2144,34 @@ function containFormInView() {
   const aspect =
     window.innerWidth /
     Math.max(window.innerHeight, 1)
-  const fov = cameraTarget.fov || 50
-  const z = cameraTarget.z || 4.55
+  const fov = Math.max(
+    camera.fov || 0,
+    cameraTarget.fov || 50
+  )
+  const z = Math.min(
+    camera.position.z || 99,
+    cameraTarget.z || 4.55
+  )
   const halfH =
     Math.tan((fov * Math.PI) / 360) * z
   const halfW = halfH * aspect
   const mobile = isMobile()
+  const midHold = midScrollCopyLive()
   const lookX = mobile
-    ? cameraTarget.x * 0.12 +
-      transformTarget.x * 0.48
+    ? transformTarget.x * 0.50
     : transformTarget.x * 0.18
   const lookY = mobile
     ? transformTarget.y * 0.10
     : transformTarget.y * 0.42
-  const padX = mobile ? 0.12 : 0.07
-  const padTop = mobile ? 0.28 : 0.08
-  const padBot = mobile ? 0.10 : 0.07
+  const padX = mobile
+    ? (midHold ? 0.16 : 0.12)
+    : 0.09
+  const padTop = mobile
+    ? (midHold ? 0.36 : 0.28)
+    : 0.10
+  const padBot = mobile
+    ? (midHold ? 0.20 : 0.16)
+    : 0.12
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
   const viewB = lookY - halfH * (1 - padBot)
@@ -2147,12 +2182,16 @@ function containFormInView() {
     currentStage === 'brain-moving'
   const size =
     formSizeForStage() *
-    (exploding ? 1.15 : 1)
+    (exploding ? 1.18 : 1)
+  const tall =
+    currentStage === 'lightbulb' ||
+    currentStage === 'lightbulb-forming' ||
+    currentStage === 'lightbulb-explosion'
   let radius =
-    size * 0.5 * transformTarget.s
+    size * (tall ? 0.56 : 0.52) * transformTarget.s
   const maxR = Math.min(
-    (viewR - viewL) * 0.48,
-    (viewT - viewB) * 0.48
+    (viewR - viewL) * 0.45,
+    (viewT - viewB) * 0.44
   )
 
   if (radius > maxR && radius > 0) {
@@ -2712,10 +2751,8 @@ function updateStory() {
       )
 
     const resultsLive =
-      document.querySelector('.copy-results')
-        ?.classList.contains('is-live') === true
-      || document.querySelector('.earth-hold')
-        ?.classList.contains('is-live') === true
+      copyIsLive('.copy-results') ||
+      copyIsLive('.earth-hold')
 
     transformTarget.y =
       isMobile() && resultsLive
@@ -2785,10 +2822,8 @@ function updateStory() {
     if (
       isMobile() &&
       (
-        document.querySelector('.copy-results')
-          ?.classList.contains('is-live')
-        || document.querySelector('.earth-hold')
-          ?.classList.contains('is-live')
+        copyIsLive('.copy-results') ||
+        copyIsLive('.earth-hold')
       )
     ) {
       transformTarget.x = MOBILE_RESULTS_X
@@ -3404,10 +3439,11 @@ function setupCopyTravel() {
 
 const HASH_COPY = {
   '#s1': '.copy-hero',
-  '#plan': '.lb-intro',
+  '#bulb': '.lb-intro',
   '#notes': '.lb-feature-4',
   '#team': '.t5-main',
   '#grow': '.earth-hold',
+  '#plan': '.copy-results',
   '#results': '.copy-results',
   '#consultation': '.copy-consult',
 }
@@ -3605,7 +3641,7 @@ function createPage() {
       </div>
     </section>
 
-    <section class="chapter chapter-lb-hold-item" id="plan">
+    <section class="chapter chapter-lb-hold-item" id="bulb">
       <div class="copy copy-lane lb-intro">
         <p class="eyebrow">Bulb · What you see</p>
         <h2>Tutoring shouldn’t disappear when the hour ends.</h2>
@@ -3654,9 +3690,9 @@ function createPage() {
       </div>
     </section>
 
-    <section class="chapter chapter-results" id="results">
+    <section class="chapter chapter-results" id="plan">
       <div class="copy copy-lane copy-results">
-        <h2>A plan you can actually see.</h2>
+        <h2>A plan you can<br>actually see.</h2>
         <p>Notes after every session. Skill tracking. Parent updates.</p>
       </div>
     </section>

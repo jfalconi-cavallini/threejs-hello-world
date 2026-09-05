@@ -1032,6 +1032,16 @@ body.is-close-hold .scene-canvas {
   color: var(--mm-ink);
 }
 
+.copy-results {
+  overflow: visible;
+}
+
+.copy-results h2 {
+  text-wrap: pretty;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 .logo-hold-chapter .copy-consult p {
   margin-top: 8px;
   font-size: 14px;
@@ -1427,6 +1437,31 @@ body.is-close-hold .scene-canvas {
     max-height: none;
   }
 
+  .copy-results {
+    width: min(92vw, 368px);
+    max-width: calc(100vw - 32px);
+    overflow: visible;
+  }
+
+  .copy-results h2 {
+    font-size: clamp(32px, 8.4vw, 40px);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    text-wrap: pretty;
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .copy-results p {
+    max-width: none;
+    margin-top: 16px;
+    font-size: 16px;
+    line-height: 1.45;
+    overflow-wrap: break-word;
+    text-wrap: pretty;
+  }
+
   .teach-subjects {
     font-size: clamp(26px, 7.4vw, 34px);
     line-height: 1.12;
@@ -1687,8 +1722,15 @@ body.is-site-page .metaminds-nav {
   text-underline-offset: 3px;
 }
 
-.consult-rate-link a:hover {
+.consult-rate-link a:hover,
+.consult-success .page-quiet a:hover {
   color: var(--mm-orange);
+}
+
+.consult-success .page-quiet a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 [hidden] {
@@ -1803,7 +1845,11 @@ body.is-site-page .metaminds-nav {
 }
 
 #team,
-#grow {
+#grow,
+#plan,
+#bulb,
+#notes,
+#results {
   scroll-margin-top: calc(var(--mm-nav-h) + 16px);
 }
 
@@ -1965,6 +2011,15 @@ body.is-site-page .metaminds-nav {
 .about-story p {
   font-size: 18px;
   line-height: 1.6;
+}
+
+.founders-lead {
+  margin-top: 14px;
+  max-width: 42ch;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--mm-mute);
 }
 
 .founders {

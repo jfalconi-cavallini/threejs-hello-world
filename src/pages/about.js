@@ -14,13 +14,14 @@ mountPage({
 
     <section class="page-block about-story" id="why">
       <h2>Why we built this</h2>
-      <p>The tutor who clicked kept leaving.</p>
-      <p>We wanted one mentor who stays, and notes a parent can actually read.</p>
-      <p>Dallas–Fort Worth. Zoom. Small on purpose.</p>
+      <p>Tutoring was leaving parents in the dark. The hour ended, and so did the trail.</p>
+      <p>MetaMinds started in Dallas–Fort Worth around a simple bet: one dedicated mentor, a plan you can actually see, and notes after every session — written by the tutor who taught.</p>
+      <p>AI can help a mentor prepare. It never takes the chair. The product is the mentor who stays.</p>
     </section>
 
     <section class="page-block" id="founders" aria-label="The people building it">
       <h2>The people building it</h2>
+      <p class="founders-lead">Founders and mentors. Same standard: stay with the student.</p>
       <div class="founders">
       <article class="founder">
         <h3>Jose Falconi-Cavallini</h3>
