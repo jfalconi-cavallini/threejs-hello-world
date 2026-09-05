@@ -21,6 +21,11 @@ import './style.css'
 
 gsap.registerPlugin(ScrollTrigger)
 
+ScrollTrigger.config({
+  ignoreMobileResize: true,
+  autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load',
+})
+
 let scrollProgressBar = null
 let bootScreen = null
 
@@ -270,13 +275,30 @@ const REPULSION_FORCE = 0.12
 const DEPTH_BULGE = 0.16
 
 // How quickly actual particles chase the story target.
+// Rates are per-second for exp smoothing so 30fps phones and
+// 60fps desktops travel the same curve (old per-frame lerp
+// made mobile morphs hitch whenever rAF dropped).
+const POSITION_FOLLOW_RATE =
+  MOBILE_AT_LOAD
+    ? 8.4
+    : 5.8
+
+const HOLD_FOLLOW_RATE = 14
+const LOGO_FOLLOW_RATE = 36
+
+let morphFollowRate =
+  POSITION_FOLLOW_RATE
+
+// Legacy 60fps-equivalent kept for any remaining callers.
 const POSITION_LERP =
   MOBILE_AT_LOAD
-    ? 0.11
-    : 0.055
+    ? 0.13
+    : 0.09
 
 let morphLerp =
   POSITION_LERP
+
+let frameFollow = POSITION_LERP
 
 // Once every particle gets sufficiently close,
 // stop touching the instance matrices.
@@ -2131,14 +2153,15 @@ function writeMorphTarget(
 
     const delay =
       wave *
-        0.18 +
-      morphOffsets[i]
+        0.07 +
+      morphOffsets[i] *
+        0.45
 
     const local =
       smootherstep(
         clamp01(
           (
-            progress -
+            smoothstep(clamp01(progress)) -
             delay
           ) /
             (
@@ -2229,6 +2252,7 @@ function setHoldShot(
   _x = 0
 ) {
   stageIsTransform = false
+  morphFollowRate = HOLD_FOLLOW_RATE
   morphLerp = Math.max(POSITION_LERP, 0.22)
   transformTarget.s = 1
   // Holds carry copy. Bloom under letters was the session-notes
@@ -2244,6 +2268,8 @@ function setTransformShot(
   scale = 1.14
 ) {
   stageIsTransform = true
+  morphFollowRate =
+    POSITION_FOLLOW_RATE * 1.2
   morphLerp =
     POSITION_LERP * 1.15
   transformTarget.s = isMobile()
@@ -2298,7 +2324,7 @@ function applyScrollCamera(p) {
   }
 
   const span = b.p - a.p || 1
-  const t = smoothstep((p - a.p) / span)
+  const t = smootherstep((p - a.p) / span)
 
   cameraTarget.z = lerp(a.z, b.z, t)
   cameraTarget.fov = lerp(a.fov, b.fov, t)
@@ -3288,6 +3314,7 @@ function updateStory() {
     )
 
     morphLerp = 1
+    morphFollowRate = LOGO_FOLLOW_RATE
 
     transformTarget.s = 1
 
@@ -3429,10 +3456,48 @@ function copyFadeOf(el) {
 // the outgoing beat's copyFade has reached 0.
 let copyJumpLock = null
 
+function isCloseHoldStory() {
+  return (
+    currentStage === 'logo' ||
+    story.progress >= STAGE.logoForm
+  )
+}
+
+function lockConsultCloseHold() {
+  const consult = document.querySelector('.copy-consult')
+  if (!consult) {
+    return false
+  }
+
+  const copies = document.querySelectorAll('.copy')
+  for (let i = 0; i < copies.length; i++) {
+    fadeProxy(copies[i]).copyFade =
+      copies[i] === consult ? 1 : 0
+  }
+
+  const desktop = !isMobile()
+  gsap.set(consult, {
+    y: 0,
+    x: 0,
+    xPercent: desktop ? -50 : 0,
+    yPercent: 0,
+    autoAlpha: 1,
+  })
+  consult.style.opacity = '1'
+  consult.style.visibility = 'visible'
+  consult.classList.add('is-live')
+  return true
+}
+
 function syncCopySlot() {
   const copies = [...document.querySelectorAll('.copy')]
   if (!copies.length) {
     return
+  }
+
+  if (isCloseHoldStory()) {
+    copyJumpLock = null
+    lockConsultCloseHold()
   }
 
   if (copyJumpLock && document.body.contains(copyJumpLock)) {
@@ -3573,7 +3638,10 @@ function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
 }
 
 function setupCopyTravel() {
-  const copyScrub = REDUCED_MOTION ? false : 1.15
+  const copyScrub =
+    REDUCED_MOTION
+      ? false
+      : (MOBILE_AT_LOAD || TOUCH_DEVICE ? 0.78 : 0.58)
   const mm = gsap.matchMedia()
 
   const wire = (desktop) => {
@@ -3715,10 +3783,17 @@ function setupCopyTravel() {
 
     if (consult && morphC) {
       const base = copyAnchor(consult, desktop)
+      const logoHold = document.querySelector('.logo-hold-chapter')
+      const phone = !desktop
 
+      // Phone: the plate is bottom-pinned. A +200 y tween parks it
+      // under the fold, and exclusive paint loses to .copy-results
+      // (stay:true) until fade hits 1.000. Start on-screen and pin
+      // the trigger to the logo chapter so the mark is up before
+      // the canvas hides.
       gsap.set(consult, {
         ...base,
-        y: REDUCED_MOTION ? 0 : 200,
+        y: REDUCED_MOTION || phone ? 0 : 200,
         autoAlpha: 0,
       })
       fadeProxy(consult).copyFade = 0
@@ -3726,9 +3801,9 @@ function setupCopyTravel() {
       const tl = gsap.timeline({
         defaults: {},
         scrollTrigger: {
-          trigger: morphC,
-          start: 'top 50%',
-          end: 'bottom top',
+          trigger: phone && logoHold ? logoHold : morphC,
+          start: phone ? 'top 92%' : 'top 50%',
+          end: phone && logoHold ? 'bottom bottom' : 'bottom top',
           scrub: REDUCED_MOTION ? true : copyScrub,
           onUpdate: syncCopySlot,
         },
@@ -3738,8 +3813,8 @@ function setupCopyTravel() {
         tl,
         consult,
         0,
-        0.14,
-        0.72,
+        phone ? 0.08 : 0.14,
+        phone ? 0.84 : 0.72,
         0.08,
         true,
         0
@@ -4116,7 +4191,11 @@ function createPage() {
         scrub:
           REDUCED_MOTION
             ? false
-            : 1.35,
+            : (
+                MOBILE_AT_LOAD || TOUCH_DEVICE
+                  ? 0.92
+                  : 0.7
+              ),
 
         onUpdate:
           updateStory,
@@ -4278,15 +4357,15 @@ function updateParticleInstances(
 
       x +=
         dxTarget *
-        morphLerp
+        frameFollow
 
       y +=
         dyTarget *
-        morphLerp
+        frameFollow
 
       z +=
         dzTarget *
-        morphLerp
+        frameFollow
 
       currentPositions[i3] =
         x
@@ -4589,6 +4668,38 @@ function animate() {
   lastFrameTime =
     now
 
+  frameFollow =
+    REDUCED_MOTION
+      ? 1
+      : 1 - Math.exp(-morphFollowRate * dt)
+
+  const formChase =
+    REDUCED_MOTION
+      ? 1
+      : 1 - Math.exp(
+          -(
+            stageIsTransform
+              ? 6.6
+              : 3.4
+          ) * dt
+        )
+
+  const camFollow =
+    REDUCED_MOTION
+      ? 1
+      : 1 - Math.exp(
+          -(
+            (
+              currentStage === 'logo' ||
+              currentStage === 'logo-forming'
+            )
+              ? 9.5
+              : stageIsTransform
+                ? 6.1
+                : 2.2
+          ) * dt
+        )
+
   // ----------------------------------
   // POINTER SMOOTHING
   // ----------------------------------
@@ -4617,22 +4728,8 @@ function animate() {
     Points cloud as a single object.
   */
 
-  const chase =
-    REDUCED_MOTION
-      ? 1
-      : stageIsTransform
-        ? 0.085
-        : 0.032
-
-  const camChase =
-    REDUCED_MOTION
-      ? 1
-      : (
-          currentStage === 'logo' ||
-          currentStage === 'logo-forming'
-        )
-        ? 0.22
-        : 0.014
+  const chase = formChase
+  const camChase = camFollow
 
   const idleY =
     REDUCED_MOTION
@@ -4918,10 +5015,12 @@ function animate() {
       || document.querySelector('.earth-hold')
         ?.classList.contains('is-live') === true
 
-    // Close / consult hides the particle stage for the lockup plate.
-    // TEAM keeps a settled bulb hold — empty black was a void.
+    // Close plate is the PNG lockup. Hide the particle stage only
+    // once the logo is fully formed (or consult is already painted).
+    // Hiding during logo-forming left a black gap on phone — the
+    // canvas went away before the plate won exclusive paint.
     const hideStage =
-      onLogo ||
+      onLogoHold ||
       consultLive
 
     document.body.classList.toggle(
@@ -4953,11 +5052,8 @@ function animate() {
     // particle hide stole the slot and painted the close copy over
     // "Mentors who stay." / results.
     if (hideStage) {
-      if (onLogo) {
-        const consultEl = document.querySelector('.copy-consult')
-        if (consultEl) {
-          fadeProxy(consultEl).copyFade = 1
-        }
+      if (onLogoHold || isCloseHoldStory()) {
+        lockConsultCloseHold()
       }
 
       particles.visible = false
