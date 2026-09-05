@@ -9,6 +9,7 @@
   --mm-copper: #a65335;
   --mm-paper: #ffffff;
   --mm-nav-h: 76px;
+  --mm-scroll-gap: 32px;
   --font-display: "Syne", Arial, Helvetica, sans-serif;
   --font-body: "Manrope", Arial, Helvetica, sans-serif;
 }
@@ -23,6 +24,7 @@ html {
   background: var(--mm-void);
   color: var(--mm-ink);
   scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
 }
 
 html,
@@ -1218,6 +1220,7 @@ body.is-close-hold .scene-canvas {
 @media (max-width: 767px) {
   :root {
     --mm-nav-h: 58px;
+    --mm-scroll-gap: 36px;
   }
 
   .metaminds-nav {
@@ -1380,13 +1383,13 @@ body.is-close-hold .scene-canvas {
     right: auto;
     width: min(92vw, 400px);
     max-width: calc(100vw - 32px);
-    top: calc(var(--mm-nav-h) + 36px);
+    top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
     transform: none;
     text-align: left;
   }
 
   .copy-hero {
-    top: calc(var(--mm-nav-h) + 44px);
+    top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
     left: 16px;
     right: 16px;
     width: auto;
@@ -1464,7 +1467,7 @@ body.is-close-hold .scene-canvas {
 
   .copy-lane,
   .t3-intro {
-    top: calc(var(--mm-nav-h) + 40px);
+    top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
     width: min(92vw, 368px);
     max-width: calc(100vw - 32px);
     max-height: none;
@@ -1482,7 +1485,7 @@ body.is-close-hold .scene-canvas {
   }
 
   .copy-results {
-    top: calc(var(--mm-nav-h) + 44px);
+    top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
     width: min(92vw, 368px);
     max-width: calc(100vw - 32px);
     overflow: visible;
@@ -1518,7 +1521,7 @@ body.is-close-hold .scene-canvas {
   }
 
   .copy-team {
-    top: calc(var(--mm-nav-h) + 40px);
+    top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
     width: min(86vw, 340px);
     transform: none;
     text-align: left;
@@ -1645,7 +1648,7 @@ body.is-close-hold .scene-canvas {
 ========================= */
 
 body.is-site-page {
-  scroll-padding-top: calc(var(--mm-nav-h) + 32px);
+  scroll-padding-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
 }
 
 body.is-site-page .metaminds-nav {
@@ -1675,7 +1678,7 @@ body.is-site-page .metaminds-nav {
 #founders,
 #faq,
 #after-you-send {
-  scroll-margin-top: calc(var(--mm-nav-h) + 32px);
+  scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
 }
 
 .page-hero {
@@ -1809,6 +1812,12 @@ body.is-site-page .metaminds-nav {
   border: 1px solid rgba(243, 246, 249, 0.1);
 }
 
+.form-intro {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
 .form-intro h2,
 .consult-success h2 {
   font-size: clamp(24px, 2.8vw, 30px);
@@ -1817,7 +1826,8 @@ body.is-site-page .metaminds-nav {
 }
 
 .form-intro p {
-  margin-top: 8px;
+  margin-top: 0;
+  max-width: 40ch;
   font-size: 15px;
   line-height: 1.45;
 }
@@ -1833,7 +1843,7 @@ body.is-site-page .metaminds-nav {
 
 .consult-form {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .consult-success {
@@ -1859,6 +1869,10 @@ body.is-site-page .metaminds-nav {
 
 .after-send {
   max-width: 720px;
+}
+
+.page-block.after-send {
+  padding-top: 32px;
 }
 
 .consult-form label:not(.check),
@@ -1965,7 +1979,7 @@ body.is-site-page .metaminds-nav {
 #results,
 #s1,
 #consultation {
-  scroll-margin-top: calc(var(--mm-nav-h) + 28px);
+  scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
 }
 
 .rate-block {
@@ -2134,8 +2148,8 @@ body.is-site-page .metaminds-nav {
 }
 
 .founders-lead {
-  margin-top: 10px;
-  max-width: 42ch;
+  margin-top: 8px;
+  max-width: 36ch;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.45;
@@ -2145,9 +2159,9 @@ body.is-site-page .metaminds-nav {
 .founders {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 32px 56px;
+  gap: 28px 48px;
   max-width: 920px;
-  padding: 24px 0 8px;
+  padding: 18px 0 4px;
 }
 
 .founder {
@@ -2164,7 +2178,7 @@ body.is-site-page .metaminds-nav {
 }
 
 .founder p {
-  margin-top: 6px;
+  margin-top: 8px;
   max-width: 28ch;
   font-size: 15px;
   font-weight: 500;
@@ -2206,13 +2220,13 @@ body.is-site-page .metaminds-nav {
 
 @media (max-width: 767px) {
   body.is-site-page {
-    scroll-padding-top: calc(var(--mm-nav-h) + 36px);
+    scroll-padding-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
     overflow-x: hidden;
   }
 
   .site-shell {
-    width: calc(100% - 48px);
-    padding: calc(var(--mm-nav-h) + 64px) 0 72px;
+    width: calc(100% - 32px);
+    padding: calc(var(--mm-nav-h) + 56px) 0 72px;
   }
 
   .page-hero,
@@ -2229,7 +2243,7 @@ body.is-site-page .metaminds-nav {
   #founders,
   #faq,
   #after-you-send {
-    scroll-margin-top: calc(var(--mm-nav-h) + 36px);
+    scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
   }
 
   .page-hero {
@@ -2239,8 +2253,16 @@ body.is-site-page .metaminds-nav {
 
   .founders {
     grid-template-columns: 1fr;
-    gap: 22px;
-    padding: 20px 0 28px;
+    gap: 26px;
+    padding: 16px 0 12px;
+  }
+
+  #founders.page-block {
+    padding-top: 36px;
+  }
+
+  .page-block.after-send {
+    padding-top: 28px;
   }
 
   .founder h2,
@@ -2305,9 +2327,9 @@ body.is-site-page .metaminds-nav {
 
   .rate-table tbody tr {
     display: grid;
-    gap: 8px;
+    gap: 10px;
     min-width: 0;
-    padding: 16px 16px;
+    padding: 18px 18px 16px;
     border-radius: 16px;
     background: rgba(8, 12, 22, 0.72);
     border: 1px solid rgba(243, 246, 249, 0.1);
@@ -2335,7 +2357,8 @@ body.is-site-page .metaminds-nav {
     justify-content: space-between;
     align-items: baseline;
     gap: 16px;
-    font-size: 18px;
+    padding-top: 2px;
+    font-size: 17px;
     text-align: right;
   }
 
@@ -2350,10 +2373,12 @@ body.is-site-page .metaminds-nav {
   }
 
   .rate-level {
-    font-size: 20px;
+    font-size: 21px;
   }
 
   .rate-detail {
+    margin-top: 6px;
+    margin-bottom: 4px;
     font-size: 13px;
   }
 }
@@ -2363,6 +2388,7 @@ body.is-site-page .metaminds-nav {
 @media (max-height: 640px) {
   :root {
     --mm-nav-h: 52px;
+    --mm-scroll-gap: 28px;
   }
 
   .metaminds-nav {
@@ -2377,15 +2403,15 @@ body.is-site-page .metaminds-nav {
   .copy-lane,
   .copy-team,
   .copy-mid {
-    top: calc(var(--mm-nav-h) + 22px);
+    top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
   }
 
   .copy-hero {
-    top: calc(var(--mm-nav-h) + 24px);
+    top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
   }
 
   .chapter-hero {
-    padding-top: calc(var(--mm-nav-h) + 24px);
+    padding-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
   }
 
   .copy h1,
