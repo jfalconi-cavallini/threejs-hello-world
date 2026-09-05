@@ -2021,12 +2021,12 @@ body.is-site-page .metaminds-nav {
   }
 
   .rate-table {
-    min-width: 640px;
+    min-width: 520px;
   }
 
   .rate-table th,
   .rate-table td {
-    padding: 22px 16px;
+    padding: 22px 12px;
   }
 
   .rate-table thead th {
@@ -2034,14 +2034,22 @@ body.is-site-page .metaminds-nav {
     font-size: 11px;
   }
 
+  .rate-table thead th:first-child,
   .rate-table tbody th {
-    min-width: 220px;
-    padding-right: 20px;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    min-width: 168px;
+    max-width: 176px;
+    padding-right: 16px;
+    background: #000;
+    box-shadow: 8px 0 16px -12px #000;
   }
 
   .rate-table tbody td {
     font-size: 18px;
-    padding-left: 12px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .rate-level {
