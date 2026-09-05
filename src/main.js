@@ -2225,13 +2225,13 @@ function containFormInView() {
     currentStage === 'lightbulb-explosion'
   const padX = mobile
     ? (midHold ? 0.16 : 0.14)
-    : 0.12
+    : 0.14
   const padTop = mobile
     ? (teamCopy ? 0.34 : bulbCopy ? 0.40 : midHold ? 0.32 : 0.26)
-    : (tall ? 0.10 : 0.12)
+    : (tall ? 0.12 : 0.12)
   const padBot = mobile
     ? (midHold ? 0.14 : 0.12)
-    : (tall ? 0.16 : 0.12)
+    : (tall ? 0.22 : 0.14)
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
   const viewB = lookY - halfH * (1 - padBot)
@@ -2244,7 +2244,7 @@ function containFormInView() {
     formSizeForStage() *
     (exploding ? 1.18 : 1)
   let radius =
-    size * (tall ? 0.58 : 0.54) * transformTarget.s
+    size * (tall ? (mobile ? 0.58 : 0.66) : 0.54) * transformTarget.s
   const maxR = Math.min(
     (viewR - viewL) * 0.42,
     (viewT - viewB) * 0.42

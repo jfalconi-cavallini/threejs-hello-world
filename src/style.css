@@ -1872,7 +1872,7 @@ body.is-site-page .metaminds-nav {
 }
 
 .page-block.after-send {
-  padding-top: 32px;
+  padding-top: 24px;
 }
 
 .consult-form label:not(.check),
@@ -2247,8 +2247,8 @@ body.is-site-page .metaminds-nav {
   }
 
   .page-hero {
-    padding-top: 16px;
-    padding-bottom: 40px;
+    padding-top: 12px;
+    padding-bottom: 28px;
   }
 
   .founders {
@@ -2262,12 +2262,16 @@ body.is-site-page .metaminds-nav {
   }
 
   .page-block.after-send {
-    padding-top: 28px;
+    padding-top: 20px;
   }
 
   .founder h2,
   .founder h3 {
     font-size: clamp(28px, 8vw, 34px);
+  }
+
+  .founder p {
+    max-width: 34ch;
   }
 
   .page-split,
