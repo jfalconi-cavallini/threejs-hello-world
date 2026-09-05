@@ -3549,7 +3549,7 @@ function createPage() {
 
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
-        <h2>Mentors who<br>stay.</h2>
+        <h2>Mentors who<br> stay.</h2>
       </div>
     </section>
 
