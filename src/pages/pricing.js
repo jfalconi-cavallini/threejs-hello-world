@@ -14,7 +14,8 @@ mountPage({
     </section>
 
     <section class="rate-block" aria-label="Mentoring rates">
-      <p class="rate-whisper">Bigger packages, lower rate. All rates are per hour.</p>
+      <p class="rate-whisper">Want a Lead mentor at any age? That’s the College rate.</p>
+      <p class="rate-whisper rate-whisper--sub">Bigger packages, lower rate. All rates are per hour.</p>
       <div class="rate-table-wrap">
         <table class="rate-table">
           <thead>

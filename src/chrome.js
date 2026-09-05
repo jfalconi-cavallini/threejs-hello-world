@@ -103,27 +103,17 @@ export function createNavbar({ page = 'home' } = {}) {
     : 'metaminds-nav'
   nav.setAttribute('aria-label', 'MetaMinds')
 
-  const brandHref = page === 'home' ? '#s1' : '/'
-
-  if (page === 'home') {
-    nav.innerHTML = `
-    <a class="brand" href="${brandHref}">
-      ${LOCKUP}
-    </a>
-    ${CONSULT_CTA}
-  `
-    document.body.appendChild(nav)
-    return nav
-  }
+  const homeHref = page === 'home' ? '#s1' : '/'
 
   nav.innerHTML = `
-    <a class="brand" href="${brandHref}">
+    <a class="brand" href="${homeHref}">
       ${LOCKUP}
     </a>
 
     <div class="nav-inline">
-      <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
+      <a class="${navActive(page, 'home').trim()}" href="${homeHref}">Home</a>
       <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
+      <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
     </div>
 
     ${CONSULT_CTA}
@@ -140,8 +130,9 @@ export function createNavbar({ page = 'home' } = {}) {
 
     <div class="nav-panel">
       <div class="nav-links">
-        <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
+        <a class="${navActive(page, 'home').trim()}" href="${homeHref}">Home</a>
         <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
+        <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
       </div>
       <a href="/consult" class="primary-button nav-panel-cta">
         Book free 30-minute consult
@@ -168,6 +159,7 @@ export function createFooter() {
       </span>
     </a>
     <nav class="footer-links" aria-label="Footer">
+      <a href="/">Home</a>
       <a href="/about">About</a>
       <a href="/pricing">Pricing</a>
       <a href="/consult">Consult</a>

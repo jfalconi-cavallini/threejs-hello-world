@@ -53,7 +53,7 @@ mountPage({
       <form class="consult-form" id="consult-form" novalidate>
         <div class="form-intro">
           <h2>Request your consult</h2>
-          <p>Tell us about your child. We’ll follow up to set the 30 minutes.</p>
+          <p>Tell us about your child. We’ll open a prepared email for you to send.</p>
         </div>
 
         <label>
@@ -136,7 +136,7 @@ form?.addEventListener('submit', (event) => {
 
   if (!parent || !email || !grade) {
     errorEl.hidden = false
-    errorEl.textContent = 'Add a parent name, email, and grade so we can follow up.'
+    errorEl.textContent = 'Add a parent name, email, and grade so the email is complete.'
     return
   }
 

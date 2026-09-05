@@ -12,31 +12,41 @@ mountPage({
       </p>
     </section>
 
-    <section class="founders" id="founders" aria-label="Founders">
+    <section class="page-block about-story" id="why">
+      <h2>Why we built this</h2>
+      <p>The tutor who clicked kept leaving.</p>
+      <p>We wanted one mentor who stays, and notes a parent can actually read.</p>
+      <p>Dallas–Fort Worth. Zoom. Small on purpose.</p>
+    </section>
+
+    <section class="page-block" id="founders" aria-label="The people building it">
+      <h2>The people building it</h2>
+      <div class="founders">
       <article class="founder">
-        <h2>Jose Falconi-Cavallini</h2>
+        <h3>Jose Falconi-Cavallini</h3>
         <p>CEO &amp; Co-Founder. CS and SAT/ACT.</p>
       </article>
       <article class="founder">
-        <h2>Emma Brugman</h2>
+        <h3>Emma Brugman</h3>
         <p>Co-Founder. ML, data, and SAT/ACT.</p>
       </article>
       <article class="founder">
-        <h2>Johan Falconi-Cavallini</h2>
+        <h3>Johan Falconi-Cavallini</h3>
         <p>Co-Founder. Engineering and math.</p>
       </article>
       <article class="founder">
-        <h2>Roberto Medina</h2>
+        <h3>Roberto Medina</h3>
         <p>R&amp;D design engineer. STEM.</p>
       </article>
       <article class="founder">
-        <h2>Alan Martinez</h2>
+        <h3>Alan Martinez</h3>
         <p>Hardware validation engineer. STEM.</p>
       </article>
       <article class="founder">
-        <h2>Christian Tapia</h2>
+        <h3>Christian Tapia</h3>
         <p>Math and CS. MBA candidate.</p>
       </article>
+      </div>
     </section>
 
     <section class="page-block about-voice">

@@ -1969,15 +1969,15 @@ function setTransformShot(
 }
 
 const STAGE = {
-  brainHold: 0.040,
-  brainMove: 0.080,
-  brainExplode: 0.120,
-  bulbForm: 0.160,
-  bulbHold: 0.440,
-  bulbExplode: 0.480,
-  earthForm: 0.520,
-  earthHold: 0.840,
-  earthExplode: 0.880,
+  brainHold: 0.042,
+  brainMove: 0.100,
+  brainExplode: 0.200,
+  bulbForm: 0.260,
+  bulbHold: 0.580,
+  bulbExplode: 0.620,
+  earthForm: 0.700,
+  earthHold: 0.830,
+  earthExplode: 0.870,
   logoForm: 0.920,
 }
 
@@ -2269,7 +2269,7 @@ function updateReducedMotionStory(
 //      – bulbHold      Lightbulb hold         session notes
 //      – bulbExplode   Lightbulb explosion
 //      – earthForm     Earth formation
-//      – earthHold     Earth hold             programs
+//      – earthHold     Earth hold             how they grow
 //      – earthExplode  Earth explosion
 //      – logoForm      Logo formation
 //      – 1.00          Logo hold              consultation
@@ -2714,6 +2714,8 @@ function updateStory() {
     const resultsLive =
       document.querySelector('.copy-results')
         ?.classList.contains('is-live') === true
+      || document.querySelector('.earth-hold')
+        ?.classList.contains('is-live') === true
 
     transformTarget.y =
       isMobile() && resultsLive
@@ -2782,8 +2784,12 @@ function updateStory() {
 
     if (
       isMobile() &&
-      document.querySelector('.copy-results')
-        ?.classList.contains('is-live')
+      (
+        document.querySelector('.copy-results')
+          ?.classList.contains('is-live')
+        || document.querySelector('.earth-hold')
+          ?.classList.contains('is-live')
+      )
     ) {
       transformTarget.x = MOBILE_RESULTS_X
       transformTarget.y = MOBILE_RESULTS_Y
@@ -3218,6 +3224,7 @@ function setupCopyTravel() {
     const morphB = document.querySelector('.chapter-morph-b')
     const morphC = document.querySelector('.chapter-morph-c')
     const lbChapter = document.querySelector('.chapter-lb-hold-item')
+    const earthChapter = document.querySelector('.chapter-earth')
     const resultsChapter = document.querySelector('.chapter-results')
 
     if (hero && heroChapter) {
@@ -3313,6 +3320,22 @@ function setupCopyTravel() {
       copyScrub
     )
 
+    if (earthChapter) {
+      wireCopyCluster(
+        desktop,
+        ['.earth-hold'],
+        {
+          trigger: earthChapter,
+          start: 'top 82%',
+          end: 'bottom top',
+        },
+        [
+          { enter: 0.10, hold: 0.72, exit: 0.08, stay: true, fadeWait: 0 },
+        ],
+        copyScrub
+      )
+    }
+
     if (resultsChapter) {
       wireCopyCluster(
         desktop,
@@ -3384,6 +3407,7 @@ const HASH_COPY = {
   '#plan': '.lb-intro',
   '#notes': '.lb-feature-4',
   '#team': '.t5-main',
+  '#grow': '.earth-hold',
   '#results': '.copy-results',
   '#consultation': '.copy-consult',
 }
@@ -3392,6 +3416,7 @@ function liveCopyForGeometry() {
   const pairs = [
     ['.logo-hold-chapter', '.copy-consult'],
     ['.chapter-results', '.copy-results'],
+    ['.chapter-earth', '.earth-hold'],
     ['.chapter-morph-b', '.t5-main'],
     ['.chapter-morph-a', '.t3-intro'],
     ['.chapter-hero', '.copy-hero'],
@@ -3574,6 +3599,7 @@ function createPage() {
 
     <section class="chapter chapter-morph chapter-morph-a">
       <div class="copy copy-lane t3-intro">
+        <p class="eyebrow">Brain · What we teach</p>
         <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
         <p class="teach-range">K–12 through college.</p>
       </div>
@@ -3581,6 +3607,7 @@ function createPage() {
 
     <section class="chapter chapter-lb-hold-item" id="plan">
       <div class="copy copy-lane lb-intro">
+        <p class="eyebrow">Bulb · What you see</p>
         <h2>Tutoring shouldn’t disappear when the hour ends.</h2>
       </div>
     </section>
@@ -3616,6 +3643,14 @@ function createPage() {
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
         <h2>Mentors who<br> stay.</h2>
+      </div>
+    </section>
+
+    <section class="chapter chapter-earth" id="grow">
+      <div class="copy copy-lane earth-hold">
+        <p class="eyebrow">Earth · How they grow</p>
+        <h2>Support that grows with them.</h2>
+        <p>Elementary through college. Same notes. Same system.</p>
       </div>
     </section>
 
@@ -4458,6 +4493,8 @@ function animate() {
 
     const resultsLive =
       document.querySelector('.copy-results')
+        ?.classList.contains('is-live') === true
+      || document.querySelector('.earth-hold')
         ?.classList.contains('is-live') === true
 
     const copyTeamLive =
