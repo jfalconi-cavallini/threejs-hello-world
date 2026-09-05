@@ -2848,7 +2848,10 @@ function updateStory() {
     ) {
       transformTarget.x = MOBILE_RESULTS_X
       transformTarget.y = MOBILE_RESULTS_Y
-      transformTarget.s = MOBILE_RESULTS_SCALE
+      transformTarget.s = Math.min(
+        transformTarget.s,
+        MOBILE_RESULTS_SCALE
+      )
     }
 
     transformTarget.rx =

@@ -2066,7 +2066,8 @@ body.is-site-page .metaminds-nav {
 
 @media (max-width: 767px) {
   body.is-site-page {
-    scroll-padding-top: calc(var(--mm-nav-h) + 20px);
+    scroll-padding-top: calc(var(--mm-nav-h) + 28px);
+    overflow-x: hidden;
   }
 
   .site-shell {
