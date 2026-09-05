@@ -4595,13 +4595,16 @@ function animate() {
         0.14
     }
 
-    // Phone close is the target: plate + type, no particle wash.
-    // Snap the whole stage off — a 0.1 lerp left a white logo bloom
-    // over "Let's find the" on desktop.
+    // Snap the close plate on only when the logo/consult hold is
+    // actually up. Forcing consult fade during the phone TEAM
+    // particle hide stole the slot and painted the close copy over
+    // "Mentors who stay." / results.
     if (hideStage) {
-      const consultEl = document.querySelector('.copy-consult')
-      if (consultEl) {
-        fadeProxy(consultEl).copyFade = 1
+      if (onLogo) {
+        const consultEl = document.querySelector('.copy-consult')
+        if (consultEl) {
+          fadeProxy(consultEl).copyFade = 1
+        }
       }
 
       particles.visible = false
