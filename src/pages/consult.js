@@ -53,11 +53,11 @@ mountPage({
       <form class="consult-form" id="consult-form" novalidate>
         <div class="form-intro">
           <h2>Request your consult</h2>
-          <p>Tell us about your child. We’ll open a prepared email for you to send.</p>
+          <p>Tell us about your child…</p>
         </div>
 
         <label>
-          <span>Parent name</span>
+          <span>Parent/guardian name</span>
           <input name="parent" type="text" autocomplete="name" required>
         </label>
         <label>
@@ -65,7 +65,7 @@ mountPage({
           <input name="email" type="email" autocomplete="email" required>
         </label>
         <label>
-          <span>Phone</span>
+          <span class="label-row">Phone <span class="field-help">optional</span></span>
           <input name="phone" type="tel" autocomplete="tel">
         </label>
         <label>
@@ -124,6 +124,23 @@ mountPage({
       </div>
       </div>
     </section>
+
+    <section class="page-block after-send" id="after-you-send">
+      <h2>After you send</h2>
+      <ol class="steps">
+        <li>
+          <strong>We read your note</strong>
+          — usually within one business day.
+        </li>
+        <li>
+          <strong>We reply to book the free 30 minutes (DFW or Zoom).</strong>
+        </li>
+        <li>
+          <strong>On the call we match level, mentor, and hours.</strong>
+          No pressure to buy in the room.
+        </li>
+      </ol>
+    </section>
   `,
 })
 
@@ -141,7 +158,7 @@ form?.addEventListener('submit', (event) => {
 
   if (!parent || !email || !grade) {
     errorEl.hidden = false
-    errorEl.textContent = 'Add a parent name, email, and grade so the email is complete.'
+    errorEl.textContent = 'Add a parent/guardian name, email, and grade so the email is complete.'
     return
   }
 

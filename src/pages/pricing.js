@@ -95,6 +95,36 @@ mountPage({
       </div>
     </section>
 
+    <section class="page-block faq-block" id="faq">
+      <h2>Questions parents ask</h2>
+      <dl class="faq-list">
+        <div class="faq-item">
+          <dt>Is this monthly?</dt>
+          <dd>No. You book hours. Bigger packages lower the hourly rate. We never say “monthly.”</dd>
+        </div>
+        <div class="faq-item">
+          <dt>Who sits with my child?</dt>
+          <dd>One dedicated tutor matched on the consult. Same mentor stays with the work.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>What’s the difference between levels?</dt>
+          <dd>Rate follows your child’s level — Elementary, Middle school, High school, or College. Mentors are matched to the coursework.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>Can I get a Lead mentor for a younger student?</dt>
+          <dd>Yes. Lead mentors are available at every age — billed at the College rate.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>Do you guarantee a score jump?</dt>
+          <dd>No. We don’t sell averages or guarantees. We diagnose, practice on purpose, and show you the notes. Individual results vary.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>DFW only?</dt>
+          <dd>We’re rooted in Dallas–Fort Worth. Sessions are Zoom-first; in-person only where a tutor is already nearby.</dd>
+        </div>
+      </dl>
+    </section>
+
     <section class="page-cta-band">
       <h2>Not sure which rate fits?</h2>
       <p>The free 30-minute consult is how we match level, mentor, and hours — together, in DFW or on Zoom.</p>

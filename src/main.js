@@ -140,13 +140,13 @@ const LOGO_SIZE = 4.6
 // Desktop: Dala split — type in the left dark lane, the full form
 // in the right half with air. 4.1–4.8 parked the mesh past the
 // right clip even at 1440px (lookAt only follows 18% of form X).
-const RIGHT_X = 1.92
-const HERO_BRAIN_X = 1.58
+const RIGHT_X = 1.72
+const HERO_BRAIN_X = 1.74
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
-const NOTES_X = 2.05
-const EARTH_X = 2.12
+const NOTES_X = 1.78
+const EARTH_X = 1.78
 
 // Phone (~390px, ~0.46 aspect): share the beat. Type keeps the
 // top-left lane; the form is centered under it, fully in frustum.
@@ -163,8 +163,8 @@ const MOBILE_RESULTS_SCALE = 0.28
 const MOBILE_MORPH_SCALE = 0.36
 const MOBILE_BULB_SCALE = 0.28
 const MOBILE_EARTH_SCALE = 0.22
-const DESKTOP_HOLD_SCALE = 0.86
-const DESKTOP_HERO_SCALE = 0.98
+const DESKTOP_HOLD_SCALE = 0.78
+const DESKTOP_HERO_SCALE = 0.90
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -2168,15 +2168,21 @@ function containFormInView() {
   const lookY = mobile
     ? transformTarget.y * 0.08
     : transformTarget.y * 0.42
+  const bulbCopy =
+    copyIsLive('.lb-intro') ||
+    copyIsLive('.lb-feature-1') ||
+    copyIsLive('.lb-feature-2') ||
+    copyIsLive('.lb-feature-3') ||
+    copyIsLive('.lb-feature-4')
   const padX = mobile
     ? (midHold ? 0.20 : 0.16)
-    : 0.09
+    : 0.13
   const padTop = mobile
-    ? (midHold ? 0.38 : 0.30)
-    : 0.10
-  const padBot = mobile
-    ? (midHold ? 0.22 : 0.18)
+    ? (bulbCopy ? 0.50 : midHold ? 0.38 : 0.30)
     : 0.12
+  const padBot = mobile
+    ? (midHold ? 0.20 : 0.18)
+    : 0.14
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
   const viewB = lookY - halfH * (1 - padBot)
@@ -2216,15 +2222,9 @@ function containFormInView() {
     ) {
       cap = 0.22
       transformTarget.y = Math.max(transformTarget.y, 0.04)
-    } else if (
-      copyIsLive('.lb-intro') ||
-      copyIsLive('.lb-feature-1') ||
-      copyIsLive('.lb-feature-2') ||
-      copyIsLive('.lb-feature-3') ||
-      copyIsLive('.lb-feature-4')
-    ) {
-      cap = 0.26
-      transformTarget.y = Math.max(transformTarget.y, 0.00)
+    } else if (bulbCopy) {
+      cap = 0.22
+      transformTarget.y = Math.max(transformTarget.y, -0.06)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -3688,48 +3688,49 @@ function createPage() {
     <section class="chapter chapter-lb-hold-item">
       <div class="copy copy-lane lb-feature-1">
         <h2>Session notes</h2>
-        <p>What we covered and what comes next.</p>
+        <p>What we covered and what comes next — written by the tutor who taught, not a template.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item">
       <div class="copy copy-lane lb-feature-2">
         <h2>Targeted practice</h2>
-        <p>Assignments based on what the student actually needs.</p>
+        <p>Homework that matches the weak spot from that session. Not a random worksheet pile.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item">
       <div class="copy copy-lane lb-feature-3">
         <h2>Skill tracking</h2>
-        <p>See what's improving and what still needs work.</p>
+        <p>See what’s sticking and what still needs work — week to week, in plain language.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item" id="notes">
       <div class="copy copy-lane lb-feature-4">
         <h2>Parent updates</h2>
-        <p>You're not left wondering how tutoring is going.</p>
+        <p>You’re not guessing how tutoring is going. You get the picture without sitting in the call.</p>
       </div>
     </section>
 
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
         <h2>Mentors who<br> stay.</h2>
+        <p>One dedicated tutor. Same face. Same plan.</p>
       </div>
     </section>
 
     <section class="chapter chapter-earth" id="grow">
       <div class="copy copy-lane earth-hold">
         <p class="eyebrow"><span class="beat-meta">Earth · </span>How they grow</p>
-        <h2>Support that grows with them.</h2>
+        <h2>Support that<br>grows with them.</h2>
         <p>Elementary through college. Same notes. Same system.</p>
       </div>
     </section>
 
     <section class="chapter chapter-results" id="plan">
       <div class="copy copy-lane copy-results">
-        <h2>A plan you can<br>actually see.</h2>
+        <h2><span class="plan-keep">A plan you can</span><br>actually see.</h2>
         <p>Notes after every session. Skill tracking. Parent updates.</p>
       </div>
     </section>

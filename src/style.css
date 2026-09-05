@@ -583,7 +583,7 @@ body.is-close-hold .scene-canvas {
   width: min(720px, 46vw);
   position: fixed;
   left: clamp(48px, 7vw, 120px);
-  top: calc(var(--mm-nav-h) + 48px);
+  top: calc(var(--mm-nav-h) + 56px);
   z-index: 10;
   pointer-events: none;
   opacity: 0;
@@ -603,16 +603,30 @@ body.is-close-hold .scene-canvas {
 .copy-hero {
   width: min(780px, 54vw);
   max-width: none;
-  top: calc(var(--mm-nav-h) + 56px);
+  top: calc(var(--mm-nav-h) + 64px);
   text-shadow: none;
 }
 
 .copy-lane {
   left: clamp(48px, 7vw, 120px);
-  top: calc(var(--mm-nav-h) + 48px);
-  width: min(560px, 40vw);
+  top: calc(var(--mm-nav-h) + 56px);
+  width: min(620px, 44vw);
   max-width: none;
   text-align: left;
+}
+
+.copy-results {
+  width: min(680px, 48vw);
+}
+
+.copy-results h2 {
+  font-size: clamp(44px, 5.2vw, 76px);
+  line-height: 0.98;
+  text-wrap: pretty;
+}
+
+.plan-keep {
+  white-space: nowrap;
 }
 
 .t3-intro {
@@ -725,7 +739,7 @@ body.is-close-hold .scene-canvas {
 
 .copy-team {
   left: clamp(48px, 7vw, 120px);
-  top: calc(var(--mm-nav-h) + 48px);
+  top: calc(var(--mm-nav-h) + 56px);
   width: min(720px, 46vw);
   max-width: none;
   text-align: left;
@@ -736,6 +750,15 @@ body.is-close-hold .scene-canvas {
   line-height: 0.92;
   letter-spacing: -0.06em;
   text-wrap: pretty;
+  color: #fff;
+}
+
+.copy-team p {
+  margin-top: 18px;
+  max-width: 28ch;
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-weight: 500;
+  line-height: 1.4;
   color: #fff;
 }
 
@@ -843,9 +866,9 @@ body.is-close-hold .scene-canvas {
 }
 
 .eyebrow {
-  margin-bottom: 18px;
-  font-size: 11px;
-  letter-spacing: 0.32em;
+  margin-bottom: 14px;
+  font-size: 10px;
+  letter-spacing: 0.26em;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--mm-orange);
@@ -856,6 +879,7 @@ body.is-close-hold .scene-canvas {
   letter-spacing: inherit;
   text-transform: inherit;
   color: inherit;
+  opacity: 0.72;
 }
 
 .copy h1,
@@ -1032,11 +1056,12 @@ body.is-close-hold .scene-canvas {
 
 .copy p {
   max-width: 560px;
-  margin-top: 28px;
+  margin-top: 20px;
   font-size: 20px;
   font-weight: 500;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--mm-ink);
+  text-wrap: pretty;
 }
 
 .copy-results {
@@ -1294,7 +1319,7 @@ body.is-close-hold .scene-canvas {
   .chapter-hero {
     min-height: 100vh;
     min-height: 100svh;
-    padding-top: calc(var(--mm-nav-h) + 36px);
+    padding-top: calc(var(--mm-nav-h) + 44px);
   }
 
   .chapter-morph {
@@ -1355,13 +1380,13 @@ body.is-close-hold .scene-canvas {
     right: auto;
     width: min(92vw, 400px);
     max-width: calc(100vw - 32px);
-    top: calc(var(--mm-nav-h) + 28px);
+    top: calc(var(--mm-nav-h) + 36px);
     transform: none;
     text-align: left;
   }
 
   .copy-hero {
-    top: calc(var(--mm-nav-h) + 36px);
+    top: calc(var(--mm-nav-h) + 44px);
     left: 16px;
     right: 16px;
     width: auto;
@@ -1439,9 +1464,17 @@ body.is-close-hold .scene-canvas {
 
   .copy-lane,
   .t3-intro {
-    top: calc(var(--mm-nav-h) + 32px);
-    width: min(78vw, 300px);
+    top: calc(var(--mm-nav-h) + 40px);
+    width: min(92vw, 368px);
+    max-width: calc(100vw - 32px);
     max-height: none;
+  }
+
+  .copy-lane p:not(.eyebrow):not(.teach-subjects):not(.teach-range) {
+    margin-top: 12px;
+    max-width: none;
+    font-size: 15px;
+    line-height: 1.42;
   }
 
   .beat-meta {
@@ -1449,7 +1482,7 @@ body.is-close-hold .scene-canvas {
   }
 
   .copy-results {
-    top: calc(var(--mm-nav-h) + 48px);
+    top: calc(var(--mm-nav-h) + 44px);
     width: min(92vw, 368px);
     max-width: calc(100vw - 32px);
     overflow: visible;
@@ -1485,10 +1518,16 @@ body.is-close-hold .scene-canvas {
   }
 
   .copy-team {
-    top: calc(var(--mm-nav-h) + 32px);
+    top: calc(var(--mm-nav-h) + 40px);
     width: min(86vw, 340px);
     transform: none;
     text-align: left;
+  }
+
+  .copy-team p {
+    margin-top: 12px;
+    max-width: 22ch;
+    font-size: 16px;
   }
 
   .t5-main {
@@ -1606,7 +1645,7 @@ body.is-close-hold .scene-canvas {
 ========================= */
 
 body.is-site-page {
-  scroll-padding-top: calc(var(--mm-nav-h) + 24px);
+  scroll-padding-top: calc(var(--mm-nav-h) + 32px);
 }
 
 body.is-site-page .metaminds-nav {
@@ -1619,15 +1658,24 @@ body.is-site-page .metaminds-nav {
   z-index: 3;
   width: min(1120px, calc(100% - 80px));
   margin: 0 auto;
-  padding: calc(var(--mm-nav-h) + 56px) 0 96px;
+  padding: calc(var(--mm-nav-h) + 64px) 0 96px;
 }
 
 .page-hero,
 .page-hero h1,
+.page-hero h2,
 .page-hero .eyebrow,
+.page-block,
+.page-block h2,
 .rate-block,
-.rate-table {
-  scroll-margin-top: calc(var(--mm-nav-h) + 24px);
+.rate-table,
+.faq-block,
+.after-send,
+#why,
+#founders,
+#faq,
+#after-you-send {
+  scroll-margin-top: calc(var(--mm-nav-h) + 32px);
 }
 
 .page-hero {
@@ -1685,7 +1733,7 @@ body.is-site-page .metaminds-nav {
 }
 
 .page-block {
-  padding: 56px 0 24px;
+  padding: 48px 0 20px;
 }
 
 .page-split {
@@ -1761,18 +1809,71 @@ body.is-site-page .metaminds-nav {
   border: 1px solid rgba(243, 246, 249, 0.1);
 }
 
+.form-intro h2,
+.consult-success h2 {
+  font-size: clamp(24px, 2.8vw, 30px);
+  letter-spacing: -0.03em;
+  line-height: 1.18;
+}
+
+.form-intro p {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.consult-form .field-help,
+.field-help {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--mm-mute);
+}
+
 .consult-form {
   display: grid;
   gap: 16px;
 }
 
-.consult-form label,
+.consult-success {
+  display: grid;
+  align-content: start;
+}
+
+.consult-success .eyebrow {
+  margin-bottom: 10px;
+}
+
+.consult-success > p {
+  margin-top: 12px;
+}
+
+.consult-success .primary-button {
+  margin-top: 22px;
+}
+
+.consult-success .page-quiet {
+  margin-top: 16px;
+}
+
+.after-send {
+  max-width: 720px;
+}
+
+.consult-form label:not(.check),
 .consult-form fieldset {
   display: grid;
   gap: 8px;
   border: 0;
   padding: 0;
   margin: 0;
+}
+
+.consult-form .label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .consult-form span,
@@ -1861,8 +1962,10 @@ body.is-site-page .metaminds-nav {
 #plan,
 #bulb,
 #notes,
-#results {
-  scroll-margin-top: calc(var(--mm-nav-h) + 16px);
+#results,
+#s1,
+#consultation {
+  scroll-margin-top: calc(var(--mm-nav-h) + 28px);
 }
 
 .rate-block {
@@ -2021,25 +2124,30 @@ body.is-site-page .metaminds-nav {
 }
 
 .about-story p {
+  margin-top: 14px;
   font-size: 18px;
-  line-height: 1.6;
+  line-height: 1.55;
+}
+
+.about-story p:first-of-type {
+  margin-top: 16px;
 }
 
 .founders-lead {
-  margin-top: 14px;
+  margin-top: 10px;
   max-width: 42ch;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--mm-mute);
 }
 
 .founders {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 40px 56px;
+  gap: 32px 56px;
   max-width: 920px;
-  padding: 20px 0 8px;
+  padding: 24px 0 8px;
 }
 
 .founder {
@@ -2056,42 +2164,83 @@ body.is-site-page .metaminds-nav {
 }
 
 .founder p {
-  margin-top: 10px;
+  margin-top: 6px;
   max-width: 28ch;
   font-size: 15px;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.4;
+  color: var(--mm-mute);
+}
+
+.faq-list {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0 0;
+  max-width: 760px;
+}
+
+.faq-item {
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: rgba(8, 12, 22, 0.56);
+  border: 1px solid rgba(243, 246, 249, 0.1);
+}
+
+.faq-item dt {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #fff;
+}
+
+.faq-item dd {
+  margin: 8px 0 0;
+  max-width: 58ch;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
   color: var(--mm-mute);
 }
 
 @media (max-width: 767px) {
   body.is-site-page {
-    scroll-padding-top: calc(var(--mm-nav-h) + 28px);
+    scroll-padding-top: calc(var(--mm-nav-h) + 36px);
     overflow-x: hidden;
   }
 
   .site-shell {
     width: calc(100% - 48px);
-    padding: calc(var(--mm-nav-h) + 56px) 0 72px;
+    padding: calc(var(--mm-nav-h) + 64px) 0 72px;
   }
 
   .page-hero,
   .page-hero h1,
+  .page-hero h2,
   .page-hero .eyebrow,
+  .page-block,
+  .page-block h2,
   .rate-block,
-  .rate-table {
-    scroll-margin-top: calc(var(--mm-nav-h) + 28px);
+  .rate-table,
+  .faq-block,
+  .after-send,
+  #why,
+  #founders,
+  #faq,
+  #after-you-send {
+    scroll-margin-top: calc(var(--mm-nav-h) + 36px);
   }
 
   .page-hero {
-    padding-top: 12px;
-    padding-bottom: 48px;
+    padding-top: 16px;
+    padding-bottom: 40px;
   }
 
   .founders {
     grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 8px 0 40px;
+    gap: 22px;
+    padding: 20px 0 28px;
   }
 
   .founder h2,
@@ -2101,15 +2250,27 @@ body.is-site-page .metaminds-nav {
 
   .page-split,
   .include-grid,
-  .program-grid,
-  .check-grid {
+  .program-grid {
     grid-template-columns: 1fr;
+  }
+
+  .check-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .consult-form,
   .consult-success,
   .page-cta-band {
-    padding: 20px;
+    padding: 22px 20px;
+  }
+
+  .form-intro h2,
+  .consult-success h2 {
+    font-size: clamp(22px, 6.4vw, 28px);
+  }
+
+  .faq-item {
+    padding: 16px 16px;
   }
 
   .site-shell h1 {
@@ -2128,7 +2289,7 @@ body.is-site-page .metaminds-nav {
 
   .rate-table {
     display: grid;
-    gap: 14px;
+    gap: 12px;
     width: 100%;
     min-width: 0;
     border-collapse: collapse;
@@ -2144,10 +2305,10 @@ body.is-site-page .metaminds-nav {
 
   .rate-table tbody tr {
     display: grid;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
-    padding: 20px 18px;
-    border-radius: 18px;
+    padding: 16px 16px;
+    border-radius: 16px;
     background: rgba(8, 12, 22, 0.72);
     border: 1px solid rgba(243, 246, 249, 0.1);
   }
@@ -2216,15 +2377,15 @@ body.is-site-page .metaminds-nav {
   .copy-lane,
   .copy-team,
   .copy-mid {
-    top: calc(var(--mm-nav-h) + 16px);
+    top: calc(var(--mm-nav-h) + 22px);
   }
 
   .copy-hero {
-    top: calc(var(--mm-nav-h) + 18px);
+    top: calc(var(--mm-nav-h) + 24px);
   }
 
   .chapter-hero {
-    padding-top: calc(var(--mm-nav-h) + 18px);
+    padding-top: calc(var(--mm-nav-h) + 24px);
   }
 
   .copy h1,

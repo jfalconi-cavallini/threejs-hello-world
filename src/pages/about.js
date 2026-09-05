@@ -17,6 +17,7 @@ mountPage({
       <p>Tutoring was leaving parents in the dark. The hour ended, and so did the trail.</p>
       <p>MetaMinds started in Dallas–Fort Worth around a simple bet: one dedicated mentor, a plan you can actually see, and notes after every session — written by the tutor who taught.</p>
       <p>AI can help a mentor prepare. It never takes the chair. The product is the mentor who stays.</p>
+      <p>We built for parents who want proof of work — not vibes after a Zoom.</p>
     </section>
 
     <section class="page-block" id="founders" aria-label="The people building it">
@@ -75,6 +76,7 @@ mountPage({
           <p>
             Diagnose the weak spots, build strategy, practice
             deliberately, and track what moved. No average-score theater.
+            Individual results vary.
           </p>
         </article>
         <article id="ap">
@@ -95,19 +97,27 @@ mountPage({
     </section>
 
     <section class="page-block">
-      <h2>How a family actually works with us</h2>
+      <h2>How a family works</h2>
       <ol class="steps">
         <li>
           <strong>Free 30-minute consult.</strong>
-          We listen first: grade, goals, SAT / ACT / AP / math / coding.
+          We listen first: grade, goals, SAT / ACT / AP / math / coding — and what already isn’t working.
         </li>
         <li>
           <strong>One dedicated tutor.</strong>
-          Rate follows your child’s level. Same system.
+          Rate follows your child’s level. Same system whether Core, Experienced, Senior, or Lead.
+        </li>
+        <li>
+          <strong>A plan you can actually see.</strong>
+          We don’t shuffle tutors week to week. Your child keeps the mentor who knows the work.
         </li>
         <li>
           <strong>Notes after every session.</strong>
           You see what was taught and what comes next. No exceptions.
+        </li>
+        <li>
+          <strong>You stay in the loop.</strong>
+          Skill tracking and parent updates so you’re never guessing between sessions.
         </li>
       </ol>
     </section>
