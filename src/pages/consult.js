@@ -39,16 +39,10 @@ mountPage({
             your kid instead of one.
           </li>
         </ul>
-        <div class="consult-rates">
-          <div>
-            <span class="consult-rate-label">Premium</span>
-            <span class="consult-rate-value">From $70/hr</span>
-          </div>
-          <div>
-            <span class="consult-rate-label">College Mentor</span>
-            <span class="consult-rate-value">From $50/hr</span>
-          </div>
-        </div>
+        <p class="consult-rate-link">
+          Rates by grade and hours —
+          <a href="/pricing">see Mentoring rates</a>.
+        </p>
         <p class="page-quiet">
           Rates lock after the consult. Virtual first, with in-person
           only where a tutor is already nearby.
@@ -120,7 +114,7 @@ mountPage({
           Keep an eye on your inbox. If you’d rather send this request
           now, <a data-mail-link href="mailto:${EMAIL}">email the academy</a>.
         </p>
-        <a class="primary-button" href="/pricing">See mentoring tiers${ARROW_ICON}</a>
+        <a class="primary-button" href="/pricing">See Mentoring rates${ARROW_ICON}</a>
       </div>
       </div>
     </section>

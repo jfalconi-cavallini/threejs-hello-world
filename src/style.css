@@ -1557,12 +1557,8 @@ body.is-site-page .metaminds-nav {
 .page-hero,
 .page-hero h1,
 .page-hero .eyebrow,
-.tier-grid,
-.tier-card,
-.tier-card h2,
-.tier-kicker,
-#premium,
-#college {
+.rate-block,
+.rate-table {
   scroll-margin-top: calc(var(--mm-nav-h) + 24px);
 }
 
@@ -1655,34 +1651,23 @@ body.is-site-page .metaminds-nav {
   color: #fff;
 }
 
-.consult-rates {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.consult-rate-link {
   margin-top: 28px;
+  max-width: 46ch;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--mm-mute);
 }
 
-.consult-rates > div {
-  padding: 16px 18px;
-  border-radius: 16px;
-  border: 1px solid rgba(243, 246, 249, 0.1);
-}
-
-.consult-rate-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mm-orange);
-}
-
-.consult-rate-value {
-  display: block;
-  margin-top: 6px;
-  font-family: var(--font-display);
-  font-size: 22px;
+.consult-rate-link a {
   color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.consult-rate-link a:hover {
+  color: var(--mm-orange);
 }
 
 [hidden] {
@@ -1774,7 +1759,6 @@ body.is-site-page .metaminds-nav {
 
 .consult-form .primary-button,
 .consult-success .primary-button,
-.tier-card .primary-button,
 .page-cta-band .primary-button,
 .page-hero .primary-button,
 .page-block .primary-button {
@@ -1782,7 +1766,6 @@ body.is-site-page .metaminds-nav {
   width: fit-content;
 }
 
-.tier-grid,
 .include-grid,
 .program-grid {
   display: grid;
@@ -1790,7 +1773,6 @@ body.is-site-page .metaminds-nav {
   gap: 22px;
 }
 
-.tier-card,
 .include-grid article,
 .program-grid article {
   padding: 28px;
@@ -1799,54 +1781,102 @@ body.is-site-page .metaminds-nav {
   border: 1px solid rgba(243, 246, 249, 0.1);
 }
 
-.tier-card--premium {
-  border-color: rgba(214, 81, 8, 0.45);
-}
-
-.tier-card--college {
-  border-color: rgba(42, 79, 145, 0.55);
-}
-
 #team {
   scroll-margin-top: calc(var(--mm-nav-h) + 16px);
 }
 
-.tier-kicker {
-  margin: 0;
-  font-size: 11px;
+.rate-block {
+  padding: 8px 0 16px;
+}
+
+.rate-whisper {
+  margin: 0 0 36px;
+  max-width: 46ch;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+  color: rgba(243, 246, 249, 0.72);
+}
+
+.rate-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -8px;
+  padding: 0 8px 8px;
+}
+
+.rate-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.rate-table th,
+.rate-table td {
+  padding: 28px 24px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(243, 246, 249, 0.1);
+}
+
+.rate-table thead th {
+  padding-top: 0;
+  padding-bottom: 20px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--mm-orange);
+  color: var(--mm-mute);
+  border-bottom: 1px solid rgba(243, 246, 249, 0.16);
 }
 
-.tier-card--college .tier-kicker {
-  color: #8eabdb;
+.rate-table thead th:not(:first-child),
+.rate-table tbody td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-.tier-rate {
-  margin: 10px 0 0;
+.rate-table tbody th {
+  width: 38%;
+  padding-right: 36px;
+}
+
+.rate-table tbody td {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.rate-level {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
   color: #fff;
 }
 
-.tier-card ul {
-  margin: 20px 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 10px;
-}
-
-.tier-card li {
+.rate-detail {
+  display: block;
+  margin-top: 8px;
+  max-width: 34ch;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
   color: var(--mm-mute);
-  font-size: 15px;
 }
 
-.tier-card li::before {
-  content: "— ";
-  color: var(--mm-orange);
+.rate-table tbody tr:last-child th,
+.rate-table tbody tr:last-child td {
+  border-bottom: 0;
+  padding-bottom: 8px;
 }
 
 .steps {
@@ -1936,27 +1966,6 @@ body.is-site-page .metaminds-nav {
     scroll-padding-top: calc(var(--mm-nav-h) + 20px);
   }
 
-  /* First lines stay below the 84px bar for the whole scroll
-     through both cards — not only scrollIntoView at rest. */
-  #premium,
-  #college,
-  .tier-card,
-  .tier-card .tier-head,
-  .tier-card h2,
-  .tier-card .tier-kicker {
-    scroll-margin-top: calc(var(--mm-nav-h) + 16px);
-  }
-
-  .tier-card .tier-head {
-    position: sticky;
-    top: var(--mm-nav-h);
-    z-index: 6;
-    background: #080c16;
-    box-shadow: 0 14px 18px -6px #080c16;
-    padding: 10px 0 12px;
-    margin: -4px 0 0;
-  }
-
   .site-shell {
     width: calc(100% - 48px);
     padding: calc(var(--mm-nav-h) + 40px) 0 72px;
@@ -1965,12 +1974,8 @@ body.is-site-page .metaminds-nav {
   .page-hero,
   .page-hero h1,
   .page-hero .eyebrow,
-  .tier-grid,
-  .tier-card,
-  .tier-card h2,
-  .tier-kicker,
-  #premium,
-  #college {
+  .rate-block,
+  .rate-table {
     scroll-margin-top: calc(var(--mm-nav-h) + 20px);
   }
 
@@ -1989,32 +1994,62 @@ body.is-site-page .metaminds-nav {
     font-size: clamp(28px, 8vw, 34px);
   }
 
-  .tier-grid {
-    padding-top: 16px;
-  }
-
   .page-split,
-  .tier-grid,
   .include-grid,
   .program-grid,
-  .consult-rates,
   .check-grid {
     grid-template-columns: 1fr;
   }
 
   .consult-form,
   .consult-success,
-  .tier-card,
   .page-cta-band {
     padding: 20px;
   }
 
-  .tier-card {
-    padding-top: 28px;
-  }
-
   .site-shell h1 {
     font-size: clamp(34px, 10vw, 46px);
+  }
+
+  .rate-whisper {
+    margin-bottom: 22px;
+  }
+
+  .rate-table-wrap {
+    margin: 0 -20px;
+    padding: 0 20px 12px;
+  }
+
+  .rate-table {
+    min-width: 640px;
+  }
+
+  .rate-table th,
+  .rate-table td {
+    padding: 22px 16px;
+  }
+
+  .rate-table thead th {
+    padding-bottom: 16px;
+    font-size: 11px;
+  }
+
+  .rate-table tbody th {
+    min-width: 220px;
+    padding-right: 20px;
+  }
+
+  .rate-table tbody td {
+    font-size: 18px;
+    padding-left: 12px;
+  }
+
+  .rate-level {
+    font-size: 20px;
+  }
+
+  .rate-detail {
+    font-size: 13px;
   }
 }
 

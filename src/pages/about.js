@@ -92,7 +92,7 @@ mountPage({
         </li>
         <li>
           <strong>One dedicated tutor.</strong>
-          Premium from $70/hr or College Mentor from $50/hr — same system.
+          Rate follows your child’s level. Same system — one dedicated tutor and notes after every session.
         </li>
         <li>
           <strong>Notes after every session.</strong>

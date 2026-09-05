@@ -5,62 +5,71 @@ mountPage({
   page: 'pricing',
   html: `
     <section class="page-hero">
-      <p class="eyebrow">Mentoring tiers</p>
-      <h1>Same system. The mentor who stays is the point.</h1>
+      <p class="eyebrow">Rates</p>
+      <h1>Clear rates. The mentor who stays is the point.</h1>
       <p class="page-lead">
-        Every family gets one dedicated tutor, a plan you can follow,
-        and notes after every session. The difference is who sits
-        across from your child.
+        One dedicated tutor. Notes after every session. Rate follows
+        your child’s level and how many hours you book.
       </p>
     </section>
 
-    <section class="tier-grid" aria-label="Mentoring tiers">
-      <article class="tier-card tier-card--premium" id="premium">
-        <div class="tier-head">
-          <p class="tier-kicker">Premium</p>
-          <h2>Experienced specialists</h2>
-        </div>
-        <p class="tier-rate">From $70/hr</p>
-        <p>
-          Practicing engineers, scientists, and subject specialists
-          who have taught this material for years. Built for
-          SAT, ACT, AP, and advanced coursework.
-        </p>
-        <ul>
-          <li>One dedicated tutor</li>
-          <li>Session notes after every session</li>
-          <li>SAT, ACT, AP, math, and coding</li>
-          <li>Single session through longer packages</li>
-        </ul>
-        <a class="primary-button" href="/consult">
-          Book a free consult
-          ${ARROW_ICON}
-        </a>
-      </article>
-
-      <article class="tier-card tier-card--college" id="college">
-        <div class="tier-head">
-          <p class="tier-kicker">College Mentor</p>
-          <h2>Close to the coursework</h2>
-        </div>
-        <p class="tier-rate">From $50/hr</p>
-        <p>
-          High-achieving college students, selected and supervised
-          by MetaMinds. The full system — notes, practice, parent
-          updates, skill tracking — with a mentor still inside
-          the work your child is doing.
-        </p>
-        <ul>
-          <li>One dedicated tutor</li>
-          <li>Session notes after every session</li>
-          <li>High school, middle school, and elementary — same notes, same system.</li>
-          <li>Single session through longer packages</li>
-        </ul>
-        <a class="primary-button" href="/consult">
-          Book a free consult
-          ${ARROW_ICON}
-        </a>
-      </article>
+    <section class="rate-block" aria-label="Mentoring rates">
+      <p class="rate-whisper">Bigger packages, lower rate. All rates are per hour.</p>
+      <div class="rate-table-wrap">
+        <table class="rate-table">
+          <thead>
+            <tr>
+              <th scope="col">Level</th>
+              <th scope="col">1 hr</th>
+              <th scope="col">4 hr</th>
+              <th scope="col">8 hr</th>
+              <th scope="col">20 hr</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">
+                <span class="rate-level">College</span>
+                <span class="rate-detail">Lead mentors · college coursework</span>
+              </th>
+              <td>$95/hr</td>
+              <td>$85/hr</td>
+              <td>$75/hr</td>
+              <td>$65/hr</td>
+            </tr>
+            <tr>
+              <th scope="row">
+                <span class="rate-level">High school</span>
+                <span class="rate-detail">Experienced and senior mentors · SAT, ACT, AP, and high school courses</span>
+              </th>
+              <td>$80/hr</td>
+              <td>$70/hr</td>
+              <td>$60/hr</td>
+              <td>$50/hr</td>
+            </tr>
+            <tr>
+              <th scope="row">
+                <span class="rate-level">Middle school</span>
+                <span class="rate-detail">Core and experienced mentors · middle school courses</span>
+              </th>
+              <td>$55/hr</td>
+              <td>$50/hr</td>
+              <td>$45/hr</td>
+              <td>$40/hr</td>
+            </tr>
+            <tr>
+              <th scope="row">
+                <span class="rate-level">Elementary</span>
+                <span class="rate-detail">Core mentors · elementary foundations</span>
+              </th>
+              <td>$50/hr</td>
+              <td>$45/hr</td>
+              <td>$40/hr</td>
+              <td>$35/hr</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="page-block">
@@ -85,20 +94,9 @@ mountPage({
       </div>
     </section>
 
-    <section class="page-block">
-      <h2>Packages after the consult.</h2>
-      <p>
-        Start with a free 30 minutes. We’ll match the mentor and the hours to your kid — not a grid you have to decode alone.
-      </p>
-      <a class="primary-button" href="/consult">
-        Book free 30-minute consult
-        ${ARROW_ICON}
-      </a>
-    </section>
-
     <section class="page-cta-band">
-      <h2>Not sure which mentor fits?</h2>
-      <p>The free 30-minute consult is how we decide — together, in DFW or on a call.</p>
+      <h2>Not sure which rate fits?</h2>
+      <p>The free 30-minute consult is how we match level, mentor, and hours — together, in DFW or on Zoom.</p>
       <a class="primary-button" href="/consult">
         Book free 30-minute consult
         ${ARROW_ICON}
