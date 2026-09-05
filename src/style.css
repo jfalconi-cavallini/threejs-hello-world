@@ -2584,6 +2584,11 @@ body.is-site-page .metaminds-nav {
   max-width: 62ch;
 }
 
+.home-after .page-block > p > a {
+  color: var(--mm-orange);
+  font-weight: 700;
+}
+
 @media (max-width: 767px) {
   .pathway-grid,
   .score-grid {
