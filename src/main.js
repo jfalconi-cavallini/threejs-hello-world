@@ -2168,14 +2168,20 @@ function containFormInView() {
   const lookY = mobile
     ? transformTarget.y * 0.08
     : transformTarget.y * 0.42
+  const bulbCopy =
+    copyIsLive('.lb-intro') ||
+    copyIsLive('.lb-feature-1') ||
+    copyIsLive('.lb-feature-2') ||
+    copyIsLive('.lb-feature-3') ||
+    copyIsLive('.lb-feature-4')
   const padX = mobile
     ? (midHold ? 0.20 : 0.16)
     : 0.09
   const padTop = mobile
-    ? (midHold ? 0.38 : 0.30)
+    ? (bulbCopy ? 0.50 : midHold ? 0.38 : 0.30)
     : 0.10
   const padBot = mobile
-    ? (midHold ? 0.22 : 0.18)
+    ? (midHold ? 0.20 : 0.18)
     : 0.12
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
@@ -2216,15 +2222,9 @@ function containFormInView() {
     ) {
       cap = 0.22
       transformTarget.y = Math.max(transformTarget.y, 0.04)
-    } else if (
-      copyIsLive('.lb-intro') ||
-      copyIsLive('.lb-feature-1') ||
-      copyIsLive('.lb-feature-2') ||
-      copyIsLive('.lb-feature-3') ||
-      copyIsLive('.lb-feature-4')
-    ) {
-      cap = 0.26
-      transformTarget.y = Math.max(transformTarget.y, 0.00)
+    } else if (bulbCopy) {
+      cap = 0.22
+      transformTarget.y = Math.max(transformTarget.y, -0.06)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -3688,34 +3688,35 @@ function createPage() {
     <section class="chapter chapter-lb-hold-item">
       <div class="copy copy-lane lb-feature-1">
         <h2>Session notes</h2>
-        <p>What we covered and what comes next.</p>
+        <p>What we covered and what comes next — written by the tutor who taught, not a template.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item">
       <div class="copy copy-lane lb-feature-2">
         <h2>Targeted practice</h2>
-        <p>Assignments based on what the student actually needs.</p>
+        <p>Homework that matches the weak spot from that session. Not a random worksheet pile.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item">
       <div class="copy copy-lane lb-feature-3">
         <h2>Skill tracking</h2>
-        <p>See what's improving and what still needs work.</p>
+        <p>See what’s sticking and what still needs work — week to week, in plain language.</p>
       </div>
     </section>
 
     <section class="chapter chapter-lb-hold-item" id="notes">
       <div class="copy copy-lane lb-feature-4">
         <h2>Parent updates</h2>
-        <p>You're not left wondering how tutoring is going.</p>
+        <p>You’re not guessing how tutoring is going. You get the picture without sitting in the call.</p>
       </div>
     </section>
 
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
         <h2>Mentors who<br> stay.</h2>
+        <p>One dedicated tutor. Same face. Same plan.</p>
       </div>
     </section>
 
