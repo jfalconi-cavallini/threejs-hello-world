@@ -137,21 +137,32 @@ const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
 
-const RIGHT_X = 4.15
-const HERO_BRAIN_X = 3.45
+// Desktop: Dala split — type in the left dark lane, the full form
+// in the right half with air. 4.1–4.8 parked the mesh past the
+// right clip even at 1440px (lookAt only follows 18% of form X).
+const RIGHT_X = 1.92
+const HERO_BRAIN_X = 1.58
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
-const NOTES_X = 4.55
-const EARTH_X = 4.85
+const NOTES_X = 2.05
+const EARTH_X = 2.12
 
-// Phone type sits top-left. Park the form stage-right / below —
-// never under the letters. (Was 0: centered on the H1.)
-const MOBILE_X = 3.35
-const MOBILE_HOLD_Y = -2.45
-const MOBILE_HERO_Y = -3.05
-const MOBILE_RESULTS_Y = -2.85
-const MOBILE_RESULTS_X = 3.15
+// Phone (~390px, ~0.46 aspect): share the beat. Type keeps the
+// top-left lane; the form is centered under it, fully in frustum.
+// 3.15–3.35 + a left camera dolly left only a right-edge sliver.
+const MOBILE_X = 0.14
+const MOBILE_HOLD_Y = -0.88
+const MOBILE_HERO_Y = -1.12
+const MOBILE_RESULTS_Y = -0.96
+const MOBILE_RESULTS_X = 0.14
+
+const MOBILE_HERO_SCALE = 0.70
+const MOBILE_HOLD_SCALE = 0.64
+const MOBILE_RESULTS_SCALE = 0.60
+const MOBILE_MORPH_SCALE = 0.76
+const DESKTOP_HOLD_SCALE = 0.92
+const DESKTOP_HERO_SCALE = 0.98
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -1899,7 +1910,7 @@ const story = {
 }
 
 const transformTarget = {
-  x: RIGHT_X,
+  x: HERO_BRAIN_X,
   y: 0,
 
   rx: 0,
@@ -1951,7 +1962,9 @@ function setTransformShot(
   stageIsTransform = true
   morphLerp =
     POSITION_LERP * 1.15
-  transformTarget.s = scale
+  transformTarget.s = isMobile()
+    ? Math.min(scale * 0.62, MOBILE_MORPH_SCALE)
+    : scale
   bloomTarget = MOBILE_AT_LOAD ? 0 : 0.2
 }
 
@@ -2017,16 +2030,17 @@ function applyScrollCamera(p) {
       (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
       (p >= STAGE.earthForm && p < STAGE.earthHold)
 
+    // Dolly back so the full form fits the tall-phone FOV. Do not
+    // yaw the camera left — that used to shove the mesh into a
+    // right-edge sliver while the rest of the beat stayed black.
     cameraTarget.z *= onLogo
       ? 2.05
       : onCopyHold
-        ? 1.42
-        : 1.28
+        ? 1.62
+        : 1.36
 
     if (onCopyHold && !onLogo) {
-      cameraTarget.x -= 0.95
-      // Do not zoom out further on hero — extra dolly recenters
-      // the brain onto "your kid."
+      cameraTarget.x *= 0.18
     }
   }
 
@@ -2064,6 +2078,103 @@ function copyHoldY(
       ? MOBILE_HOLD_Y
       : desktopY
   )
+}
+
+function formSizeForStage() {
+  if (
+    currentStage === 'lightbulb' ||
+    currentStage === 'lightbulb-forming' ||
+    currentStage === 'lightbulb-explosion'
+  ) {
+    return LIGHTBULB_SIZE
+  }
+
+  if (
+    currentStage === 'earth' ||
+    currentStage === 'earth-forming' ||
+    currentStage === 'earth-explosion'
+  ) {
+    return EARTH_SIZE
+  }
+
+  if (
+    currentStage === 'logo' ||
+    currentStage === 'logo-forming'
+  ) {
+    return LOGO_SIZE
+  }
+
+  return BRAIN_SIZE
+}
+
+// Keep the particle AABB inside the camera frustum at z=0.
+// Phone gets extra top pad so the form sits under the type lane
+// instead of recentering onto the H1.
+function containFormInView() {
+  if (
+    currentStage === 'logo' ||
+    currentStage === 'logo-forming'
+  ) {
+    return
+  }
+
+  const aspect =
+    window.innerWidth /
+    Math.max(window.innerHeight, 1)
+  const fov = cameraTarget.fov || 50
+  const z = cameraTarget.z || 4.55
+  const halfH =
+    Math.tan((fov * Math.PI) / 360) * z
+  const halfW = halfH * aspect
+  const mobile = isMobile()
+  const lookX = mobile
+    ? cameraTarget.x * 0.12 +
+      transformTarget.x * 0.48
+    : transformTarget.x * 0.18
+  const lookY = mobile
+    ? transformTarget.y * 0.10
+    : transformTarget.y * 0.42
+  const padX = mobile ? 0.12 : 0.07
+  const padTop = mobile ? 0.28 : 0.08
+  const padBot = mobile ? 0.10 : 0.07
+  const viewL = lookX - halfW * (1 - padX)
+  const viewR = lookX + halfW * (1 - padX)
+  const viewB = lookY - halfH * (1 - padBot)
+  const viewT = lookY + halfH * (1 - padTop)
+  const exploding =
+    currentStage.endsWith('explosion') ||
+    currentStage.endsWith('forming') ||
+    currentStage === 'brain-moving'
+  const size =
+    formSizeForStage() *
+    (exploding ? 1.15 : 1)
+  let radius =
+    size * 0.5 * transformTarget.s
+  const maxR = Math.min(
+    (viewR - viewL) * 0.48,
+    (viewT - viewB) * 0.48
+  )
+
+  if (radius > maxR && radius > 0) {
+    transformTarget.s *= maxR / radius
+    radius = maxR
+  }
+
+  if (transformTarget.x - radius < viewL) {
+    transformTarget.x = viewL + radius
+  }
+
+  if (transformTarget.x + radius > viewR) {
+    transformTarget.x = viewR - radius
+  }
+
+  if (transformTarget.y - radius < viewB) {
+    transformTarget.y = viewB + radius
+  }
+
+  if (transformTarget.y + radius > viewT) {
+    transformTarget.y = viewT - radius
+  }
 }
 
 // ======================================================
@@ -2186,6 +2297,7 @@ function updateStory() {
     )
 
     applyScrollCamera(p)
+    containFormInView()
 
     return
   }
@@ -2222,8 +2334,8 @@ function updateStory() {
 
     transformTarget.s =
       isMobile()
-        ? 0.46
-        : 0.82
+        ? MOBILE_HERO_SCALE
+        : DESKTOP_HERO_SCALE
 
     transformTarget.rx =
       -0.02
@@ -2459,8 +2571,8 @@ function updateStory() {
 
     transformTarget.s =
       isMobile()
-        ? 0.56
-        : 0.82
+        ? MOBILE_HOLD_SCALE
+        : DESKTOP_HOLD_SCALE
 
     transformTarget.rx = 0
 
@@ -2615,9 +2727,9 @@ function updateStory() {
     transformTarget.s =
       isMobile()
         ? resultsLive
-          ? 0.48
-          : 0.62
-        : 0.82
+          ? MOBILE_RESULTS_SCALE
+          : MOBILE_HOLD_SCALE
+        : DESKTOP_HOLD_SCALE
 
     // Spin is handled cheaply in animate().
     transformTarget.rx =
@@ -2675,7 +2787,7 @@ function updateStory() {
     ) {
       transformTarget.x = MOBILE_RESULTS_X
       transformTarget.y = MOBILE_RESULTS_Y
-      transformTarget.s = 0.48
+      transformTarget.s = MOBILE_RESULTS_SCALE
     }
 
     transformTarget.rx =
@@ -2787,7 +2899,8 @@ function updateStory() {
       0
   }
 
-  applyScrollCamera(p)
+    applyScrollCamera(p)
+    containFormInView()
 }
 
 // ======================================================
@@ -4278,10 +4391,17 @@ function animate() {
       ) *
       camChase
 
+    // Phone: follow the form in X so it stays in frame; barely
+    // follow Y so a below-type park does not recenter onto the H1.
+    const lookFollowX =
+      isMobile() ? 0.50 : 0.18
+    const lookFollowY =
+      isMobile() ? 0.10 : 0.42
+
     lookTarget.x +=
       (
         particles.position.x *
-        0.18 -
+        lookFollowX -
         lookTarget.x
       ) *
       camChase
@@ -4289,7 +4409,7 @@ function animate() {
     lookTarget.y +=
       (
         particles.position.y *
-        0.42 -
+        lookFollowY -
         lookTarget.y
       ) *
       camChase
