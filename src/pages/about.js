@@ -92,7 +92,7 @@ mountPage({
         </li>
         <li>
           <strong>One dedicated tutor.</strong>
-          Rate follows your child’s level. Same system — one dedicated tutor and notes after every session.
+          Rate follows your child’s level. Same system.
         </li>
         <li>
           <strong>Notes after every session.</strong>
