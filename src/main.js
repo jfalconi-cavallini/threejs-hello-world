@@ -157,12 +157,13 @@ const MOBILE_HERO_Y = -0.58
 const MOBILE_RESULTS_Y = -0.02
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 0.56
-const MOBILE_HOLD_SCALE = 0.30
-const MOBILE_RESULTS_SCALE = 0.28
-const MOBILE_MORPH_SCALE = 0.36
-const MOBILE_BULB_SCALE = 0.28
-const MOBILE_EARTH_SCALE = 0.22
+const MOBILE_HERO_SCALE = 0.62
+const MOBILE_HOLD_SCALE = 0.38
+const MOBILE_RESULTS_SCALE = 0.34
+const MOBILE_MORPH_SCALE = 0.42
+const MOBILE_BULB_SCALE = 0.38
+const MOBILE_EARTH_SCALE = 0.26
+const MOBILE_TEAM_SCALE = 0.40
 const DESKTOP_HOLD_SCALE = 0.78
 const DESKTOP_HERO_SCALE = 0.90
 
@@ -2099,10 +2100,53 @@ function midScrollCopyLive() {
     copyIsLive('.lb-feature-2') ||
     copyIsLive('.lb-feature-3') ||
     copyIsLive('.lb-feature-4') ||
+    copyIsLive('.t5-main') ||
     copyIsLive('.earth-hold') ||
     copyIsLive('.copy-results') ||
     copyIsLive('.copy-consult')
   )
+}
+
+function teamCopyLive() {
+  return copyIsLive('.t5-main')
+}
+
+function holdTeamMorph() {
+  if (!lightbulbPositions) {
+    return
+  }
+
+  if (currentStage !== 'lightbulb') {
+    writeStaticTarget(lightbulbPositions)
+  }
+
+  currentStage = 'lightbulb'
+  setHoldShot(5.18, 51, 0.08)
+  transformTarget.x = desktopOrMobileX(NOTES_X)
+  transformTarget.y = isMobile() ? 0.04 : copyHoldY(0)
+  transformTarget.s = isMobile()
+    ? MOBILE_TEAM_SCALE
+    : DESKTOP_HOLD_SCALE
+  transformTarget.rx = 0
+  transformTarget.ry = 0.05
+  transformTarget.rz = 0
+  bloomTarget = 0
+}
+
+function applyTeamHoldIfLive() {
+  if (!teamCopyLive()) {
+    return
+  }
+
+  if (
+    copyIsLive('.earth-hold') ||
+    copyIsLive('.copy-results') ||
+    copyIsLive('.copy-consult')
+  ) {
+    return
+  }
+
+  holdTeamMorph()
 }
 
 function formSizeForStage() {
@@ -2174,15 +2218,20 @@ function containFormInView() {
     copyIsLive('.lb-feature-2') ||
     copyIsLive('.lb-feature-3') ||
     copyIsLive('.lb-feature-4')
+  const teamCopy = teamCopyLive()
+  const tall =
+    currentStage === 'lightbulb' ||
+    currentStage === 'lightbulb-forming' ||
+    currentStage === 'lightbulb-explosion'
   const padX = mobile
-    ? (midHold ? 0.20 : 0.16)
-    : 0.13
-  const padTop = mobile
-    ? (bulbCopy ? 0.50 : midHold ? 0.38 : 0.30)
-    : 0.12
-  const padBot = mobile
-    ? (midHold ? 0.20 : 0.18)
+    ? (midHold ? 0.16 : 0.14)
     : 0.14
+  const padTop = mobile
+    ? (teamCopy ? 0.34 : bulbCopy ? 0.40 : midHold ? 0.32 : 0.26)
+    : (tall ? 0.12 : 0.12)
+  const padBot = mobile
+    ? (midHold ? 0.14 : 0.12)
+    : (tall ? 0.22 : 0.14)
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
   const viewB = lookY - halfH * (1 - padBot)
@@ -2194,12 +2243,8 @@ function containFormInView() {
   const size =
     formSizeForStage() *
     (exploding ? 1.18 : 1)
-  const tall =
-    currentStage === 'lightbulb' ||
-    currentStage === 'lightbulb-forming' ||
-    currentStage === 'lightbulb-explosion'
   let radius =
-    size * (tall ? 0.58 : 0.54) * transformTarget.s
+    size * (tall ? (mobile ? 0.58 : 0.66) : 0.54) * transformTarget.s
   const maxR = Math.min(
     (viewR - viewL) * 0.42,
     (viewT - viewB) * 0.42
@@ -2215,16 +2260,19 @@ function containFormInView() {
       -0.16,
       Math.min(0.16, transformTarget.x)
     )
-    let cap = midHold ? 0.32 : 0.48
+    let cap = midHold ? 0.42 : 0.56
     if (
       copyIsLive('.earth-hold') ||
       copyIsLive('.copy-results')
     ) {
-      cap = 0.22
+      cap = 0.28
       transformTarget.y = Math.max(transformTarget.y, 0.04)
+    } else if (teamCopy) {
+      cap = 0.42
+      transformTarget.y = Math.max(transformTarget.y, 0.02)
     } else if (bulbCopy) {
-      cap = 0.22
-      transformTarget.y = Math.max(transformTarget.y, -0.06)
+      cap = 0.38
+      transformTarget.y = Math.max(transformTarget.y, -0.02)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -2370,6 +2418,7 @@ function updateStory() {
     )
 
     applyScrollCamera(p)
+    applyTeamHoldIfLive()
     containFormInView()
 
     return
@@ -2978,6 +3027,7 @@ function updateStory() {
   }
 
     applyScrollCamera(p)
+    applyTeamHoldIfLive()
     containFormInView()
 }
 
@@ -4571,15 +4621,11 @@ function animate() {
       || document.querySelector('.earth-hold')
         ?.classList.contains('is-live') === true
 
-    const copyTeamLive =
-      document.querySelector('.copy-team.is-live') != null
-
-    // Phone TEAM / programs: exploding triangles filled the type.
-    // Empty black behind "Mentors who stay." is the hold look.
+    // Close / consult hides the particle stage for the lockup plate.
+    // TEAM keeps a settled bulb hold — empty black was a void.
     const hideStage =
       onLogo ||
-      consultLive ||
-      (isMobile() && copyTeamLive)
+      consultLive
 
     document.body.classList.toggle(
       'is-close-hold',
