@@ -2209,10 +2209,24 @@ function containFormInView() {
       -0.16,
       Math.min(0.16, transformTarget.x)
     )
-    transformTarget.s = Math.min(
-      transformTarget.s,
-      midHold ? 0.32 : 0.48
-    )
+    let cap = midHold ? 0.32 : 0.48
+    if (
+      copyIsLive('.earth-hold') ||
+      copyIsLive('.copy-results')
+    ) {
+      cap = 0.22
+      transformTarget.y = Math.max(transformTarget.y, 0.04)
+    } else if (
+      copyIsLive('.lb-intro') ||
+      copyIsLive('.lb-feature-1') ||
+      copyIsLive('.lb-feature-2') ||
+      copyIsLive('.lb-feature-3') ||
+      copyIsLive('.lb-feature-4')
+    ) {
+      cap = 0.26
+      transformTarget.y = Math.max(transformTarget.y, 0.00)
+    }
+    transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
       radius,
       size * 0.54 * transformTarget.s
