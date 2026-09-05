@@ -3498,7 +3498,7 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <h1>A mentor who<br>stays with<br>your kid.</h1>
+        <h1>A mentor who<br> stays with<br> your kid.</h1>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3515,7 +3515,7 @@ function createPage() {
 
     <section class="chapter chapter-lb-hold-item" id="plan">
       <div class="copy copy-lane lb-intro">
-        <h2>Tutoring shouldn't disappear when the call ends.</h2>
+        <h2>Tutoring shouldn’t disappear when the hour ends.</h2>
       </div>
     </section>
 

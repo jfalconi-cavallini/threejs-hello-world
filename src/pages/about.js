@@ -6,11 +6,9 @@ mountPage({
   html: `
     <section class="page-hero">
       <p class="eyebrow">About MetaMinds</p>
-      <h1>Mentors who<br>stay.</h1>
+      <h1>Mentors who stay.</h1>
       <p class="page-lead">
-        A dedicated tutor for your kid. A plan you can actually see.
-        Dallas–Fort Worth roots, virtual first, so the right mentor
-        does not have to live down the street.
+        Dallas–Fort Worth. Zoom. The right mentor doesn’t have to live down the street.
       </p>
     </section>
 
@@ -106,7 +104,10 @@ mountPage({
     <section class="page-cta-band">
       <h2>Ready to meet the mentor who stays?</h2>
       <p>Book the free consult. We’ll take it from there.</p>
-      <a class="primary-button" href="/consult">Book free 30-minute consult${ARROW_ICON}</a>
+      <a class="primary-button" href="/consult">
+        Book free 30-minute consult
+        ${ARROW_ICON}
+      </a>
     </section>
   `,
 })

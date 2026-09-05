@@ -1146,20 +1146,6 @@ body.is-close-hold .scene-canvas {
   color: var(--mm-orange);
 }
 
-.placeholder-chip {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(166, 83, 53, 0.55);
-  color: #e8c4b4;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
 .page2-trust {
   display: flex;
   flex-direction: column;
@@ -1178,7 +1164,8 @@ body.is-close-hold .scene-canvas {
 
   .metaminds-nav {
     height: var(--mm-nav-h);
-    padding: 0 20px 0 24px;
+    gap: 10px;
+    padding: 0 max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px));
   }
 
   .nav-inline {
@@ -1188,6 +1175,11 @@ body.is-close-hold .scene-canvas {
   .nav-cta {
     padding: 8px 12px;
     font-size: 10px;
+    letter-spacing: 0.06em;
+    gap: 4px;
+    flex-shrink: 0;
+    max-width: none;
+    overflow: visible;
   }
 
   .nav-cta-full {
@@ -1241,8 +1233,8 @@ body.is-close-hold .scene-canvas {
   }
 
   .brand-logo {
-    height: 30px;
-    max-width: min(148px, calc(100vw - 148px));
+    height: 26px;
+    max-width: min(120px, calc(100vw - 168px));
     object-fit: contain;
     object-position: left center;
   }
@@ -1321,10 +1313,10 @@ body.is-close-hold .scene-canvas {
   .copy-lane,
   .copy-team {
     position: fixed;
-    left: 24px;
+    left: 16px;
     right: auto;
-    width: min(86vw, 340px);
-    max-width: none;
+    width: min(92vw, 400px);
+    max-width: calc(100vw - 32px);
     top: calc(var(--mm-nav-h) + 28px);
     transform: none;
     text-align: left;
@@ -1332,7 +1324,17 @@ body.is-close-hold .scene-canvas {
 
   .copy-hero {
     top: calc(var(--mm-nav-h) + 36px);
-    width: min(88vw, 360px);
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-width: none;
+  }
+
+  .copy-hero h1 {
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+    text-wrap: pretty;
   }
 
   .t2-block {
@@ -1444,8 +1446,9 @@ body.is-close-hold .scene-canvas {
 
   .copy h1,
   .experience h1 {
-    font-size: clamp(42px, 11vw, 56px);
-    line-height: 0.9;
+    font-size: clamp(36px, 9.2vw, 48px);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
   }
 
   .copy h2,
@@ -1467,7 +1470,7 @@ body.is-close-hold .scene-canvas {
   }
 
   .scroll-marker {
-    left: 24px;
+    left: 16px;
     bottom: 5svh;
   }
 
@@ -1484,6 +1487,22 @@ body.is-close-hold .scene-canvas {
 
   .page2-trust {
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 430px) {
+  .metaminds-nav {
+    gap: 8px;
+    padding: 0 10px;
+  }
+
+  .nav-cta .btn-arrow {
+    display: none;
+  }
+
+  .brand-logo {
+    height: 24px;
+    max-width: min(108px, calc(100vw - 150px));
   }
 }
 
@@ -1757,7 +1776,8 @@ body.is-site-page .metaminds-nav {
 .consult-success .primary-button,
 .tier-card .primary-button,
 .page-cta-band .primary-button,
-.page-hero .primary-button {
+.page-hero .primary-button,
+.page-block .primary-button {
   margin-top: 8px;
   width: fit-content;
 }
@@ -1827,42 +1847,6 @@ body.is-site-page .metaminds-nav {
 .tier-card li::before {
   content: "— ";
   color: var(--mm-orange);
-}
-
-.placeholder-head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.package-table {
-  margin-top: 22px;
-  border: 1px solid rgba(243, 246, 249, 0.1);
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.package-row {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  gap: 12px;
-  padding: 14px 18px;
-  color: var(--mm-ink);
-  font-size: 15px;
-}
-
-.package-row + .package-row {
-  border-top: 1px solid rgba(243, 246, 249, 0.08);
-}
-
-.package-row--head {
-  background: rgba(243, 246, 249, 0.04);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--mm-mute);
 }
 
 .steps {
@@ -2014,8 +1998,7 @@ body.is-site-page .metaminds-nav {
   .include-grid,
   .program-grid,
   .consult-rates,
-  .check-grid,
-  .package-row {
+  .check-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2067,8 +2050,8 @@ body.is-site-page .metaminds-nav {
 
   .copy h1,
   .experience h1 {
-    font-size: clamp(34px, 8.4vh, 52px);
-    line-height: 0.9;
+    font-size: clamp(34px, min(8.4vh, 9.2vw), 46px);
+    line-height: 0.98;
   }
 
   .copy-team h2 {
