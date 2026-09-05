@@ -122,6 +122,14 @@ const FAMILY_GETS = [
   'Parent updates so you’re not left guessing',
 ]
 
+const ACADEMIC_FAMILY_GETS = [
+  'One dedicated mentor',
+  'Notes after every session',
+  'A plan you can actually see',
+  'Practice with feedback, not busywork',
+  'Parent updates so you’re not left guessing',
+]
+
 export function mediaPlaceholder(label) {
   return `<p class="media-ph">${label} — placeholder until approved.</p>`
 }
@@ -333,7 +341,7 @@ export function academicTutoringHtml() {
     </section>
     <section class="page-block">
       <h2>What your family gets</h2>
-      ${sellList(FAMILY_GETS)}
+      ${sellList(ACADEMIC_FAMILY_GETS)}
     </section>
     ${howWeStartBlock()}
     ${CHILD_CLOSE}
@@ -360,9 +368,7 @@ export function satActHtml() {
     </section>
     <section class="page-block">
       ${resultsStripHtml()}
-      <p class="page-quiet">
-        No average-score theater. Individual student results. Outcomes vary and are not guaranteed.
-      </p>
+      <p class="page-quiet">No average-score theater.</p>
     </section>
     <section class="page-block">
       <h2>Virtual first</h2>
@@ -424,11 +430,11 @@ export function programmingStemHtml() {
     <section class="page-block">
       <h2>What we cover</h2>
       <p>
-        Code, robotics, and engineering as real work.
-        What’s on the table is matched on the consult — we don’t list a catalog we can’t keep honest.
+        Code, robotics, and engineering as real work — projects
+        a student can point to, not a playlist of videos.
       </p>
       <p class="page-quiet">
-        AI can assist a tutor. It never takes the chair.
+        AI can assist a tutor. It does not replace the mentor or invent the curriculum.
       </p>
       ${allProgramsLink()}
     </section>
@@ -449,7 +455,7 @@ export function groupClassesHtml() {
     <section class="page-block">
       <h2>Honest inventory</h2>
       <p>
-        What’s running changes. Ask on the consult — we don’t list a catalog we can’t keep honest.
+        What’s running changes. We won’t list a fake catalog.
       </p>
       ${mediaPlaceholder('Group class photo')}
     </section>
@@ -459,7 +465,7 @@ export function groupClassesHtml() {
         Same standards. Shared goals. Ask what’s running.
       </p>
       <p class="page-quiet">
-        We don’t invent seat counts. Ask on the consult what’s running.
+        Do not invent seat counts.
       </p>
       ${allProgramsLink()}
     </section>
@@ -532,7 +538,7 @@ export function resultsPageHtml() {
     ${testimonialsPlaceholderHtml()}
     ${consultBand(
       'Want progress you can follow?',
-      'Book the free consult. No score guarantees. A mentor who stays.'
+      'The consult is where we map the starting point.'
     )}
   `
 }
@@ -570,7 +576,7 @@ export function parentsPageHtml() {
     </section>
     ${consultBand(
       'Questions about how families work with us?',
-      'The free consult is how we match the work to your child.'
+      'Book the free consult — that’s the working door today.'
     )}
   `
 }
