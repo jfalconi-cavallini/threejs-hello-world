@@ -1,10 +1,11 @@
 import {
   consultBand,
+  groupPreviewCardsHtml,
   homeFaqHtml,
   howItWorksListHtml,
+  mentorPreviewHtml,
   pathwayCardsHtml,
   resultsStripHtml,
-  testimonialsPlaceholderHtml,
 } from './site-copy.js'
 
 export function createHomeAfter() {
@@ -30,14 +31,14 @@ export function createHomeAfter() {
       </section>
 
       <section class="page-block" id="results">
-        ${resultsStripHtml()}
+        ${resultsStripHtml({ eyebrow: 'Real student progress' })}
       </section>
 
       <section class="page-block" id="parent-portal">
         <p class="eyebrow">Parent portal</p>
         <h2>A portal for families — not live yet.</h2>
-        <p class="placeholder-note">
-          Placeholder. Sign-in is a stub. The consult is the working door.
+        <p>
+          Today the working door is the free consult and direct updates from your mentor — not a self-serve parent login.
         </p>
         <p><a href="/parents">Parents page</a> · <a href="/login">Sign In</a></p>
       </section>
@@ -49,16 +50,23 @@ export function createHomeAfter() {
           One dedicated tutor matched to the coursework. Same notes.
           Same system.
         </p>
-        <p><a href="/about#founders">Meet the people building it</a></p>
+        <div class="mentor-preview-grid">
+          ${mentorPreviewHtml()}
+        </div>
+        <p><a href="/about">Meet the team</a></p>
       </section>
 
       <section class="page-block" id="group-classes">
-        <p class="eyebrow">Group classes</p>
+        <p class="eyebrow">Group programs</p>
         <h2>Small group programs are separate.</h2>
         <p>
           1-on-1 mentoring is the core. Small group programs are separate — same standards, shared goals.
         </p>
+        <div class="pathway-grid">
+          ${groupPreviewCardsHtml()}
+        </div>
         <p><a href="/programs/group-classes">Group Classes</a></p>
+        <p class="page-quiet">What’s running changes.</p>
       </section>
 
       <section class="page-block" id="pricing-preview">
@@ -68,10 +76,8 @@ export function createHomeAfter() {
           Bigger packages, lower hourly rate. Want a Lead mentor at
           any age? That’s the College rate.
         </p>
-        <p><a href="/pricing">See Mentoring rates</a></p>
+        <p><a href="/pricing">See mentoring rates</a></p>
       </section>
-
-      ${testimonialsPlaceholderHtml()}
 
       <section class="page-block faq-block" id="faq">
         <h2>Questions parents ask</h2>
