@@ -97,7 +97,7 @@ mountPage({
     </section>
 
     <section class="page-block">
-      <h2>How a family works</h2>
+      <h2>How a family actually works with us.</h2>
       <ol class="steps">
         <li>
           <strong>Free 30-minute consult.</strong>
