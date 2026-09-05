@@ -65,9 +65,8 @@ mountPage({
           <input name="email" type="email" autocomplete="email" required>
         </label>
         <label>
-          <span>Phone</span>
+          <span class="label-row">Phone <span class="field-help">optional</span></span>
           <input name="phone" type="tel" autocomplete="tel">
-          <span class="field-help">Optional</span>
         </label>
         <label>
           <span>Student grade</span>

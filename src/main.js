@@ -140,13 +140,13 @@ const LOGO_SIZE = 4.6
 // Desktop: Dala split — type in the left dark lane, the full form
 // in the right half with air. 4.1–4.8 parked the mesh past the
 // right clip even at 1440px (lookAt only follows 18% of form X).
-const RIGHT_X = 1.92
-const HERO_BRAIN_X = 1.58
+const RIGHT_X = 1.72
+const HERO_BRAIN_X = 1.74
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
-const NOTES_X = 2.05
-const EARTH_X = 2.12
+const NOTES_X = 1.78
+const EARTH_X = 1.78
 
 // Phone (~390px, ~0.46 aspect): share the beat. Type keeps the
 // top-left lane; the form is centered under it, fully in frustum.
@@ -163,8 +163,8 @@ const MOBILE_RESULTS_SCALE = 0.28
 const MOBILE_MORPH_SCALE = 0.36
 const MOBILE_BULB_SCALE = 0.28
 const MOBILE_EARTH_SCALE = 0.22
-const DESKTOP_HOLD_SCALE = 0.86
-const DESKTOP_HERO_SCALE = 0.98
+const DESKTOP_HOLD_SCALE = 0.78
+const DESKTOP_HERO_SCALE = 0.90
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -2176,13 +2176,13 @@ function containFormInView() {
     copyIsLive('.lb-feature-4')
   const padX = mobile
     ? (midHold ? 0.20 : 0.16)
-    : 0.09
+    : 0.13
   const padTop = mobile
     ? (bulbCopy ? 0.50 : midHold ? 0.38 : 0.30)
-    : 0.10
+    : 0.12
   const padBot = mobile
     ? (midHold ? 0.20 : 0.18)
-    : 0.12
+    : 0.14
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
   const viewB = lookY - halfH * (1 - padBot)
@@ -3723,14 +3723,14 @@ function createPage() {
     <section class="chapter chapter-earth" id="grow">
       <div class="copy copy-lane earth-hold">
         <p class="eyebrow"><span class="beat-meta">Earth · </span>How they grow</p>
-        <h2>Support that grows with them.</h2>
+        <h2>Support that<br>grows with them.</h2>
         <p>Elementary through college. Same notes. Same system.</p>
       </div>
     </section>
 
     <section class="chapter chapter-results" id="plan">
       <div class="copy copy-lane copy-results">
-        <h2>A plan you can<br>actually see.</h2>
+        <h2><span class="plan-keep">A plan you can</span><br>actually see.</h2>
         <p>Notes after every session. Skill tracking. Parent updates.</p>
       </div>
     </section>

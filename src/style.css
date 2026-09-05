@@ -610,9 +610,23 @@ body.is-close-hold .scene-canvas {
 .copy-lane {
   left: clamp(48px, 7vw, 120px);
   top: calc(var(--mm-nav-h) + 56px);
-  width: min(560px, 40vw);
+  width: min(620px, 44vw);
   max-width: none;
   text-align: left;
+}
+
+.copy-results {
+  width: min(680px, 48vw);
+}
+
+.copy-results h2 {
+  font-size: clamp(44px, 5.2vw, 76px);
+  line-height: 0.98;
+  text-wrap: pretty;
+}
+
+.plan-keep {
+  white-space: nowrap;
 }
 
 .t3-intro {
@@ -1808,10 +1822,11 @@ body.is-site-page .metaminds-nav {
   line-height: 1.45;
 }
 
+.consult-form .field-help,
 .field-help {
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0;
+  letter-spacing: 0.02em;
   text-transform: none;
   color: var(--mm-mute);
 }
@@ -1846,13 +1861,19 @@ body.is-site-page .metaminds-nav {
   max-width: 720px;
 }
 
-.consult-form label,
+.consult-form label:not(.check),
 .consult-form fieldset {
   display: grid;
   gap: 8px;
   border: 0;
   padding: 0;
   margin: 0;
+}
+
+.consult-form .label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .consult-form span,
@@ -2229,9 +2250,12 @@ body.is-site-page .metaminds-nav {
 
   .page-split,
   .include-grid,
-  .program-grid,
-  .check-grid {
+  .program-grid {
     grid-template-columns: 1fr;
+  }
+
+  .check-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .consult-form,
