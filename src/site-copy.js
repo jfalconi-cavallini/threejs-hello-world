@@ -138,7 +138,7 @@ export function resultsStripHtml() {
       </article>
     </div>
     <p class="results-disclaimer">
-      Individual results vary.
+      SAT Math 370 → 590 · SAT Composite 950 → 1110 · Individual student results. Outcomes vary and are not guaranteed.
     </p>
     <p class="placeholder-note">
       Score screenshot — placeholder until approved.

@@ -56,10 +56,7 @@ export function createHomeAfter() {
         <p class="eyebrow">Group classes</p>
         <h2>Small group programs are separate.</h2>
         <p>
-          1-on-1 mentoring is the core. Small groups — SAT (about four
-          students) and Programming &amp; STEM — share the same
-          standards and the same goals. What’s running changes; ask
-          on the consult.
+          1-on-1 mentoring is the core. Small group programs are separate — same standards, shared goals.
         </p>
         <p><a href="/programs/group-classes">Group Classes</a></p>
       </section>

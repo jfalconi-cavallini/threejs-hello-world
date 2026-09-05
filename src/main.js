@@ -1,9 +1,9 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+// Composer is desktop-only and constructed after first paint.
+// Importing it on mobile still parsed the module; instantiation
+// is what allocated the extra full-screen targets that OOM'd phones.
 
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -77,6 +77,71 @@ function mountChrome() {
 
 mountChrome()
 
+function afterFirstPaint() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(resolve)
+    })
+  })
+}
+
+function disposeObject3D(root) {
+  if (!root) {
+    return
+  }
+
+  root.traverse((child) => {
+    if (child.geometry) {
+      child.geometry.dispose()
+    }
+
+    const material = child.material
+    if (!material) {
+      return
+    }
+
+    const list = Array.isArray(material)
+      ? material
+      : [material]
+
+    for (let i = 0; i < list.length; i++) {
+      const mat = list[i]
+      if (!mat) {
+        continue
+      }
+
+      for (const key in mat) {
+        const value = mat[key]
+        if (value && value.isTexture) {
+          value.dispose()
+        }
+      }
+
+      mat.dispose()
+    }
+  })
+}
+
+function disposeExistingRenderer() {
+  const previous =
+    import.meta.hot?.data?.renderer
+
+  if (previous) {
+    previous.setAnimationLoop(null)
+    previous.dispose()
+    previous.domElement?.remove()
+    import.meta.hot.data.renderer = null
+  }
+
+  const leftover = document.querySelector(
+    'canvas.scene-canvas'
+  )
+
+  if (leftover) {
+    leftover.remove()
+  }
+}
+
 // ======================================================
 // DEVICE / ACCESSIBILITY
 // ======================================================
@@ -98,11 +163,12 @@ const REDUCED_MOTION =
     '(prefers-reduced-motion: reduce)'
   ).matches
 
-// P0: 9k is the Jose hard cap. Aw Snap on 9136bc6 was OOM, so the
-// live phone budget is well under that. Count is chosen at boot from
-// width ≤767 or mobile UA — never the desktop 10k buffer.
+// P0: 9k is the Jose hard cap. 2400 + DPR 1 + visibility pause
+// still Aw Snap'd on 3356b7d before the look finished. Phone
+// budget is now 1600 (1200 if reduced motion). Count is chosen
+// at boot from width ≤767 or mobile UA — never the desktop 10k.
 const MOBILE_PARTICLE_CAP = 9000
-const MOBILE_PARTICLE_COUNT = REDUCED_MOTION ? 1600 : 2400
+const MOBILE_PARTICLE_COUNT = REDUCED_MOTION ? 1200 : 1600
 const DESKTOP_PARTICLE_COUNT = 10000
 
 const PARTICLE_COUNT =
@@ -110,8 +176,8 @@ const PARTICLE_COUNT =
     ? Math.min(MOBILE_PARTICLE_COUNT, MOBILE_PARTICLE_CAP)
     : DESKTOP_PARTICLE_COUNT
 
-// Hold-only overlays. Mobile stays at the 9k cap — do not stack
-// extra clouds on top of the morph buffer on phone boot.
+// Hold-only overlays. Mobile never allocates these — extra
+// clouds on top of the morph buffer were a second OOM path.
 const LOGO_DETAIL_COUNT =
   MOBILE_AT_LOAD
     ? 0
@@ -139,6 +205,11 @@ const PIXEL_RATIO =
 
 const USE_COMPOSER =
   !MOBILE_AT_LOAD
+
+// Let the boot screen paint before WebGL, particle buffers,
+// and the 15MB / 7.6MB GLB decodes compete for RAM.
+await afterFirstPaint()
+disposeExistingRenderer()
 
 // ======================================================
 // VISUAL SETTINGS
@@ -232,7 +303,13 @@ camera.position.x = -0.68
 const renderer =
   new THREE.WebGLRenderer({
     antialias: !MOBILE_AT_LOAD,
-    powerPreference: 'high-performance',
+    powerPreference: MOBILE_AT_LOAD
+      ? 'low-power'
+      : 'high-performance',
+    alpha: false,
+    stencil: false,
+    depth: true,
+    preserveDrawingBuffer: false,
   })
 
 renderer.setSize(
@@ -259,40 +336,90 @@ document.body.appendChild(
   renderer.domElement
 )
 
-// ======================================================
-// BLOOM
-// ======================================================
+if (import.meta.hot) {
+  import.meta.hot.data.renderer = renderer
+  import.meta.hot.dispose(() => {
+    stopLoop()
+    renderer.dispose()
+    renderer.domElement.remove()
+    import.meta.hot.data.renderer = null
+  })
+}
 
-const composer =
-  new EffectComposer(renderer)
-
-composer.setSize(
-  window.innerWidth,
-  window.innerHeight
+renderer.domElement.addEventListener(
+  'webglcontextlost',
+  (event) => {
+    event.preventDefault()
+    stopLoop()
+  }
 )
 
-composer.addPass(
-  new RenderPass(
-    scene,
-    camera
-  )
+renderer.domElement.addEventListener(
+  'webglcontextrestored',
+  () => {
+    if (experienceVisible && !document.hidden) {
+      startLoop()
+    }
+  }
 )
 
-// Enough threshold reduction for bright orange/blue
-// fragments to actually catch bloom without turning
-// everything into a glowing cloud.
-const bloomPass =
-  new UnrealBloomPass(
-    new THREE.Vector2(
-      window.innerWidth,
-      window.innerHeight
-    ),
-    MOBILE_AT_LOAD ? 0 : 0.22,
-    MOBILE_AT_LOAD ? 0 : 0.18,
-    MOBILE_AT_LOAD ? 1 : 0.48
+// ======================================================
+// BLOOM — desktop only, after first paint. Never construct
+// EffectComposer / UnrealBloomPass on mobile: each pass
+// allocates extra full-screen render targets.
+// ======================================================
+
+let composer = null
+let bloomPass = null
+
+async function ensureComposer() {
+  if (
+    !USE_COMPOSER ||
+    composer
+  ) {
+    return
+  }
+
+  const [
+    { EffectComposer },
+    { RenderPass },
+    { UnrealBloomPass },
+  ] = await Promise.all([
+    import('three/examples/jsm/postprocessing/EffectComposer.js'),
+    import('three/examples/jsm/postprocessing/RenderPass.js'),
+    import('three/examples/jsm/postprocessing/UnrealBloomPass.js'),
+  ])
+
+  composer =
+    new EffectComposer(renderer)
+
+  composer.setSize(
+    window.innerWidth,
+    window.innerHeight
   )
 
-if (USE_COMPOSER) {
+  composer.setPixelRatio(
+    PIXEL_RATIO
+  )
+
+  composer.addPass(
+    new RenderPass(
+      scene,
+      camera
+    )
+  )
+
+  bloomPass =
+    new UnrealBloomPass(
+      new THREE.Vector2(
+        window.innerWidth,
+        window.innerHeight
+      ),
+      0.22,
+      0.18,
+      0.48
+    )
+
   composer.addPass(
     bloomPass
   )
@@ -681,22 +808,25 @@ const FIELD_COUNT =
     ? 0
     : 2000
 
-const fieldPositions =
-  new Float32Array(
-    FIELD_COUNT * 3
-  )
+let field = null
+let fieldMaterial = null
 
-const fieldColors =
-  new Float32Array(
-    FIELD_COUNT * 3
-  )
+if (FIELD_COUNT > 0) {
+  const fieldPositions =
+    new Float32Array(
+      FIELD_COUNT * 3
+    )
 
-const fieldSizes =
-  new Float32Array(
-    FIELD_COUNT
-  )
+  const fieldColors =
+    new Float32Array(
+      FIELD_COUNT * 3
+    )
 
-{
+  const fieldSizes =
+    new Float32Array(
+      FIELD_COUNT
+    )
+
   for (
     let i = 0;
     i < FIELD_COUNT;
@@ -771,52 +901,49 @@ const fieldSizes =
     fieldColors[i3 + 1] = tempColor.g
     fieldColors[i3 + 2] = tempColor.b
   }
-}
 
-const fieldGeometry =
-  new THREE.BufferGeometry()
+  const fieldGeometry =
+    new THREE.BufferGeometry()
 
-fieldGeometry.setAttribute(
-  'position',
-  new THREE.BufferAttribute(
-    fieldPositions,
-    3
-  )
-)
-
-fieldGeometry.setAttribute(
-  'color',
-  new THREE.BufferAttribute(
-    fieldColors,
-    3
-  )
-)
-
-fieldGeometry.setAttribute(
-  'aScale',
-  new THREE.BufferAttribute(
-    fieldSizes,
-    1
-  )
-)
-
-const fieldMaterial =
-  createPointMaterial({
-    size: MOBILE_AT_LOAD ? 4 : 3.4,
-    drift: REDUCED_MOTION ? 0 : 0.16,
-    alpha: 0.55,
-    additive: true,
-  })
-
-const field =
-  new THREE.Points(
-    fieldGeometry,
-    fieldMaterial
+  fieldGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(
+      fieldPositions,
+      3
+    )
   )
 
-field.frustumCulled = false
+  fieldGeometry.setAttribute(
+    'color',
+    new THREE.BufferAttribute(
+      fieldColors,
+      3
+    )
+  )
 
-if (FIELD_COUNT > 0) {
+  fieldGeometry.setAttribute(
+    'aScale',
+    new THREE.BufferAttribute(
+      fieldSizes,
+      1
+    )
+  )
+
+  fieldMaterial =
+    createPointMaterial({
+      size: 3.4,
+      drift: REDUCED_MOTION ? 0 : 0.16,
+      alpha: 0.55,
+      additive: true,
+    })
+
+  field =
+    new THREE.Points(
+      fieldGeometry,
+      fieldMaterial
+    )
+
+  field.frustumCulled = false
   scene.add(field)
 }
 
@@ -1140,10 +1267,18 @@ function modelToParticlePositions(
 ) {
   model.updateMatrixWorld(true)
 
-  // Collect triangles from every mesh, weighted by face area.
-  // This eliminates the "layered" look that comes from sampling
-  // vertices linearly (front-face vertices → back-face vertices → sides).
-  const tris = []
+  // Packed triangle store. The old JS `tris.push(...)` on
+  // lightbulb.glb / logo.glb allocated tens of MB of boxed
+  // numbers and Aw Snap'd before createPage. Mobile keeps a
+  // reservoir of faces; desktop caps the typed buffer.
+  const STRIDE = 10 // 9 floats + 1 area
+  const maxTris = MOBILE_AT_LOAD
+    ? Math.max(count * 8, 2400)
+    : 80000
+  const packed =
+    new Float32Array(maxTris * STRIDE)
+  let stored = 0
+  let seen = 0
   let totalArea = 0
 
   const vA = new THREE.Vector3()
@@ -1155,6 +1290,20 @@ function modelToParticlePositions(
 
   let minX = Infinity, minY = Infinity, minZ = Infinity
   let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity
+
+  const writeTri = (slot, area) => {
+    const base = slot * STRIDE
+    packed[base]     = vA.x
+    packed[base + 1] = vA.y
+    packed[base + 2] = vA.z
+    packed[base + 3] = vB.x
+    packed[base + 4] = vB.y
+    packed[base + 5] = vB.z
+    packed[base + 6] = vC.x
+    packed[base + 7] = vC.y
+    packed[base + 8] = vC.z
+    packed[base + 9] = area
+  }
 
   model.traverse((child) => {
     if (!child.isMesh) return
@@ -1180,13 +1329,20 @@ function modelToParticlePositions(
       const area = cross.length() * 0.5
       if (area < 1e-10) continue
 
-      tris.push(
-        vA.x, vA.y, vA.z,
-        vB.x, vB.y, vB.z,
-        vC.x, vC.y, vC.z,
-        area
-      )
-      totalArea += area
+      seen += 1
+
+      if (stored < maxTris) {
+        writeTri(stored, area)
+        totalArea += area
+        stored += 1
+      } else {
+        const j = Math.floor(Math.random() * seen)
+        if (j < maxTris) {
+          totalArea -= packed[j * STRIDE + 9]
+          writeTri(j, area)
+          totalArea += area
+        }
+      }
 
       minX = Math.min(minX, vA.x, vB.x, vC.x)
       minY = Math.min(minY, vA.y, vB.y, vC.y)
@@ -1197,10 +1353,10 @@ function modelToParticlePositions(
     }
   })
 
-  if (!tris.length) return null
+  if (!stored || totalArea <= 0) return null
 
-  const STRIDE = 10 // 9 floats + 1 area
-  const triCount = tris.length / STRIDE
+  const tris = packed
+  const triCount = stored
 
   // Build CDF for area-weighted triangle selection
   const cdf = new Float64Array(triCount)
@@ -3071,117 +3227,129 @@ function updateStory() {
 // ======================================================
 // LOAD MODELS
 // ======================================================
+// Sequential load → sample → dispose. 3356b7d decoded
+// lightbulb.glb (15MB) + logo (7.6MB) + brain at once and
+// kept the source meshes, which OOMs phones before createPage.
 
+async function bootExperience() {
+  try {
+    renderer.render(scene, camera)
 
-Promise.all([
-  loadGLB(
-    '/models/brain.glb'
-  ),
+    const brainGLB =
+      await loadGLB(
+        '/models/brain.glb'
+      )
 
-  loadGLB(
-    '/models/lightbulb.glb'
-  ),
+    brainPositions =
+      modelToParticlePositions(
+        brainGLB.scene,
+        BRAIN_SIZE,
+        0.4
+      )
 
-  fetch('/geojson/ne_110m_land.json')
-    .then(r => r.json()),
-
-  loadGLB(
-    '/models/metaminds-logo.glb'
-  ),
-])
-  .then(
-    ([
-      brainGLB,
-      bulbGLB,
-      landGeoJSON,
-      logoGLB,
-    ]) => {
-      brainPositions =
-        modelToParticlePositions(
-          brainGLB.scene,
-          BRAIN_SIZE,
-          0.4
-        )
-
+    if (!MOBILE_AT_LOAD) {
       heroBrainDetail =
         buildHeroBrainDetail(
           brainGLB.scene
         )
+    }
 
-      lightbulbPositions =
-        modelToParticlePositions(
-          bulbGLB.scene,
-          LIGHTBULB_SIZE
-        )
+    const bulbGLB =
+      await loadGLB(
+        '/models/lightbulb.glb'
+      )
 
-      earthPositions =
-        generateGlobePositions(landGeoJSON)
+    lightbulbPositions =
+      modelToParticlePositions(
+        bulbGLB.scene,
+        LIGHTBULB_SIZE
+      )
 
-      logoPositions =
-        generateLogoPositions(
-          logoGLB.scene
-        )
+    disposeObject3D(bulbGLB.scene)
 
+    const landGeoJSON =
+      await fetch('/geojson/ne_110m_land.json')
+        .then((r) => r.json())
+
+    earthPositions =
+      generateGlobePositions(landGeoJSON)
+
+    const logoGLB =
+      await loadGLB(
+        '/models/metaminds-logo.glb'
+      )
+
+    logoPositions =
+      generateLogoPositions(
+        logoGLB.scene
+      )
+
+    if (!MOBILE_AT_LOAD) {
       logoDetail =
         buildLogoDetail(
           logoGLB.scene,
           brainGLB.scene
         )
-
-      if (
-        !brainPositions ||
-        !lightbulbPositions ||
-        !logoPositions
-      ) {
-        throw new Error(
-          'One or more models contained no usable mesh vertices.'
-        )
-      }
-
-      currentPositions.set(
-        brainPositions
-      )
-
-      storyTargetPositions.set(
-        brainPositions
-      )
-
-      modelsReady = true
-
-      createPage()
-
-      if (bootScreen) {
-        bootScreen.classList.add(
-          'is-done'
-        )
-      }
-
-      // Build initial matrices/colors once.
-      updateParticleInstances(
-        true
-      )
-
-      updateStory()
     }
-  )
-  .catch(
-    (error) => {
-      console.error(
-        'Model loading failed:',
-        error
+
+    disposeObject3D(logoGLB.scene)
+    disposeObject3D(brainGLB.scene)
+
+    if (
+      !brainPositions ||
+      !lightbulbPositions ||
+      !logoPositions
+    ) {
+      throw new Error(
+        'One or more models contained no usable mesh vertices.'
       )
+    }
 
-      if (bootScreen) {
-        const label =
-          bootScreen.querySelector('p')
+    currentPositions.set(
+      brainPositions
+    )
 
-        if (label) {
-          label.textContent =
-            "Couldn't load the page. Refresh to try again."
-        }
+    storyTargetPositions.set(
+      brainPositions
+    )
+
+    modelsReady = true
+
+    createPage()
+
+    if (bootScreen) {
+      bootScreen.classList.add(
+        'is-done'
+      )
+    }
+
+    updateParticleInstances(
+      true
+    )
+
+    updateStory()
+
+    await ensureComposer()
+    startLoop()
+  } catch (error) {
+    console.error(
+      'Model loading failed:',
+      error
+    )
+
+    if (bootScreen) {
+      const label =
+        bootScreen.querySelector('p')
+
+      if (label) {
+        label.textContent =
+          "Couldn't load the page. Refresh to try again."
       }
     }
-  )
+  }
+}
+
+bootExperience()
 
 function syncNavHighlight(
   _progress
@@ -4523,12 +4691,14 @@ function animate() {
 
     camera.updateProjectionMatrix()
 
-    bloomPass.strength +=
-      (
-        bloomTarget -
-        bloomPass.strength
-      ) *
-      camChase
+    if (bloomPass) {
+      bloomPass.strength +=
+        (
+          bloomTarget -
+          bloomPass.strength
+        ) *
+        camChase
+    }
   } else {
     camera.position.z =
       cameraTarget.z
@@ -4704,7 +4874,9 @@ function animate() {
       debris.visible = false
       particleMaterial.uniforms.uAlpha.value = 0
       debrisMaterial.uniforms.uAlpha.value = 0
-      bloomPass.strength = 0
+      if (bloomPass) {
+        bloomPass.strength = 0
+      }
 
       if (FIELD_COUNT > 0) {
         field.visible = false
@@ -4850,6 +5022,8 @@ function animate() {
 
   if (
     USE_COMPOSER &&
+    composer &&
+    bloomPass &&
     bloomPass.strength > 0.01
   ) {
     composer.render()
@@ -4892,7 +5066,8 @@ function stopLoop() {
   )
 }
 
-startLoop()
+// Loop starts after models are sampled and source GLBs disposed.
+// Starting it at module eval raced shader compile with 15MB decodes.
 
 // ======================================================
 // TAB VISIBILITY (P0: pause renderer when the tab is hidden)
@@ -4984,10 +5159,12 @@ window.addEventListener(
       window.innerHeight
     )
 
-    composer.setSize(
-      window.innerWidth,
-      window.innerHeight
-    )
+    if (composer) {
+      composer.setSize(
+        window.innerWidth,
+        window.innerHeight
+      )
+    }
 
     const ratio =
       Math.min(
@@ -5001,9 +5178,11 @@ window.addEventListener(
       ratio
     )
 
-    composer.setPixelRatio(
-      ratio
-    )
+    if (composer) {
+      composer.setPixelRatio(
+        ratio
+      )
+    }
 
     for (
       let i = 0;
