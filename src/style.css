@@ -2054,6 +2054,72 @@ body.is-site-page .metaminds-nav {
   border: 1px solid rgba(243, 246, 249, 0.1);
 }
 
+.program-grid article a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--mm-orange);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-cta-band .hero-actions {
+  margin-top: 22px;
+}
+
+.page-cta-band .hero-actions .primary-button {
+  margin-top: 0;
+}
+
+.media-ph {
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+  margin-top: 18px;
+  padding: 24px 18px;
+  border-radius: 16px;
+  border: 1px dashed rgba(243, 246, 249, 0.2);
+  color: var(--mm-mute);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.mentor-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.mentor-card {
+  padding: 22px;
+  border-radius: 22px;
+  background: rgba(8, 12, 22, 0.72);
+  border: 1px solid rgba(243, 246, 249, 0.1);
+}
+
+.mentor-card .media-ph {
+  margin-top: 0;
+  margin-bottom: 16px;
+  min-height: 120px;
+}
+
+.mentor-card h3 {
+  font-size: 20px;
+}
+
+.page-block > a,
+.page-block .page-quiet a,
+.site-shell .page-quiet a {
+  color: var(--mm-orange);
+  font-weight: 700;
+}
+
 #team,
 #grow,
 #plan,
@@ -2551,7 +2617,10 @@ body.is-site-page .metaminds-nav {
 #how-it-works,
 #results,
 #faq,
-#testimonials {
+#testimonials,
+#mentors,
+#group-classes,
+#parent-portal {
   scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
 }
 
@@ -2631,7 +2700,8 @@ body.is-site-page .metaminds-nav {
 
 @media (max-width: 767px) {
   .pathway-grid,
-  .score-grid {
+  .score-grid,
+  .mentor-preview-grid {
     grid-template-columns: 1fr;
   }
 

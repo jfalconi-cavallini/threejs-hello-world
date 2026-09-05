@@ -221,6 +221,7 @@ export function createFooter() {
       <a href="/results">Results</a>
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
+      <a href="/parents">Parents</a>
       <a href="/consult">Consult</a>
       <a href="mailto:metamindsstemacademy@gmail.com">metamindsstemacademy@gmail.com</a>
     </nav>
