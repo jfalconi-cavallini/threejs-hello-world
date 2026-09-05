@@ -81,8 +81,14 @@ mountChrome()
 // DEVICE / ACCESSIBILITY
 // ======================================================
 
+const MOBILE_UA =
+  /Android|iPhone|iPod|iPad|Mobile/i.test(
+    navigator.userAgent || ''
+  )
+
 const MOBILE_AT_LOAD =
-  window.matchMedia('(max-width: 767px)').matches
+  window.matchMedia('(max-width: 767px)').matches ||
+  MOBILE_UA
 
 const TOUCH_DEVICE =
   window.matchMedia('(hover: none)').matches
@@ -92,12 +98,11 @@ const REDUCED_MOTION =
     '(prefers-reduced-motion: reduce)'
   ).matches
 
-// P0 particle budget (Jose): 9k hard cap on ≤767 / mobile.
-// Actual phone count stays well under that cap — Aw Snap on 9136bc6
-// was renderer OOM, so memory safety > density. Chosen at boot from
-// MOBILE_AT_LOAD so a phone never allocates the desktop 10k buffer.
+// P0: 9k is the Jose hard cap. Aw Snap on 9136bc6 was OOM, so the
+// live phone budget is well under that. Count is chosen at boot from
+// width ≤767 or mobile UA — never the desktop 10k buffer.
 const MOBILE_PARTICLE_CAP = 9000
-const MOBILE_PARTICLE_COUNT = 3600
+const MOBILE_PARTICLE_COUNT = REDUCED_MOTION ? 1600 : 2400
 const DESKTOP_PARTICLE_COUNT = 10000
 
 const PARTICLE_COUNT =
@@ -345,9 +350,21 @@ let earthPositions = null
 let logoPositions = null
 let earthParticleLatLon = null
 
-let brainExplosion = null
-let lightbulbExplosion = null
-let earthExplosion = null
+const explosionCache = new Map()
+
+function explosionFor(source, intensity) {
+  if (!source || REDUCED_MOTION) {
+    return source
+  }
+
+  let cached = explosionCache.get(source)
+  if (!cached) {
+    cached = createExplosion(source, intensity)
+    explosionCache.set(source, cached)
+  }
+
+  return cached
+}
 
 let modelsReady = false
 
@@ -2591,7 +2608,7 @@ function updateStory() {
 
     writeMorphTarget(
       brainPositions,
-      brainExplosion,
+      explosionFor(brainPositions, 2.85),
       t,
       1
     )
@@ -2644,7 +2661,7 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      brainExplosion,
+      explosionFor(brainPositions, 2.85),
       lightbulbPositions,
       t,
       -1
@@ -2744,7 +2761,7 @@ function updateStory() {
 
     writeMorphTarget(
       lightbulbPositions,
-      lightbulbExplosion,
+      explosionFor(lightbulbPositions, 2.6),
       t,
       -1
     )
@@ -2789,7 +2806,7 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      lightbulbExplosion,
+      explosionFor(lightbulbPositions, 2.6),
       earthPositions,
       t,
       1
@@ -2901,7 +2918,7 @@ function updateStory() {
 
     writeMorphTarget(
       earthPositions,
-      earthExplosion,
+      explosionFor(earthPositions, 3.2),
       t,
       1
     )
@@ -2968,7 +2985,7 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      earthExplosion,
+      explosionFor(earthPositions, 3.2),
       logoPositions,
       t,
       -1
@@ -3120,24 +3137,6 @@ Promise.all([
           'One or more models contained no usable mesh vertices.'
         )
       }
-
-      brainExplosion =
-        createExplosion(
-          brainPositions,
-          2.85
-        )
-
-      lightbulbExplosion =
-        createExplosion(
-          lightbulbPositions,
-          2.6
-        )
-
-      earthExplosion =
-        createExplosion(
-          earthPositions,
-          3.2
-        )
 
       currentPositions.set(
         brainPositions
