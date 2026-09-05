@@ -235,6 +235,9 @@ body.is-close-hold .scene-canvas {
 .nav-signin {
   position: relative;
   z-index: 102;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
   border: 1px solid rgba(243, 246, 249, 0.4);
   border-radius: 999px;
   padding: 10px 18px;
@@ -498,6 +501,36 @@ body.is-close-hold .scene-canvas {
 
 .nav-panel-signin {
   margin-top: 16px;
+}
+
+.nav-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.nav-sublinks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  margin: 0 0 8px;
+}
+
+.nav-sublinks a {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(243, 246, 249, 0.42);
+}
+
+.nav-sublinks a:hover,
+.nav-sublinks a.is-active {
+  color: var(--mm-ink);
+  transform: none;
 }
 
 /* =========================
@@ -1211,6 +1244,15 @@ body.is-close-hold .scene-canvas {
   .nav-cta-short {
     display: inline;
   }
+
+  .nav-inline {
+    gap: 16px;
+  }
+
+  .nav-inline a,
+  .nav-dropdown-trigger {
+    letter-spacing: 0.14em;
+  }
 }
 
 /* =========================
@@ -1254,6 +1296,7 @@ body.is-close-hold .scene-canvas {
   /* Sign In moves into the menu panel on mobile — Book Free
      Consultation stays put in the collapsed bar where it's always
      reachable. */
+  .metaminds-nav > .nav-signin,
   .metaminds-nav > .nav-signin-wrap {
     display: none;
   }
@@ -2444,5 +2487,111 @@ body.is-site-page .metaminds-nav {
 
   .end-mark {
     width: min(150px, 32vw);
+  }
+}
+
+/* =========================
+   HOME AFTER CINEMATIC
+========================= */
+
+.home-after {
+  position: relative;
+  z-index: 4;
+  pointer-events: auto;
+  background: #05070c;
+  border-top: 1px solid rgba(243, 246, 249, 0.06);
+}
+
+.home-after .site-shell {
+  padding-top: 48px;
+  padding-bottom: 96px;
+}
+
+#pathways,
+#how-it-works,
+#results,
+#faq,
+#testimonials {
+  scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+}
+
+.pathway-grid,
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.pathway-card,
+.score-card {
+  padding: 28px;
+  border-radius: 22px;
+  background: rgba(8, 12, 22, 0.72);
+  border: 1px solid rgba(243, 246, 249, 0.1);
+}
+
+.pathway-card p,
+.score-card p {
+  margin-top: 10px;
+}
+
+.pathway-card a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--mm-orange);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.score-kicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mm-mute);
+}
+
+.score-line {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: #fff;
+}
+
+.results-disclaimer {
+  margin-top: 20px;
+  max-width: 52ch;
+}
+
+.placeholder-note {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px dashed rgba(243, 246, 249, 0.2);
+  color: var(--mm-mute);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  max-width: 62ch;
+}
+
+@media (max-width: 767px) {
+  .pathway-grid,
+  .score-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-after .site-shell {
+    padding-top: 36px;
+    padding-bottom: 72px;
   }
 }

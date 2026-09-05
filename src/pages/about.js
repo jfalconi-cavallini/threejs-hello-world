@@ -105,7 +105,7 @@ mountPage({
         </li>
         <li>
           <strong>One dedicated tutor.</strong>
-          Rate follows your child’s level. Same system whether Core, Experienced, Senior, or Lead.
+          Rate follows your child’s level. Mentors are matched to the coursework — same system, same notes.
         </li>
         <li>
           <strong>A plan you can actually see.</strong>

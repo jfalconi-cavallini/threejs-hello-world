@@ -1,7 +1,18 @@
 {
   "rewrites": [
     { "source": "/consult", "destination": "/consult.html" },
+    { "source": "/consultation", "destination": "/consult.html" },
     { "source": "/pricing", "destination": "/pricing.html" },
-    { "source": "/about", "destination": "/about.html" }
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/programs", "destination": "/programs.html" },
+    { "source": "/programs/academic-tutoring", "destination": "/programs/academic-tutoring.html" },
+    { "source": "/programs/sat-act", "destination": "/programs/sat-act.html" },
+    { "source": "/programs/ap", "destination": "/programs/ap.html" },
+    { "source": "/programs/programming-stem", "destination": "/programs/programming-stem.html" },
+    { "source": "/programs/group-classes", "destination": "/programs/group-classes.html" },
+    { "source": "/how-it-works", "destination": "/how-it-works.html" },
+    { "source": "/results", "destination": "/results.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/parents", "destination": "/parents.html" }
   ]
 }

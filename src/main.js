@@ -15,6 +15,7 @@ import {
   setupNav,
   ARROW_ICON,
 } from './chrome.js'
+import { createHomeAfter } from './home-after.js'
 
 import './style.css'
 
@@ -3712,7 +3713,7 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <h1>A mentor who<br> stays with<br> your kid.</h1>
+        <h1>A mentor who<br> stays with<br> your child.</h1>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3825,6 +3826,10 @@ function createPage() {
 
   document.body.appendChild(
     main
+  )
+
+  document.body.appendChild(
+    createHomeAfter()
   )
 
   document.body.appendChild(

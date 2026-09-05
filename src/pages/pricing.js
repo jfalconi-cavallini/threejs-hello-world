@@ -77,8 +77,8 @@ mountPage({
       <h2>Included with every family</h2>
       <div class="include-grid">
         <article>
-          <h3>1-on-1 only</h3>
-          <p>No group classes. Your child is the session.</p>
+          <h3>1-on-1 mentoring</h3>
+          <p>1-on-1 mentoring is the core. Small group programs are separate — same standards, shared goals.</p>
         </article>
         <article>
           <h3>Session notes</h3>
