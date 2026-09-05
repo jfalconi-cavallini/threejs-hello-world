@@ -92,15 +92,17 @@ const REDUCED_MOTION =
     '(prefers-reduced-motion: reduce)'
   ).matches
 
-// P0 particle budget (Jose): ~9k hard cap on ≤767 / mobile.
-// Count is chosen at boot from MOBILE_AT_LOAD so a phone never
-// allocates the desktop 10k morph buffer.
-const MOBILE_PARTICLE_COUNT = 9000
+// P0 particle budget (Jose): 9k hard cap on ≤767 / mobile.
+// Actual phone count stays well under that cap — Aw Snap on 9136bc6
+// was renderer OOM, so memory safety > density. Chosen at boot from
+// MOBILE_AT_LOAD so a phone never allocates the desktop 10k buffer.
+const MOBILE_PARTICLE_CAP = 9000
+const MOBILE_PARTICLE_COUNT = 3600
 const DESKTOP_PARTICLE_COUNT = 10000
 
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
-    ? MOBILE_PARTICLE_COUNT
+    ? Math.min(MOBILE_PARTICLE_COUNT, MOBILE_PARTICLE_CAP)
     : DESKTOP_PARTICLE_COUNT
 
 // Hold-only overlays. Mobile stays at the 9k cap — do not stack
@@ -3730,6 +3732,14 @@ function createPage() {
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
         <h1>A mentor who<br> stays with<br> your child.</h1>
+        <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
+        <div class="hero-actions">
+          <a class="primary-button hero-cta" href="/consult">
+            Book Free Consultation
+            ${ARROW_ICON}
+          </a>
+          <a class="hero-secondary-cta" href="/programs">Explore Programs</a>
+        </div>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3740,6 +3750,8 @@ function createPage() {
     <section class="chapter chapter-morph chapter-morph-a">
       <div class="copy copy-lane t3-intro">
         <p class="eyebrow"><span class="beat-meta">Brain · </span>What we teach</p>
+        <h2>Every student gets stuck for a different reason.</h2>
+        <p>Understanding changes everything.</p>
         <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
         <p class="teach-range">K–12 through college.</p>
       </div>
@@ -3783,7 +3795,8 @@ function createPage() {
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
         <h2>Mentors who<br> stay.</h2>
-        <p>One dedicated tutor. Same face. Same plan.</p>
+        <p>The right mentor doesn’t have to live down the street.</p>
+        <p>Virtual is primary. In person when a mentor is already nearby.</p>
       </div>
     </section>
 
@@ -3820,7 +3833,7 @@ function createPage() {
           >
         </span>
         <h2>
-          Let's find the right tutor.
+          One student. One plan. Years of growth.
         </h2>
         <p>
           Free. 30 minutes.
@@ -3832,7 +3845,7 @@ function createPage() {
           href="/consult"
           class="primary-button"
         >
-          Book free 30-minute consult
+          Book Free Consultation
           ${ARROW_ICON}
         </a>
       </div>
