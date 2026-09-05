@@ -88,13 +88,43 @@ const LOCKUP = `
       </span>
 `
 
+export const PROGRAM_LINKS = [
+  { href: '/programs/academic-tutoring', label: 'Academic Tutoring' },
+  { href: '/programs/sat-act', label: 'SAT & ACT Prep' },
+  { href: '/programs/ap', label: 'AP & Advanced Courses' },
+  { href: '/programs/programming-stem', label: 'Programming & STEM' },
+  { href: '/programs/group-classes', label: 'Group Classes' },
+]
+
 const CONSULT_CTA = `
     <a class="nav-cta" href="/consult">
-      <span class="nav-cta-full">Book free 30-minute consult</span>
-      <span class="nav-cta-short">Consult</span>
+      <span class="nav-cta-full">Book Free Consultation</span>
+      <span class="nav-cta-short">Book</span>
       ${ARROW_ICON}
     </a>
 `
+
+const CARET = `
+  <svg class="nav-caret" width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+    <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+`
+
+function programsActive(page) {
+  return page === 'programs' ? ' is-active' : ''
+}
+
+function programMenuItems() {
+  return PROGRAM_LINKS.map(
+    (item) => `<a href="${item.href}">${item.label}</a>`
+  ).join('')
+}
+
+function programPanelItems() {
+  return PROGRAM_LINKS.map(
+    (item) => `<a href="${item.href}">${item.label}</a>`
+  ).join('')
+}
 
 export function createNavbar({ page = 'home' } = {}) {
   const nav = document.createElement('nav')
@@ -104,6 +134,7 @@ export function createNavbar({ page = 'home' } = {}) {
   nav.setAttribute('aria-label', 'MetaMinds')
 
   const homeHref = page === 'home' ? '#s1' : '/'
+  const programsOn = programsActive(page)
 
   nav.innerHTML = `
     <a class="brand" href="${homeHref}">
@@ -111,11 +142,27 @@ export function createNavbar({ page = 'home' } = {}) {
     </a>
 
     <div class="nav-inline">
-      <a class="${navActive(page, 'home').trim()}" href="${homeHref}">Home</a>
-      <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
+      <div class="nav-dropdown">
+        <button
+          class="nav-dropdown-trigger${programsOn}"
+          type="button"
+          aria-expanded="false"
+          aria-haspopup="true"
+        >
+          Programs
+          ${CARET}
+        </button>
+        <div class="nav-dropdown-menu" role="menu">
+          ${programMenuItems()}
+        </div>
+      </div>
+      <a class="${navActive(page, 'how-it-works').trim()}" href="/how-it-works">How It Works</a>
+      <a class="${navActive(page, 'results').trim()}" href="/results">Results</a>
       <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
-      <a class="${navActive(page, 'consult').trim()}" href="/consult">Consult</a>
+      <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
     </div>
+
+    <a class="nav-signin${navActive(page, 'login')}" href="/login">Sign In</a>
 
     ${CONSULT_CTA}
 
@@ -131,13 +178,20 @@ export function createNavbar({ page = 'home' } = {}) {
 
     <div class="nav-panel">
       <div class="nav-links">
-        <a class="${navActive(page, 'home').trim()}" href="${homeHref}">Home</a>
-        <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
+        <div class="nav-cluster">
+          <a class="${programsOn.trim()}" href="/programs">Programs</a>
+          <div class="nav-sublinks">
+            ${programPanelItems()}
+          </div>
+        </div>
+        <a class="${navActive(page, 'how-it-works').trim()}" href="/how-it-works">How It Works</a>
+        <a class="${navActive(page, 'results').trim()}" href="/results">Results</a>
         <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
-        <a class="${navActive(page, 'consult').trim()}" href="/consult">Consult</a>
+        <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
+        <a class="${navActive(page, 'login').trim()}" href="/login">Sign In</a>
       </div>
       <a href="/consult" class="primary-button nav-panel-cta">
-        Book free 30-minute consult
+        Book Free Consultation
         ${ARROW_ICON}
       </a>
     </div>
@@ -162,8 +216,11 @@ export function createFooter() {
     </a>
     <nav class="footer-links" aria-label="Footer">
       <a href="/">Home</a>
-      <a href="/about">About</a>
+      <a href="/programs">Programs</a>
+      <a href="/how-it-works">How It Works</a>
+      <a href="/results">Results</a>
       <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
       <a href="/consult">Consult</a>
       <a href="mailto:metamindsstemacademy@gmail.com">metamindsstemacademy@gmail.com</a>
     </nav>
@@ -266,23 +323,31 @@ export function setupNav() {
   const mobileSignIn = nav.querySelector('.nav-panel-signin')
   const mobilePanel = nav.querySelector('#signin-panel-mobile')
 
-  desktopSignIn?.addEventListener('click', (event) => {
-    event.stopPropagation()
-    const open = desktopSignIn.getAttribute('aria-expanded') !== 'true'
-    setPanelOpen(desktopSignIn, desktopPanel, open)
-    setPanelOpen(mobileSignIn, mobilePanel, false)
-  })
+  if (desktopPanel && desktopSignIn) {
+    desktopSignIn.addEventListener('click', (event) => {
+      event.stopPropagation()
+      const open = desktopSignIn.getAttribute('aria-expanded') !== 'true'
+      setPanelOpen(desktopSignIn, desktopPanel, open)
+      setPanelOpen(mobileSignIn, mobilePanel, false)
+    })
+  }
 
-  mobileSignIn?.addEventListener('click', (event) => {
-    event.stopPropagation()
-    const open = mobileSignIn.getAttribute('aria-expanded') !== 'true'
-    setPanelOpen(mobileSignIn, mobilePanel, open)
-  })
+  if (mobilePanel && mobileSignIn) {
+    mobileSignIn.addEventListener('click', (event) => {
+      event.stopPropagation()
+      const open = mobileSignIn.getAttribute('aria-expanded') !== 'true'
+      setPanelOpen(mobileSignIn, mobilePanel, open)
+    })
+  }
 
   document.addEventListener('click', (event) => {
     if (!nav.contains(event.target)) {
-      setPanelOpen(desktopSignIn, desktopPanel, false)
-      setPanelOpen(mobileSignIn, mobilePanel, false)
+      if (desktopPanel) {
+        setPanelOpen(desktopSignIn, desktopPanel, false)
+      }
+      if (mobilePanel) {
+        setPanelOpen(mobileSignIn, mobilePanel, false)
+      }
       if (dropdownTrigger) {
         dropdownTrigger.setAttribute('aria-expanded', 'false')
       }

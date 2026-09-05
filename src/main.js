@@ -15,6 +15,7 @@ import {
   setupNav,
   ARROW_ICON,
 } from './chrome.js'
+import { createHomeAfter } from './home-after.js'
 
 import './style.css'
 
@@ -80,8 +81,14 @@ mountChrome()
 // DEVICE / ACCESSIBILITY
 // ======================================================
 
+const MOBILE_UA =
+  /Android|iPhone|iPod|iPad|Mobile/i.test(
+    navigator.userAgent || ''
+  )
+
 const MOBILE_AT_LOAD =
-  window.matchMedia('(max-width: 767px)').matches
+  window.matchMedia('(max-width: 767px)').matches ||
+  MOBILE_UA
 
 const TOUCH_DEVICE =
   window.matchMedia('(hover: none)').matches
@@ -91,33 +98,38 @@ const REDUCED_MOTION =
     '(prefers-reduced-motion: reduce)'
   ).matches
 
-// Phone-first 60fps-class budget. Density is secondary.
+// P0: 9k is the Jose hard cap. Aw Snap on 9136bc6 was OOM, so the
+// live phone budget is well under that. Count is chosen at boot from
+// width ≤767 or mobile UA — never the desktop 10k buffer.
+const MOBILE_PARTICLE_CAP = 9000
+const MOBILE_PARTICLE_COUNT = REDUCED_MOTION ? 1600 : 2400
+const DESKTOP_PARTICLE_COUNT = 10000
+
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
-    ? 4000
-    : 10000
+    ? Math.min(MOBILE_PARTICLE_COUNT, MOBILE_PARTICLE_CAP)
+    : DESKTOP_PARTICLE_COUNT
 
-// Extra, dedicated fill just for the closing MetaMinds mark — never
-// drawn until the final hold, so it costs nothing during the rest of
-// the scroll. This is what makes the wordmark actually read as text.
+// Hold-only overlays. Mobile stays at the 9k cap — do not stack
+// extra clouds on top of the morph buffer on phone boot.
 const LOGO_DETAIL_COUNT =
   MOBILE_AT_LOAD
-    ? 4200
+    ? 0
     : 9500
 
-// Same idea for the opening hero shot — the shared morph budget
-// alone reads as a fuzzy blob at a glance, so a dedicated dense
-// layer fades in just for the brain hold, then back out before it
-// explodes into the lightbulb.
 const HERO_BRAIN_DETAIL_COUNT =
   MOBILE_AT_LOAD
-    ? 2200
+    ? 0
     : 4800
+
+// P0 DPR cap: 1 on mobile (brief), 1.5 on desktop.
+const MOBILE_PIXEL_RATIO_CAP = 1
+const DESKTOP_PIXEL_RATIO_CAP = 1.5
 
 const PIXEL_RATIO_CAP =
   MOBILE_AT_LOAD
-    ? 1
-    : 1.5
+    ? MOBILE_PIXEL_RATIO_CAP
+    : DESKTOP_PIXEL_RATIO_CAP
 
 const PIXEL_RATIO =
   Math.min(
@@ -338,9 +350,21 @@ let earthPositions = null
 let logoPositions = null
 let earthParticleLatLon = null
 
-let brainExplosion = null
-let lightbulbExplosion = null
-let earthExplosion = null
+const explosionCache = new Map()
+
+function explosionFor(source, intensity) {
+  if (!source || REDUCED_MOTION) {
+    return source
+  }
+
+  let cached = explosionCache.get(source)
+  if (!cached) {
+    cached = createExplosion(source, intensity)
+    explosionCache.set(source, cached)
+  }
+
+  return cached
+}
 
 let modelsReady = false
 
@@ -1261,6 +1285,10 @@ function generateLogoPositions(logoScene) {
 // same transform as the sparse morph copy sitting underneath it),
 // invisible except during the opening brain hold.
 function buildHeroBrainDetail(brainScene) {
+  if (HERO_BRAIN_DETAIL_COUNT <= 0) {
+    return null
+  }
+
   const positions = modelToParticlePositions(
     brainScene,
     BRAIN_SIZE,
@@ -1344,6 +1372,10 @@ function buildLogoDetail(
   logoScene,
   brainScene
 ) {
+  if (LOGO_DETAIL_COUNT <= 0) {
+    return null
+  }
+
   // Oversample the full logo mesh, then keep only points that land
   // outside the icon's slice (the leftmost ~24% of its width) so we
   // end up with ~LOGO_DETAIL_COUNT text-only points.
@@ -1441,8 +1473,12 @@ function buildLogoDetail(
 
   const brainRawCount =
     MOBILE_AT_LOAD
-      ? 1300
+      ? 0
       : 2800
+
+  if (brainRawCount <= 0) {
+    return [textMesh]
+  }
 
   const brainRaw = modelToParticlePositions(
     brainScene,
@@ -2095,6 +2131,7 @@ function midScrollCopyLive() {
   return (
     copyIsLive('.copy-hero') ||
     copyIsLive('.t3-intro') ||
+    copyIsLive('.t3-morph') ||
     copyIsLive('.lb-intro') ||
     copyIsLive('.lb-feature-1') ||
     copyIsLive('.lb-feature-2') ||
@@ -2571,7 +2608,7 @@ function updateStory() {
 
     writeMorphTarget(
       brainPositions,
-      brainExplosion,
+      explosionFor(brainPositions, 2.85),
       t,
       1
     )
@@ -2624,7 +2661,7 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      brainExplosion,
+      explosionFor(brainPositions, 2.85),
       lightbulbPositions,
       t,
       -1
@@ -2724,7 +2761,7 @@ function updateStory() {
 
     writeMorphTarget(
       lightbulbPositions,
-      lightbulbExplosion,
+      explosionFor(lightbulbPositions, 2.6),
       t,
       -1
     )
@@ -2769,7 +2806,7 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      lightbulbExplosion,
+      explosionFor(lightbulbPositions, 2.6),
       earthPositions,
       t,
       1
@@ -2881,7 +2918,7 @@ function updateStory() {
 
     writeMorphTarget(
       earthPositions,
-      earthExplosion,
+      explosionFor(earthPositions, 3.2),
       t,
       1
     )
@@ -2948,7 +2985,7 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      earthExplosion,
+      explosionFor(earthPositions, 3.2),
       logoPositions,
       t,
       -1
@@ -3100,24 +3137,6 @@ Promise.all([
           'One or more models contained no usable mesh vertices.'
         )
       }
-
-      brainExplosion =
-        createExplosion(
-          brainPositions,
-          2.85
-        )
-
-      lightbulbExplosion =
-        createExplosion(
-          lightbulbPositions,
-          2.6
-        )
-
-      earthExplosion =
-        createExplosion(
-          earthPositions,
-          3.2
-        )
 
       currentPositions.set(
         brainPositions
@@ -3391,14 +3410,15 @@ function setupCopyTravel() {
 
     wireCopyCluster(
       desktop,
-      ['.t3-intro'],
+      ['.t3-intro', '.t3-morph'],
       {
         trigger: morphA,
         start: 'top 88%',
         end: 'bottom top',
       },
       [
-        { enter: 0.12, hold: 0.76, exit: 0.10, stay: true, fadeWait: 0 },
+        { enter: 0.10, hold: 0.36, exit: 0.10, fadeWait: 0 },
+        { enter: 0.10, hold: 0.44, exit: 0.08, stay: true, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3712,7 +3732,15 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <h1>A mentor who<br> stays with<br> your kid.</h1>
+        <h1>A mentor who<br> stays with<br> your child.</h1>
+        <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
+        <div class="hero-actions">
+          <a class="primary-button hero-cta" href="/consult">
+            Book Free Consultation
+            ${ARROW_ICON}
+          </a>
+          <a class="hero-secondary-cta" href="/programs">Explore Programs</a>
+        </div>
       </div>
       <div class="scroll-marker">
         SCROLL
@@ -3723,6 +3751,10 @@ function createPage() {
     <section class="chapter chapter-morph chapter-morph-a">
       <div class="copy copy-lane t3-intro">
         <p class="eyebrow"><span class="beat-meta">Brain · </span>What we teach</p>
+        <h2>Every student gets stuck for a different reason.</h2>
+      </div>
+      <div class="copy copy-lane t3-morph">
+        <h2>Understanding changes everything.</h2>
         <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
         <p class="teach-range">K–12 through college.</p>
       </div>
@@ -3766,7 +3798,8 @@ function createPage() {
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
         <h2>Mentors who<br> stay.</h2>
-        <p>One dedicated tutor. Same face. Same plan.</p>
+        <p>The right mentor doesn’t have to live down the street.</p>
+        <p>Virtual is primary. In person when a mentor is already nearby.</p>
       </div>
     </section>
 
@@ -3774,7 +3807,7 @@ function createPage() {
       <div class="copy copy-lane earth-hold">
         <p class="eyebrow"><span class="beat-meta">Earth · </span>How they grow</p>
         <h2>Support that<br>grows with them.</h2>
-        <p>Elementary through college. Same notes. Same system.</p>
+        <p>Elementary &amp; Middle. High School &amp; AP. SAT &amp; ACT. Programming &amp; STEM.</p>
       </div>
     </section>
 
@@ -3803,7 +3836,7 @@ function createPage() {
           >
         </span>
         <h2>
-          Let's find the right tutor.
+          One student. One plan. Years of growth.
         </h2>
         <p>
           Free. 30 minutes.
@@ -3815,7 +3848,7 @@ function createPage() {
           href="/consult"
           class="primary-button"
         >
-          Book free 30-minute consult
+          Book Free Consultation
           ${ARROW_ICON}
         </a>
       </div>
@@ -3825,6 +3858,10 @@ function createPage() {
 
   document.body.appendChild(
     main
+  )
+
+  document.body.appendChild(
+    createHomeAfter()
   )
 
   document.body.appendChild(
@@ -4858,7 +4895,7 @@ function stopLoop() {
 startLoop()
 
 // ======================================================
-// TAB VISIBILITY
+// TAB VISIBILITY (P0: pause renderer when the tab is hidden)
 // ======================================================
 
 document.addEventListener(
@@ -4955,9 +4992,9 @@ window.addEventListener(
     const ratio =
       Math.min(
         window.devicePixelRatio || 1,
-        window.innerWidth < 768
-          ? 1
-          : 1.5
+        window.innerWidth <= 767
+          ? MOBILE_PIXEL_RATIO_CAP
+          : DESKTOP_PIXEL_RATIO_CAP
       )
 
     renderer.setPixelRatio(
