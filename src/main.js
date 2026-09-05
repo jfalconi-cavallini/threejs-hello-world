@@ -152,15 +152,17 @@ const EARTH_X = 2.12
 // top-left lane; the form is centered under it, fully in frustum.
 // 3.15–3.35 + a left camera dolly left only a right-edge sliver.
 const MOBILE_X = 0.02
-const MOBILE_HOLD_Y = -0.22
+const MOBILE_HOLD_Y = -0.04
 const MOBILE_HERO_Y = -0.58
-const MOBILE_RESULTS_Y = -0.28
+const MOBILE_RESULTS_Y = -0.02
 const MOBILE_RESULTS_X = 0.02
 
 const MOBILE_HERO_SCALE = 0.56
-const MOBILE_HOLD_SCALE = 0.42
-const MOBILE_RESULTS_SCALE = 0.40
-const MOBILE_MORPH_SCALE = 0.48
+const MOBILE_HOLD_SCALE = 0.30
+const MOBILE_RESULTS_SCALE = 0.28
+const MOBILE_MORPH_SCALE = 0.36
+const MOBILE_BULB_SCALE = 0.28
+const MOBILE_EARTH_SCALE = 0.26
 const DESKTOP_HOLD_SCALE = 0.86
 const DESKTOP_HERO_SCALE = 0.98
 
@@ -2037,8 +2039,8 @@ function applyScrollCamera(p) {
     cameraTarget.z *= onLogo
       ? 2.15
       : onCopyHold
-        ? 1.92
-        : 1.62
+        ? 2.08
+        : 1.72
 
     if (!onLogo) {
       cameraTarget.x *= 0.08
@@ -2209,7 +2211,7 @@ function containFormInView() {
     )
     transformTarget.s = Math.min(
       transformTarget.s,
-      midHold ? 0.46 : 0.54
+      midHold ? 0.32 : 0.48
     )
     radius = Math.min(
       radius,
@@ -2628,7 +2630,7 @@ function updateStory() {
 
     transformTarget.s =
       isMobile()
-        ? MOBILE_HOLD_SCALE
+        ? MOBILE_BULB_SCALE
         : DESKTOP_HOLD_SCALE
 
     transformTarget.rx = 0
@@ -2785,7 +2787,7 @@ function updateStory() {
       isMobile()
         ? resultsLive
           ? MOBILE_RESULTS_SCALE
-          : MOBILE_HOLD_SCALE
+          : MOBILE_EARTH_SCALE
         : DESKTOP_HOLD_SCALE
 
     // Spin is handled cheaply in animate().
