@@ -142,7 +142,7 @@ const pages = {
         <p class="eyebrow">Results</p>
         <h1>Real student progress</h1>
         <p class="page-lead">
-          Individual student results. Outcomes vary and are not guaranteed.
+          Individual results vary.
         </p>
       </section>
       <section class="page-block">

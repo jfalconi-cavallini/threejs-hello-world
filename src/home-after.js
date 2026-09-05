@@ -47,7 +47,7 @@ export function createHomeAfter() {
         <h2>Mentors who stay.</h2>
         <p>
           One dedicated tutor matched to the coursework. Same notes.
-          Same system. No public cheap-to-expensive mentor ladder.
+          Same system.
         </p>
         <p><a href="/about#founders">Meet the people building it</a></p>
       </section>

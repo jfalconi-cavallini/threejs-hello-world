@@ -664,7 +664,8 @@ body.is-close-hold .scene-canvas {
   white-space: nowrap;
 }
 
-.t3-intro {
+.t3-intro,
+.t3-morph {
   max-height: none;
 }
 
@@ -1509,7 +1510,8 @@ body.is-close-hold .scene-canvas {
   }
 
   .copy-lane,
-  .t3-intro {
+  .t3-intro,
+  .t3-morph {
     top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
     width: min(92vw, 368px);
     max-width: calc(100vw - 32px);

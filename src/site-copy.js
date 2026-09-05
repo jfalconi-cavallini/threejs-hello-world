@@ -138,7 +138,7 @@ export function resultsStripHtml() {
       </article>
     </div>
     <p class="results-disclaimer">
-      Individual student results. Outcomes vary and are not guaranteed.
+      Individual results vary.
     </p>
     <p class="placeholder-note">
       Score screenshot — placeholder until approved.

@@ -2114,6 +2114,7 @@ function midScrollCopyLive() {
   return (
     copyIsLive('.copy-hero') ||
     copyIsLive('.t3-intro') ||
+    copyIsLive('.t3-morph') ||
     copyIsLive('.lb-intro') ||
     copyIsLive('.lb-feature-1') ||
     copyIsLive('.lb-feature-2') ||
@@ -3410,14 +3411,15 @@ function setupCopyTravel() {
 
     wireCopyCluster(
       desktop,
-      ['.t3-intro'],
+      ['.t3-intro', '.t3-morph'],
       {
         trigger: morphA,
         start: 'top 88%',
         end: 'bottom top',
       },
       [
-        { enter: 0.12, hold: 0.76, exit: 0.10, stay: true, fadeWait: 0 },
+        { enter: 0.10, hold: 0.36, exit: 0.10, fadeWait: 0 },
+        { enter: 0.10, hold: 0.44, exit: 0.08, stay: true, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3751,7 +3753,9 @@ function createPage() {
       <div class="copy copy-lane t3-intro">
         <p class="eyebrow"><span class="beat-meta">Brain · </span>What we teach</p>
         <h2>Every student gets stuck for a different reason.</h2>
-        <p>Understanding changes everything.</p>
+      </div>
+      <div class="copy copy-lane t3-morph">
+        <h2>Understanding changes everything.</h2>
         <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
         <p class="teach-range">K–12 through college.</p>
       </div>
@@ -3804,7 +3808,7 @@ function createPage() {
       <div class="copy copy-lane earth-hold">
         <p class="eyebrow"><span class="beat-meta">Earth · </span>How they grow</p>
         <h2>Support that<br>grows with them.</h2>
-        <p>Elementary through college. Same notes. Same system.</p>
+        <p>Elementary &amp; Middle. High School &amp; AP. SAT &amp; ACT. Programming &amp; STEM.</p>
       </div>
     </section>
 
