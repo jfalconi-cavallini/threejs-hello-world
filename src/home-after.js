@@ -6,6 +6,7 @@ import {
   mentorPreviewHtml,
   pathwayCardsHtml,
   resultsStripHtml,
+  testimonialsPlaceholderHtml,
 } from './site-copy.js'
 
 export function createHomeAfter() {
@@ -66,7 +67,7 @@ export function createHomeAfter() {
           ${groupPreviewCardsHtml()}
         </div>
         <p><a href="/programs/group-classes">Group Classes</a></p>
-        <p class="page-quiet">What’s running changes.</p>
+        <p class="page-quiet">What’s running changes. We won’t list a fake catalog.</p>
       </section>
 
       <section class="page-block" id="pricing-preview">
@@ -78,6 +79,8 @@ export function createHomeAfter() {
         </p>
         <p><a href="/pricing">See mentoring rates</a></p>
       </section>
+
+      ${testimonialsPlaceholderHtml()}
 
       <section class="page-block faq-block" id="faq">
         <h2>Questions parents ask</h2>
