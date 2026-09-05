@@ -9,8 +9,9 @@
   --mm-copper: #a65335;
   --mm-paper: #ffffff;
   --mm-nav-h: 76px;
-  --mm-scroll-gap: 32px;
-  --mm-section-y: 112px;
+  --mm-scroll-gap: 40px;
+  --mm-clearance: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+  --mm-section-y: 128px;
   --mm-shell: 1180px;
   --font-display: "Syne", Arial, Helvetica, sans-serif;
   --font-body: "Manrope", Arial, Helvetica, sans-serif;
@@ -26,7 +27,7 @@ html {
   background: var(--mm-void);
   color: var(--mm-ink);
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+  scroll-padding-top: var(--mm-clearance);
 }
 
 html,
@@ -1303,7 +1304,7 @@ body.is-static-home .scene-canvas {
 @media (max-width: 767px) {
   :root {
     --mm-nav-h: 58px;
-    --mm-scroll-gap: 36px;
+    --mm-scroll-gap: 44px;
   }
 
   .metaminds-nav {
@@ -1733,11 +1734,12 @@ body.is-static-home .scene-canvas {
 ========================= */
 
 body.is-site-page {
-  scroll-padding-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+  scroll-padding-top: var(--mm-clearance);
   overflow-x: hidden;
 }
 
-body.is-site-page .metaminds-nav {
+body.is-site-page .metaminds-nav,
+body.is-after-cinematic .metaminds-nav {
   background: rgba(0, 0, 0, 0.96);
   border-bottom: 1px solid rgba(243, 246, 249, 0.06);
 }
@@ -1756,6 +1758,9 @@ body.is-site-page .metaminds-nav {
 .page-hero .eyebrow,
 .page-block,
 .page-block h2,
+.page-block h3,
+.page-block .eyebrow,
+.site-shell .eyebrow,
 .rate-block,
 .rate-table,
 .faq-block,
@@ -1764,7 +1769,7 @@ body.is-site-page .metaminds-nav {
 #founders,
 #faq,
 #after-you-send {
-  scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+  scroll-margin-top: var(--mm-clearance);
 }
 
 .page-hero {
@@ -1841,7 +1846,7 @@ body.is-site-page .metaminds-nav {
 }
 
 .page-block {
-  padding: var(--mm-section-y) 0 0;
+  padding: max(var(--mm-section-y), var(--mm-clearance)) 0 0;
 }
 
 .page-hero + .page-block {
@@ -2162,7 +2167,7 @@ body.is-site-page .metaminds-nav {
 #results,
 #s1,
 #consultation {
-  scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+  scroll-margin-top: var(--mm-clearance);
 }
 
 .rate-block {
@@ -2417,7 +2422,7 @@ body.is-site-page .metaminds-nav {
 
 @media (max-width: 767px) {
   body.is-site-page {
-    scroll-padding-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+    scroll-padding-top: var(--mm-clearance);
     overflow-x: hidden;
   }
 
@@ -2432,6 +2437,9 @@ body.is-site-page .metaminds-nav {
   .page-hero .eyebrow,
   .page-block,
   .page-block h2,
+  .page-block h3,
+  .page-block .eyebrow,
+  .site-shell .eyebrow,
   .rate-block,
   .rate-table,
   .faq-block,
@@ -2440,7 +2448,7 @@ body.is-site-page .metaminds-nav {
   #founders,
   #faq,
   #after-you-send {
-    scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+    scroll-margin-top: var(--mm-clearance);
   }
 
   .page-hero {
@@ -2449,7 +2457,7 @@ body.is-site-page .metaminds-nav {
   }
 
   :root {
-    --mm-section-y: 72px;
+    --mm-section-y: 104px;
   }
 
   .page-hero .page-lead {
@@ -2604,7 +2612,7 @@ body.is-site-page .metaminds-nav {
 @media (max-height: 640px) {
   :root {
     --mm-nav-h: 52px;
-    --mm-scroll-gap: 28px;
+    --mm-scroll-gap: 36px;
   }
 
   .metaminds-nav {
@@ -2673,7 +2681,7 @@ body.is-site-page .metaminds-nav {
 }
 
 .home-after .site-shell {
-  padding-top: 96px;
+  padding-top: max(96px, var(--mm-clearance));
   padding-bottom: 128px;
 }
 
@@ -2690,7 +2698,7 @@ body.is-site-page .metaminds-nav {
 #group-classes,
 #parent-portal,
 #pricing-preview {
-  scroll-margin-top: calc(var(--mm-nav-h) + var(--mm-scroll-gap));
+  scroll-margin-top: var(--mm-clearance);
 }
 
 .pathway-grid,
@@ -2777,7 +2785,7 @@ body.is-site-page .metaminds-nav {
   }
 
   .home-after .site-shell {
-    padding-top: 64px;
+    padding-top: max(64px, var(--mm-clearance));
     padding-bottom: 88px;
   }
 

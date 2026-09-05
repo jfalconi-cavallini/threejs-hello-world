@@ -74,7 +74,7 @@ export function createHomeAfter() {
         <p class="eyebrow">Pricing</p>
         <h2>Rate follows your child’s level.</h2>
         <p>
-          Bigger packages, lower hourly rate. Want a Lead mentor at
+          Bigger packages, lower hourly rate. Want the top mentor band at
           any age? That’s the College rate.
         </p>
         <p><a href="/pricing">See mentoring rates</a></p>
@@ -94,5 +94,26 @@ export function createHomeAfter() {
     </div>
   `
 
+  bindAfterCinematicNav(after)
   return after
+}
+
+function bindAfterCinematicNav(after) {
+  const sync = () => {
+    const top = after.getBoundingClientRect().top
+    document.body.classList.toggle('is-after-cinematic', top <= 8)
+  }
+
+  const start = () => {
+    sync()
+    window.addEventListener('scroll', sync, { passive: true })
+    window.addEventListener('resize', sync)
+  }
+
+  if (after.isConnected) {
+    start()
+    return
+  }
+
+  requestAnimationFrame(start)
 }
