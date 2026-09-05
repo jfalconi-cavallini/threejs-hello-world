@@ -92,33 +92,37 @@ const REDUCED_MOTION =
     '(prefers-reduced-motion: reduce)'
   ).matches
 
-// Phone-first 60fps-class budget. Density is secondary.
+// P0 particle budget (Jose): ~9k hard cap on ≤767 / mobile.
+// Count is chosen at boot from MOBILE_AT_LOAD so a phone never
+// allocates the desktop 10k morph buffer.
+const MOBILE_PARTICLE_COUNT = 9000
+const DESKTOP_PARTICLE_COUNT = 10000
+
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
-    ? 4000
-    : 10000
+    ? MOBILE_PARTICLE_COUNT
+    : DESKTOP_PARTICLE_COUNT
 
-// Extra, dedicated fill just for the closing MetaMinds mark — never
-// drawn until the final hold, so it costs nothing during the rest of
-// the scroll. This is what makes the wordmark actually read as text.
+// Hold-only overlays. Mobile stays at the 9k cap — do not stack
+// extra clouds on top of the morph buffer on phone boot.
 const LOGO_DETAIL_COUNT =
   MOBILE_AT_LOAD
-    ? 4200
+    ? 0
     : 9500
 
-// Same idea for the opening hero shot — the shared morph budget
-// alone reads as a fuzzy blob at a glance, so a dedicated dense
-// layer fades in just for the brain hold, then back out before it
-// explodes into the lightbulb.
 const HERO_BRAIN_DETAIL_COUNT =
   MOBILE_AT_LOAD
-    ? 2200
+    ? 0
     : 4800
+
+// P0 DPR cap: 1 on mobile (brief), 1.5 on desktop.
+const MOBILE_PIXEL_RATIO_CAP = 1
+const DESKTOP_PIXEL_RATIO_CAP = 1.5
 
 const PIXEL_RATIO_CAP =
   MOBILE_AT_LOAD
-    ? 1
-    : 1.5
+    ? MOBILE_PIXEL_RATIO_CAP
+    : DESKTOP_PIXEL_RATIO_CAP
 
 const PIXEL_RATIO =
   Math.min(
@@ -1262,6 +1266,10 @@ function generateLogoPositions(logoScene) {
 // same transform as the sparse morph copy sitting underneath it),
 // invisible except during the opening brain hold.
 function buildHeroBrainDetail(brainScene) {
+  if (HERO_BRAIN_DETAIL_COUNT <= 0) {
+    return null
+  }
+
   const positions = modelToParticlePositions(
     brainScene,
     BRAIN_SIZE,
@@ -1345,6 +1353,10 @@ function buildLogoDetail(
   logoScene,
   brainScene
 ) {
+  if (LOGO_DETAIL_COUNT <= 0) {
+    return null
+  }
+
   // Oversample the full logo mesh, then keep only points that land
   // outside the icon's slice (the leftmost ~24% of its width) so we
   // end up with ~LOGO_DETAIL_COUNT text-only points.
@@ -1442,8 +1454,12 @@ function buildLogoDetail(
 
   const brainRawCount =
     MOBILE_AT_LOAD
-      ? 1300
+      ? 0
       : 2800
+
+  if (brainRawCount <= 0) {
+    return [textMesh]
+  }
 
   const brainRaw = modelToParticlePositions(
     brainScene,
@@ -4863,7 +4879,7 @@ function stopLoop() {
 startLoop()
 
 // ======================================================
-// TAB VISIBILITY
+// TAB VISIBILITY (P0: pause renderer when the tab is hidden)
 // ======================================================
 
 document.addEventListener(
@@ -4960,9 +4976,9 @@ window.addEventListener(
     const ratio =
       Math.min(
         window.devicePixelRatio || 1,
-        window.innerWidth < 768
-          ? 1
-          : 1.5
+        window.innerWidth <= 767
+          ? MOBILE_PIXEL_RATIO_CAP
+          : DESKTOP_PIXEL_RATIO_CAP
       )
 
     renderer.setPixelRatio(
