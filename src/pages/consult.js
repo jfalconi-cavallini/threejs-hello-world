@@ -24,7 +24,7 @@ mountPage({
             We match one tutor and stay with them. No weekly shuffle.
           </li>
           <li>
-            <strong>A plan you can see.</strong>
+            <strong>A plan you can actually see.</strong>
             After every session the tutor who taught writes notes
             for you and your child.
           </li>
