@@ -50,7 +50,7 @@ mountPage({
     </section>
 
     <section class="page-block" id="programs">
-      <h2>What we sit down to do</h2>
+      <h2>What we teach</h2>
       <div class="program-grid">
         <article id="academic">
           <h3>Academic tutoring</h3>
@@ -70,7 +70,7 @@ mountPage({
           <h3>AP &amp; advanced courses</h3>
           <p>
             Keep pace with harder coursework, fill gaps, and walk
-            into the next exam or semester already fluent.
+            into the next exam or semester more ready.
           </p>
         </article>
         <article id="stem">

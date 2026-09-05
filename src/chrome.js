@@ -90,7 +90,7 @@ const LOCKUP = `
 
 const CONSULT_CTA = `
     <a class="nav-cta" href="/consult">
-      <span class="nav-cta-full">Book Free Consultation</span>
+      <span class="nav-cta-full">Book free 30-minute consult</span>
       <span class="nav-cta-short">Consult</span>
       ${ARROW_ICON}
     </a>
@@ -144,7 +144,7 @@ export function createNavbar({ page = 'home' } = {}) {
         <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
       </div>
       <a href="/consult" class="primary-button nav-panel-cta">
-        Book Free Consultation
+        Book free 30-minute consult
         ${ARROW_ICON}
       </a>
     </div>

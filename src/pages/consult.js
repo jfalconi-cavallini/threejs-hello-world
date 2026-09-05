@@ -108,11 +108,12 @@ mountPage({
       </form>
 
       <div class="consult-success" id="consult-success" hidden>
-        <p class="eyebrow">You’re on the list</p>
-        <h2>We’ll reach out to set the 30 minutes.</h2>
+        <p class="eyebrow">Almost done</p>
+        <h2>Send the email to finish your request.</h2>
         <p>
-          Keep an eye on your inbox. If you’d rather send this request
-          now, <a data-mail-link href="mailto:${EMAIL}">email the academy</a>.
+          We filled it in for you. If nothing opened, tap
+          <a data-mail-link href="mailto:${EMAIL}">email the academy</a>
+          below.
         </p>
         <a class="primary-button" href="/pricing">See Mentoring rates${ARROW_ICON}</a>
       </div>
@@ -151,8 +152,10 @@ form?.addEventListener('submit', (event) => {
   const body = encodeURIComponent(
     `Parent: ${parent}\nEmail: ${email}\nPhone: ${phone}\nGrade: ${grade}\nFocus: ${focus}\nNotes: ${notes}`
   )
+  const mailto = `mailto:${EMAIL}?subject=${subject}&body=${body}`
   const mailLink = success.querySelector('[data-mail-link]')
   if (mailLink) {
-    mailLink.href = `mailto:${EMAIL}?subject=${subject}&body=${body}`
+    mailLink.href = mailto
   }
+  window.location.assign(mailto)
 })

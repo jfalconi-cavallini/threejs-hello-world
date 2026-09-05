@@ -3218,7 +3218,6 @@ function setupCopyTravel() {
     const morphB = document.querySelector('.chapter-morph-b')
     const morphC = document.querySelector('.chapter-morph-c')
     const lbChapter = document.querySelector('.chapter-lb-hold-item')
-    const teamChapter = document.querySelector('.chapter-team')
     const resultsChapter = document.querySelector('.chapter-results')
 
     if (hero && heroChapter) {
@@ -3314,36 +3313,6 @@ function setupCopyTravel() {
       copyScrub
     )
 
-    wireCopyCluster(
-      desktop,
-      [
-        '.earth-intro',
-        '.earth-path-1',
-        '.earth-path-2',
-        '.earth-path-3',
-        '.earth-path-4',
-        '.earth-phil-intro',
-        '.earth-phil-para',
-        '.earth-phil-close',
-      ],
-      {
-        trigger: teamChapter,
-        start: 'top bottom',
-        end: 'bottom top',
-      },
-      [
-        { enter: 0.12, hold: 0.56, exit: 0.12, fadeWait: 0 },
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
-      ],
-      copyScrub
-    )
-
     if (resultsChapter) {
       wireCopyCluster(
         desktop,
@@ -3424,7 +3393,6 @@ function liveCopyForGeometry() {
     ['.logo-hold-chapter', '.copy-consult'],
     ['.chapter-results', '.copy-results'],
     ['.chapter-morph-b', '.t5-main'],
-    ['.chapter-team', '.earth-intro'],
     ['.chapter-morph-a', '.t3-intro'],
     ['.chapter-hero', '.copy-hero'],
   ]
@@ -3437,21 +3405,6 @@ function liveCopyForGeometry() {
     }
     const r = chapter.getBoundingClientRect()
     if (r.top <= mid && r.bottom >= mid) {
-      if (pairs[i][0] === '.chapter-team') {
-        const items = [
-          '.earth-intro',
-          '.earth-path-1',
-          '.earth-path-2',
-          '.earth-path-3',
-          '.earth-path-4',
-          '.earth-phil-intro',
-          '.earth-phil-para',
-          '.earth-phil-close',
-        ]
-        const local = (mid - r.top) / (r.height || 1)
-        const idx = Math.min(items.length - 1, Math.floor(local * items.length))
-        return document.querySelector(items[idx])
-      }
       return document.querySelector(pairs[i][1])
     }
   }
@@ -3666,63 +3619,9 @@ function createPage() {
       </div>
     </section>
 
-    <section class="chapter chapter-team">
-      <div class="copy copy-team earth-intro">
-        <h2>Support that can grow with them.</h2>
-      </div>
-      <div class="copy copy-team earth-path-1">
-        <h2>Elementary & Middle School</h2>
-        <p>
-          Build fundamentals, confidence, organization, and strong learning habits.
-        </p>
-      </div>
-      <div class="copy copy-team earth-path-2">
-        <h2>High School & AP</h2>
-        <p>
-          Keep up with harder coursework, fill gaps, and prepare for
-          what comes next.
-        </p>
-      </div>
-      <div class="copy copy-team earth-path-3">
-        <h2>SAT & ACT</h2>
-        <p>
-          Diagnose weaknesses, build strategy, practice deliberately,
-          and track progress.
-        </p>
-      </div>
-      <div class="copy copy-team earth-path-4">
-        <h2>Programming & STEM</h2>
-        <p>
-          Learn to build with code, robotics, engineering, and real
-          projects.
-        </p>
-      </div>
-      <div class="copy copy-team earth-phil-intro">
-        <h2>
-          The earlier students build strong habits, the more options
-          they have later.
-        </h2>
-      </div>
-      <div class="copy copy-team earth-phil-para">
-        <p>
-          A sixth grader struggling with fractions has time to
-          rebuild the foundation. A freshman can strengthen algebra
-          before the SAT. A high school student can learn to code
-          before choosing a college major. Small improvements
-          compound when students have time to use them.
-        </p>
-      </div>
-      <div class="copy copy-team earth-phil-close">
-        <h2>
-          We want students prepared for what comes next, not
-          constantly catching up to it.
-        </h2>
-      </div>
-    </section>
-
     <section class="chapter chapter-results" id="results">
       <div class="copy copy-lane copy-results">
-        <h2>A plan you can see.</h2>
+        <h2>A plan you can actually see.</h2>
         <p>Notes after every session. Skill tracking. Parent updates.</p>
       </div>
     </section>
@@ -3757,7 +3656,7 @@ function createPage() {
           href="/consult"
           class="primary-button"
         >
-          Book a Free Consultation
+          Book free 30-minute consult
           ${ARROW_ICON}
         </a>
       </div>
