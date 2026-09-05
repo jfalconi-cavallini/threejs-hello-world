@@ -53,7 +53,7 @@ mountPage({
       <form class="consult-form" id="consult-form" novalidate>
         <div class="form-intro">
           <h2>Request your consult</h2>
-          <p>Tell us about your child…</p>
+          <p>Tell us about your child. We’ll open a prepared email for you to send — that’s how the request reaches us.</p>
         </div>
 
         <label>
