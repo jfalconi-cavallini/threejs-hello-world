@@ -151,16 +151,16 @@ const EARTH_X = 2.12
 // Phone (~390px, ~0.46 aspect): share the beat. Type keeps the
 // top-left lane; the form is centered under it, fully in frustum.
 // 3.15–3.35 + a left camera dolly left only a right-edge sliver.
-const MOBILE_X = 0.14
-const MOBILE_HOLD_Y = -0.42
-const MOBILE_HERO_Y = -1.12
-const MOBILE_RESULTS_Y = -0.52
-const MOBILE_RESULTS_X = 0.14
+const MOBILE_X = 0.02
+const MOBILE_HOLD_Y = -0.22
+const MOBILE_HERO_Y = -0.58
+const MOBILE_RESULTS_Y = -0.28
+const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 0.70
-const MOBILE_HOLD_SCALE = 0.50
-const MOBILE_RESULTS_SCALE = 0.48
-const MOBILE_MORPH_SCALE = 0.58
+const MOBILE_HERO_SCALE = 0.56
+const MOBILE_HOLD_SCALE = 0.42
+const MOBILE_RESULTS_SCALE = 0.40
+const MOBILE_MORPH_SCALE = 0.48
 const DESKTOP_HOLD_SCALE = 0.86
 const DESKTOP_HERO_SCALE = 0.98
 
@@ -2035,13 +2035,13 @@ function applyScrollCamera(p) {
     // yaw the camera left — that used to shove the mesh into a
     // right-edge sliver while the rest of the beat stayed black.
     cameraTarget.z *= onLogo
-      ? 2.05
+      ? 2.15
       : onCopyHold
-        ? 1.78
-        : 1.48
+        ? 1.92
+        : 1.62
 
-    if (onCopyHold && !onLogo) {
-      cameraTarget.x *= 0.18
+    if (!onLogo) {
+      cameraTarget.x *= 0.08
     }
   }
 
@@ -2090,6 +2090,7 @@ function copyIsLive(selector) {
 
 function midScrollCopyLive() {
   return (
+    copyIsLive('.copy-hero') ||
     copyIsLive('.t3-intro') ||
     copyIsLive('.lb-intro') ||
     copyIsLive('.lb-feature-1') ||
@@ -2097,7 +2098,8 @@ function midScrollCopyLive() {
     copyIsLive('.lb-feature-3') ||
     copyIsLive('.lb-feature-4') ||
     copyIsLive('.earth-hold') ||
-    copyIsLive('.copy-results')
+    copyIsLive('.copy-results') ||
+    copyIsLive('.copy-consult')
   )
 }
 
@@ -2134,10 +2136,12 @@ function formSizeForStage() {
 // bulb, earth) use a tighter bottom pad so the whole silhouette
 // stays in-frame instead of a bottom-clipped slice.
 function containFormInView() {
-  if (
+  const onLogo =
     currentStage === 'logo' ||
     currentStage === 'logo-forming'
-  ) {
+  const mobile = isMobile()
+
+  if (onLogo && !mobile) {
     return
   }
 
@@ -2155,22 +2159,21 @@ function containFormInView() {
   const halfH =
     Math.tan((fov * Math.PI) / 360) * z
   const halfW = halfH * aspect
-  const mobile = isMobile()
   const midHold = midScrollCopyLive()
   const lookX = mobile
-    ? transformTarget.x * 0.50
+    ? transformTarget.x * 0.22
     : transformTarget.x * 0.18
   const lookY = mobile
-    ? transformTarget.y * 0.10
+    ? transformTarget.y * 0.08
     : transformTarget.y * 0.42
   const padX = mobile
-    ? (midHold ? 0.16 : 0.12)
+    ? (midHold ? 0.20 : 0.16)
     : 0.09
   const padTop = mobile
-    ? (midHold ? 0.36 : 0.28)
+    ? (midHold ? 0.38 : 0.30)
     : 0.10
   const padBot = mobile
-    ? (midHold ? 0.20 : 0.16)
+    ? (midHold ? 0.22 : 0.18)
     : 0.12
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
@@ -2188,15 +2191,30 @@ function containFormInView() {
     currentStage === 'lightbulb-forming' ||
     currentStage === 'lightbulb-explosion'
   let radius =
-    size * (tall ? 0.56 : 0.52) * transformTarget.s
+    size * (tall ? 0.58 : 0.54) * transformTarget.s
   const maxR = Math.min(
-    (viewR - viewL) * 0.45,
-    (viewT - viewB) * 0.44
+    (viewR - viewL) * 0.42,
+    (viewT - viewB) * 0.42
   )
 
   if (radius > maxR && radius > 0) {
     transformTarget.s *= maxR / radius
     radius = maxR
+  }
+
+  if (mobile) {
+    transformTarget.x = Math.max(
+      -0.16,
+      Math.min(0.16, transformTarget.x)
+    )
+    transformTarget.s = Math.min(
+      transformTarget.s,
+      midHold ? 0.46 : 0.54
+    )
+    radius = Math.min(
+      radius,
+      size * 0.54 * transformTarget.s
+    )
   }
 
   if (transformTarget.x - radius < viewL) {
@@ -3635,7 +3653,7 @@ function createPage() {
 
     <section class="chapter chapter-morph chapter-morph-a">
       <div class="copy copy-lane t3-intro">
-        <p class="eyebrow">Brain · What we teach</p>
+        <p class="eyebrow"><span class="beat-meta">Brain · </span>What we teach</p>
         <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
         <p class="teach-range">K–12 through college.</p>
       </div>
@@ -3643,7 +3661,7 @@ function createPage() {
 
     <section class="chapter chapter-lb-hold-item" id="bulb">
       <div class="copy copy-lane lb-intro">
-        <p class="eyebrow">Bulb · What you see</p>
+        <p class="eyebrow"><span class="beat-meta">Bulb · </span>What you see</p>
         <h2>Tutoring shouldn’t disappear when the hour ends.</h2>
       </div>
     </section>
@@ -3684,7 +3702,7 @@ function createPage() {
 
     <section class="chapter chapter-earth" id="grow">
       <div class="copy copy-lane earth-hold">
-        <p class="eyebrow">Earth · How they grow</p>
+        <p class="eyebrow"><span class="beat-meta">Earth · </span>How they grow</p>
         <h2>Support that grows with them.</h2>
         <p>Elementary through college. Same notes. Same system.</p>
       </div>
@@ -4364,9 +4382,9 @@ function animate() {
     // Phone: follow the form in X so it stays in frame; barely
     // follow Y so a below-type park does not recenter onto the H1.
     const lookFollowX =
-      isMobile() ? 0.50 : 0.18
+      isMobile() ? 0.22 : 0.18
     const lookFollowY =
-      isMobile() ? 0.10 : 0.42
+      isMobile() ? 0.08 : 0.42
 
     lookTarget.x +=
       (

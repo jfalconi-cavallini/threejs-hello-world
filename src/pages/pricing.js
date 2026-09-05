@@ -33,40 +33,40 @@ mountPage({
                 <span class="rate-level">College</span>
                 <span class="rate-detail">Lead mentors · college coursework</span>
               </th>
-              <td>$95/hr</td>
-              <td>$85/hr</td>
-              <td>$75/hr</td>
-              <td>$65/hr</td>
+              <td data-label="1 hr">$95/hr</td>
+              <td data-label="4 hr">$85/hr</td>
+              <td data-label="8 hr">$75/hr</td>
+              <td data-label="20 hr">$65/hr</td>
             </tr>
             <tr>
               <th scope="row">
                 <span class="rate-level">High school</span>
                 <span class="rate-detail">Experienced and senior mentors · SAT, ACT, AP, and high school courses</span>
               </th>
-              <td>$80/hr</td>
-              <td>$70/hr</td>
-              <td>$60/hr</td>
-              <td>$50/hr</td>
+              <td data-label="1 hr">$80/hr</td>
+              <td data-label="4 hr">$70/hr</td>
+              <td data-label="8 hr">$60/hr</td>
+              <td data-label="20 hr">$50/hr</td>
             </tr>
             <tr>
               <th scope="row">
                 <span class="rate-level">Middle school</span>
                 <span class="rate-detail">Core and experienced mentors · middle school courses</span>
               </th>
-              <td>$55/hr</td>
-              <td>$50/hr</td>
-              <td>$45/hr</td>
-              <td>$40/hr</td>
+              <td data-label="1 hr">$55/hr</td>
+              <td data-label="4 hr">$50/hr</td>
+              <td data-label="8 hr">$45/hr</td>
+              <td data-label="20 hr">$40/hr</td>
             </tr>
             <tr>
               <th scope="row">
                 <span class="rate-level">Elementary</span>
                 <span class="rate-detail">Core mentors · elementary foundations</span>
               </th>
-              <td>$50/hr</td>
-              <td>$45/hr</td>
-              <td>$40/hr</td>
-              <td>$35/hr</td>
+              <td data-label="1 hr">$50/hr</td>
+              <td data-label="4 hr">$45/hr</td>
+              <td data-label="8 hr">$40/hr</td>
+              <td data-label="20 hr">$35/hr</td>
             </tr>
           </tbody>
         </table>
