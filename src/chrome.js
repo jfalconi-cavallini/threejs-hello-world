@@ -114,6 +114,7 @@ export function createNavbar({ page = 'home' } = {}) {
       <a class="${navActive(page, 'home').trim()}" href="${homeHref}">Home</a>
       <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
       <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
+      <a class="${navActive(page, 'consult').trim()}" href="/consult">Consult</a>
     </div>
 
     ${CONSULT_CTA}
@@ -133,6 +134,7 @@ export function createNavbar({ page = 'home' } = {}) {
         <a class="${navActive(page, 'home').trim()}" href="${homeHref}">Home</a>
         <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
         <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
+        <a class="${navActive(page, 'consult').trim()}" href="/consult">Consult</a>
       </div>
       <a href="/consult" class="primary-button nav-panel-cta">
         Book free 30-minute consult
