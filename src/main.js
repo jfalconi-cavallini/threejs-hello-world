@@ -73,6 +73,28 @@ function mountChrome() {
 
   bootScreen =
     boot
+
+  const still =
+    document.createElement('div')
+
+  still.className =
+    'static-hero-still'
+
+  still.setAttribute(
+    'aria-hidden',
+    'true'
+  )
+
+  still.innerHTML = `
+    <img
+      src="/metaminds-logo-lock.png"
+      alt=""
+    >
+  `
+
+  document.body.appendChild(
+    still
+  )
 }
 
 mountChrome()
@@ -163,34 +185,24 @@ const REDUCED_MOTION =
     '(prefers-reduced-motion: reduce)'
   ).matches
 
-// P0: 9k is the Jose hard cap. 2400 + DPR 1 + visibility pause
-// still Aw Snap'd on 3356b7d before the look finished. Phone
-// budget is now 1600 (1200 if reduced motion). Count is chosen
-// at boot from width ≤767 or mobile UA — never the desktop 10k.
+// Phase 1 desktop budget (CTO lock). Old peak ~26k Points
+// (morph 10k + logo 9.5k + hero 4.8k + field 2k) + bloom
+// FBOs at DPR 1.5 OOMed Chrome (Aw Snap 9) before home scroll.
+// Overlays stay 0. Morph 5k. Field 0. Composer off. DPR 1.25.
 const MOBILE_PARTICLE_CAP = 9000
 const MOBILE_PARTICLE_COUNT = REDUCED_MOTION ? 1200 : 1600
-const DESKTOP_PARTICLE_COUNT = 10000
+const DESKTOP_PARTICLE_COUNT = 5000
 
 const PARTICLE_COUNT =
   MOBILE_AT_LOAD
     ? Math.min(MOBILE_PARTICLE_COUNT, MOBILE_PARTICLE_CAP)
     : DESKTOP_PARTICLE_COUNT
 
-// Hold-only overlays. Mobile never allocates these — extra
-// clouds on top of the morph buffer were a second OOM path.
-const LOGO_DETAIL_COUNT =
-  MOBILE_AT_LOAD
-    ? 0
-    : 9500
+const LOGO_DETAIL_COUNT = 0
+const HERO_BRAIN_DETAIL_COUNT = 0
 
-const HERO_BRAIN_DETAIL_COUNT =
-  MOBILE_AT_LOAD
-    ? 0
-    : 4800
-
-// P0 DPR cap: 1 on mobile (brief), 1.5 on desktop.
 const MOBILE_PIXEL_RATIO_CAP = 1
-const DESKTOP_PIXEL_RATIO_CAP = 1.5
+const DESKTOP_PIXEL_RATIO_CAP = 1.25
 
 const PIXEL_RATIO_CAP =
   MOBILE_AT_LOAD
@@ -203,11 +215,13 @@ const PIXEL_RATIO =
     PIXEL_RATIO_CAP
   )
 
-const USE_COMPOSER =
-  !MOBILE_AT_LOAD
+const USE_COMPOSER = false
 
-// Let the boot screen paint before WebGL, particle buffers,
-// and the 15MB / 7.6MB GLB decodes compete for RAM.
+const LOW_MEMORY_DEVICE =
+  typeof navigator.deviceMemory === 'number' &&
+  navigator.deviceMemory <= 4
+
+// Let the boot screen paint before any further work.
 await afterFirstPaint()
 disposeExistingRenderer()
 
@@ -297,76 +311,157 @@ camera.position.z = 4.55
 camera.position.x = -0.68
 
 // ======================================================
-// RENDERER
+// RENDERER — created after the static page is on screen.
+// Phase 1 never builds EffectComposer / bloom FBOs.
 // ======================================================
 
-const renderer =
-  new THREE.WebGLRenderer({
-    antialias: !MOBILE_AT_LOAD,
-    powerPreference: MOBILE_AT_LOAD
-      ? 'low-power'
-      : 'high-performance',
-    alpha: false,
-    stencil: false,
-    depth: true,
-    preserveDrawingBuffer: false,
-  })
+let renderer = null
+let webglEnabled = false
+let firstFrameAt = 0
+let firstFrameTimer = 0
 
-renderer.setSize(
-  window.innerWidth,
-  window.innerHeight
-)
+function webglIsAvailable() {
+  try {
+    const probe = document.createElement('canvas')
+    return !!(
+      probe.getContext('webgl2') ||
+      probe.getContext('webgl')
+    )
+  } catch {
+    return false
+  }
+}
 
-renderer.setPixelRatio(
-  PIXEL_RATIO
-)
+function shouldSkipWebGL() {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    )
 
-renderer.outputColorSpace =
-  THREE.SRGBColorSpace
+  if (
+    params.has('static') ||
+    params.has('nowebgl')
+  ) {
+    return true
+  }
 
-renderer.toneMapping =
-  THREE.ACESFilmicToneMapping
+  return LOW_MEMORY_DEVICE || !webglIsAvailable()
+}
 
-renderer.toneMappingExposure = 1.08
-
-renderer.domElement.className =
-  'scene-canvas'
-
-document.body.appendChild(
-  renderer.domElement
-)
-
-if (import.meta.hot) {
-  import.meta.hot.data.renderer = renderer
-  import.meta.hot.dispose(() => {
-    stopLoop()
-    renderer.dispose()
-    renderer.domElement.remove()
-    import.meta.hot.data.renderer = null
+function afterIdle() {
+  return new Promise((resolve) => {
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(() => resolve(), { timeout: 900 })
+    } else {
+      setTimeout(resolve, 1)
+    }
   })
 }
 
-renderer.domElement.addEventListener(
-  'webglcontextlost',
-  (event) => {
-    event.preventDefault()
-    stopLoop()
+function enableStaticFallback() {
+  document.body.classList.add('is-static-home')
+  if (bootScreen) {
+    bootScreen.classList.add('is-done')
   }
-)
+}
 
-renderer.domElement.addEventListener(
-  'webglcontextrestored',
-  () => {
-    if (experienceVisible && !document.hidden) {
-      startLoop()
-    }
+function teardownWebGL() {
+  stopLoop()
+
+  if (firstFrameTimer) {
+    clearTimeout(firstFrameTimer)
+    firstFrameTimer = 0
   }
-)
+
+  webglEnabled = false
+
+  if (composer) {
+    composer.dispose?.()
+    composer = null
+    bloomPass = null
+  }
+
+  if (renderer) {
+    renderer.setAnimationLoop(null)
+    renderer.dispose()
+    renderer.domElement?.remove()
+    renderer = null
+  }
+
+  if (import.meta.hot) {
+    import.meta.hot.data.renderer = null
+  }
+
+  enableStaticFallback()
+}
+
+function createWebGLRenderer() {
+  let instance
+
+  try {
+    instance =
+      new THREE.WebGLRenderer({
+        antialias: false,
+        powerPreference: MOBILE_AT_LOAD
+          ? 'low-power'
+          : 'default',
+        alpha: false,
+        stencil: false,
+        depth: true,
+        preserveDrawingBuffer: false,
+      })
+  } catch (error) {
+    throw new Error(
+      `createWebGLRenderer failed: ${error?.message || error}`
+    )
+  }
+
+  instance.setSize(
+    window.innerWidth,
+    window.innerHeight
+  )
+
+  instance.setPixelRatio(
+    PIXEL_RATIO
+  )
+
+  instance.outputColorSpace =
+    THREE.SRGBColorSpace
+
+  instance.toneMapping =
+    THREE.ACESFilmicToneMapping
+
+  instance.toneMappingExposure = 1.08
+
+  instance.domElement.className =
+    'scene-canvas'
+
+  document.body.appendChild(
+    instance.domElement
+  )
+
+  instance.domElement.addEventListener(
+    'webglcontextlost',
+    (event) => {
+      event.preventDefault()
+      teardownWebGL()
+    }
+  )
+
+  if (import.meta.hot) {
+    import.meta.hot.data.renderer = instance
+    import.meta.hot.dispose(() => {
+      teardownWebGL()
+    })
+  }
+
+  return instance
+}
 
 // ======================================================
-// BLOOM — desktop only, after first paint. Never construct
-// EffectComposer / UnrealBloomPass on mobile: each pass
-// allocates extra full-screen render targets.
+// BLOOM — Phase 1 off on every device. Do not construct
+// EffectComposer / UnrealBloomPass until the desktop
+// particle budget is proven stable.
 // ======================================================
 
 let composer = null
@@ -533,7 +628,7 @@ function createPointMaterial({
   const uniforms = {
     uTime: ambientTime,
     uPixelRatio: {
-      value: renderer.getPixelRatio(),
+      value: PIXEL_RATIO,
     },
     uSize: { value: size },
     uDrift: { value: drift },
@@ -803,10 +898,7 @@ scene.add(debris)
 // VOLUME FIELD — particles in the dark around the form
 // ======================================================
 
-const FIELD_COUNT =
-  MOBILE_AT_LOAD
-    ? 0
-    : 2000
+const FIELD_COUNT = 0
 
 let field = null
 let fieldMaterial = null
@@ -1014,10 +1106,7 @@ let heroBrainDetail = null
 
 // Extra volumetric dust — golden-ratio sphere, no Math.random
 // so the existing RNG stream for forms/explosions stays intact.
-const VOLUME_COUNT =
-  MOBILE_AT_LOAD
-    ? 0
-    : 1150
+const VOLUME_COUNT = 0
 
 if (VOLUME_COUNT > 0)
 {
@@ -1274,7 +1363,7 @@ function modelToParticlePositions(
   const STRIDE = 10 // 9 floats + 1 area
   const maxTris = MOBILE_AT_LOAD
     ? Math.max(count * 8, 2400)
-    : 80000
+    : 20000
   const packed =
     new Float32Array(maxTris * STRIDE)
   let stored = 0
@@ -3232,124 +3321,86 @@ function updateStory() {
 // kept the source meshes, which OOMs phones before createPage.
 
 async function bootExperience() {
-  try {
-    renderer.render(scene, camera)
+  renderer.render(scene, camera)
 
-    const brainGLB =
-      await loadGLB(
-        '/models/brain.glb'
-      )
-
-    brainPositions =
-      modelToParticlePositions(
-        brainGLB.scene,
-        BRAIN_SIZE,
-        0.4
-      )
-
-    if (!MOBILE_AT_LOAD) {
-      heroBrainDetail =
-        buildHeroBrainDetail(
-          brainGLB.scene
-        )
-    }
-
-    const bulbGLB =
-      await loadGLB(
-        '/models/lightbulb.glb'
-      )
-
-    lightbulbPositions =
-      modelToParticlePositions(
-        bulbGLB.scene,
-        LIGHTBULB_SIZE
-      )
-
-    disposeObject3D(bulbGLB.scene)
-
-    const landGeoJSON =
-      await fetch('/geojson/ne_110m_land.json')
-        .then((r) => r.json())
-
-    earthPositions =
-      generateGlobePositions(landGeoJSON)
-
-    const logoGLB =
-      await loadGLB(
-        '/models/metaminds-logo.glb'
-      )
-
-    logoPositions =
-      generateLogoPositions(
-        logoGLB.scene
-      )
-
-    if (!MOBILE_AT_LOAD) {
-      logoDetail =
-        buildLogoDetail(
-          logoGLB.scene,
-          brainGLB.scene
-        )
-    }
-
-    disposeObject3D(logoGLB.scene)
-    disposeObject3D(brainGLB.scene)
-
-    if (
-      !brainPositions ||
-      !lightbulbPositions ||
-      !logoPositions
-    ) {
-      throw new Error(
-        'One or more models contained no usable mesh vertices.'
-      )
-    }
-
-    currentPositions.set(
-      brainPositions
+  const brainGLB =
+    await loadGLB(
+      '/models/brain.glb'
     )
 
-    storyTargetPositions.set(
-      brainPositions
+  brainPositions =
+    modelToParticlePositions(
+      brainGLB.scene,
+      BRAIN_SIZE,
+      0.4
     )
 
-    modelsReady = true
+  // Phase 1: no logo/hero overlays. Dispose brain before
+  // the next GLB so two source meshes are never resident.
+  disposeObject3D(brainGLB.scene)
 
-    createPage()
-
-    if (bootScreen) {
-      bootScreen.classList.add(
-        'is-done'
-      )
-    }
-
-    updateParticleInstances(
-      true
+  const bulbGLB =
+    await loadGLB(
+      '/models/lightbulb.glb'
     )
 
-    updateStory()
-
-    await ensureComposer()
-    startLoop()
-  } catch (error) {
-    console.error(
-      'Model loading failed:',
-      error
+  lightbulbPositions =
+    modelToParticlePositions(
+      bulbGLB.scene,
+      LIGHTBULB_SIZE
     )
 
-    if (bootScreen) {
-      const label =
-        bootScreen.querySelector('p')
+  disposeObject3D(bulbGLB.scene)
 
-      if (label) {
-        label.textContent =
-          "Couldn't load the page. Refresh to try again."
-      }
-    }
+  const landGeoJSON =
+    await fetch('/geojson/ne_110m_land.json')
+      .then((r) => r.json())
+
+  earthPositions =
+    generateGlobePositions(landGeoJSON)
+
+  const logoGLB =
+    await loadGLB(
+      '/models/metaminds-logo.glb'
+    )
+
+  logoPositions =
+    generateLogoPositions(
+      logoGLB.scene
+    )
+
+  disposeObject3D(logoGLB.scene)
+
+  if (
+    !brainPositions ||
+    !lightbulbPositions ||
+    !logoPositions
+  ) {
+    throw new Error(
+      'One or more models contained no usable mesh vertices.'
+    )
   }
-}
 
-bootExperience()
+  currentPositions.set(
+    brainPositions
+  )
+
+  storyTargetPositions.set(
+    brainPositions
+  )
+
+  modelsReady = true
+
+  updateParticleInstances(
+    true
+  )
+
+  updateStory()
+
+  // Phase 1: composer stays off. Do not allocate bloom FBOs.
+  startLoop()
+  armFirstFrameWatchdog()
+}
 
 function syncNavHighlight(
   _progress
@@ -4122,6 +4173,12 @@ function createPage() {
   setupCopyJumpSnap()
 
   setupVisibilityObserver()
+
+  if (bootScreen) {
+    bootScreen.classList.add(
+      'is-done'
+    )
+  }
 }
 
 
@@ -4475,8 +4532,41 @@ let experienceVisible =
 let lastFrameTime =
   performance.now()
 
+function markFirstFrame() {
+  if (firstFrameAt) {
+    return
+  }
+
+  firstFrameAt =
+    performance.now()
+
+  webglEnabled = true
+
+  if (firstFrameTimer) {
+    clearTimeout(firstFrameTimer)
+    firstFrameTimer = 0
+  }
+}
+
+function armFirstFrameWatchdog() {
+  if (firstFrameTimer) {
+    clearTimeout(firstFrameTimer)
+  }
+
+  firstFrameTimer =
+    setTimeout(
+      () => {
+        if (!firstFrameAt) {
+          teardownWebGL()
+        }
+      },
+      3000
+    )
+}
+
 function animate() {
   if (
+    !renderer ||
     document.hidden ||
     !experienceVisible
   ) {
@@ -5033,6 +5123,8 @@ function animate() {
       camera
     )
   }
+
+  markFirstFrame()
 }
 
 // ======================================================
@@ -5040,7 +5132,10 @@ function animate() {
 // ======================================================
 
 function startLoop() {
-  if (loopRunning) {
+  if (
+    loopRunning ||
+    !renderer
+  ) {
     return
   }
 
@@ -5061,9 +5156,11 @@ function stopLoop() {
 
   loopRunning = false
 
-  renderer.setAnimationLoop(
-    null
-  )
+  if (renderer) {
+    renderer.setAnimationLoop(
+      null
+    )
+  }
 }
 
 // Loop starts after models are sampled and source GLBs disposed.
@@ -5148,49 +5245,51 @@ let refreshTimer = null
 window.addEventListener(
   'resize',
   () => {
-    camera.aspect =
-      window.innerWidth /
-      window.innerHeight
+    if (renderer && camera) {
+      camera.aspect =
+        window.innerWidth /
+        window.innerHeight
 
-    camera.updateProjectionMatrix()
+      camera.updateProjectionMatrix()
 
-    renderer.setSize(
-      window.innerWidth,
-      window.innerHeight
-    )
-
-    if (composer) {
-      composer.setSize(
+      renderer.setSize(
         window.innerWidth,
         window.innerHeight
       )
-    }
 
-    const ratio =
-      Math.min(
-        window.devicePixelRatio || 1,
-        window.innerWidth <= 767
-          ? MOBILE_PIXEL_RATIO_CAP
-          : DESKTOP_PIXEL_RATIO_CAP
-      )
+      if (composer) {
+        composer.setSize(
+          window.innerWidth,
+          window.innerHeight
+        )
+      }
 
-    renderer.setPixelRatio(
-      ratio
-    )
+      const ratio =
+        Math.min(
+          window.devicePixelRatio || 1,
+          window.innerWidth <= 767
+            ? MOBILE_PIXEL_RATIO_CAP
+            : DESKTOP_PIXEL_RATIO_CAP
+        )
 
-    if (composer) {
-      composer.setPixelRatio(
+      renderer.setPixelRatio(
         ratio
       )
-    }
 
-    for (
-      let i = 0;
-      i < pointMaterials.length;
-      i++
-    ) {
-      pointMaterials[i].uniforms.uPixelRatio.value =
-        ratio
+      if (composer) {
+        composer.setPixelRatio(
+          ratio
+        )
+      }
+
+      for (
+        let i = 0;
+        i < pointMaterials.length;
+        i++
+      ) {
+        pointMaterials[i].uniforms.uPixelRatio.value =
+          ratio
+      }
     }
 
     /*
@@ -5231,3 +5330,27 @@ window.addEventListener(
     }
   }
 )
+
+async function startHome() {
+  createPage()
+
+  await afterIdle()
+
+  if (shouldSkipWebGL()) {
+    enableStaticFallback()
+    return
+  }
+
+  try {
+    renderer = createWebGLRenderer()
+    await bootExperience()
+  } catch (error) {
+    console.error(
+      'WebGL boot failed:',
+      error
+    )
+    teardownWebGL()
+  }
+}
+
+await startHome()
