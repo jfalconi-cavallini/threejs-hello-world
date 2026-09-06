@@ -2713,8 +2713,16 @@ function containFormInView() {
   )
 
   if (radius > maxR && radius > 0) {
-    transformTarget.s *= maxR / radius
-    radius = maxR
+    if (mobile && heroCopy) {
+      const loose = maxR * 1.28
+      if (radius > loose) {
+        transformTarget.s *= loose / radius
+        radius = loose
+      }
+    } else {
+      transformTarget.s *= maxR / radius
+      radius = maxR
+    }
   }
 
   if (mobile) {
@@ -2749,11 +2757,11 @@ function containFormInView() {
     )
   }
 
-  if (transformTarget.x - radius < viewL) {
+  if (!(mobile && heroCopy) && transformTarget.x - radius < viewL) {
     transformTarget.x = viewL + radius
   }
 
-  if (transformTarget.x + radius > viewR) {
+  if (!(mobile && heroCopy) && transformTarget.x + radius > viewR) {
     transformTarget.x = viewR - radius
   }
 
@@ -2766,7 +2774,7 @@ function containFormInView() {
     transformTarget.y = viewB + radius
   }
 
-  if (transformTarget.y + radius > viewT) {
+  if (!(mobile && heroCopy) && transformTarget.y + radius > viewT) {
     transformTarget.y = viewT - radius
   }
 }
@@ -4349,7 +4357,7 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <p class="eyebrow eyebrow-dash">Personalized tutoring<br>for a brighter tomorrow</p>
+        <p class="eyebrow eyebrow-dash"><span class="eyebrow-stack"><span>Personalized tutoring</span><span>for a brighter tomorrow</span></span></p>
         <h1>A mentor who stays<br>with your child<span class="stop">.</span></h1>
         <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
         <div class="hero-actions">
