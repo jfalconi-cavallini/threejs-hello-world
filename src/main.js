@@ -259,22 +259,24 @@ const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390px, ~0.46 aspect): share the beat. Type keeps the
-// top-left lane; the form is centered under it, fully in frustum.
-// 3.15–3.35 + a left camera dolly left only a right-edge sliver.
+// Phone (~390×844): Jose frames put the form in the lower third,
+// large enough to read as the still coming alive. Type stays in
+// the top lane. Do not recenter onto the H1 or shrink to a sliver.
 const MOBILE_X = 0.02
-const MOBILE_HOLD_Y = -0.04
-const MOBILE_HERO_Y = -0.58
-const MOBILE_RESULTS_Y = -0.02
+const MOBILE_HOLD_Y = -0.78
+const MOBILE_HERO_Y = -0.96
+const MOBILE_BULB_Y = -0.82
+const MOBILE_TEAM_Y = -0.74
+const MOBILE_RESULTS_Y = -0.48
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 0.62
-const MOBILE_HOLD_SCALE = 0.38
-const MOBILE_RESULTS_SCALE = 0.34
-const MOBILE_MORPH_SCALE = 0.42
-const MOBILE_BULB_SCALE = 0.38
-const MOBILE_EARTH_SCALE = 0.26
-const MOBILE_TEAM_SCALE = 0.40
+const MOBILE_HERO_SCALE = 0.92
+const MOBILE_HOLD_SCALE = 0.72
+const MOBILE_RESULTS_SCALE = 0.48
+const MOBILE_MORPH_SCALE = 0.78
+const MOBILE_BULB_SCALE = 0.80
+const MOBILE_EARTH_SCALE = 0.52
+const MOBILE_TEAM_SCALE = 0.38
 const DESKTOP_HOLD_SCALE = 0.78
 const DESKTOP_HERO_SCALE = 0.90
 
@@ -2346,6 +2348,73 @@ const STAGE = {
   logoForm: 0.920,
 }
 
+const STAGE_KEYS = [
+  'brainHold',
+  'brainMove',
+  'brainExplode',
+  'bulbForm',
+  'bulbHold',
+  'bulbExplode',
+  'earthForm',
+  'earthHold',
+  'earthExplode',
+  'logoForm',
+]
+
+function clampStage(prev, next, minGap = 0.016) {
+  return Math.max(prev + minGap, Math.min(0.985, next))
+}
+
+// Bind morph beats to the live chapter layout so a 180svh phone
+// how-it-works frame and a taller desktop hold stay in the same
+// visual slot. Hardcoded 0.xx values drifted when chapter heights
+// changed and the form jumped between frames.
+function measureChapterStages() {
+  const main = experienceElement
+  if (!main) {
+    return
+  }
+
+  const scrollable = Math.max(
+    main.offsetHeight - window.innerHeight,
+    1
+  )
+  const progressAt = (el, frac = 0) => {
+    if (!el) {
+      return null
+    }
+    return (el.offsetTop + el.offsetHeight * frac) / scrollable
+  }
+
+  const hero = document.querySelector('.chapter-hero')
+  const understand = document.querySelector('.chapter-morph-a')
+  const how = document.querySelector('.chapter-how')
+  const team = document.querySelector('.chapter-morph-b')
+  const earth = document.querySelector('.chapter-earth')
+  const results = document.querySelector('.chapter-results')
+  const logo = document.querySelector('.logo-hold-chapter')
+
+  const raw = {
+    brainHold: progressAt(hero, 0.18) ?? STAGE.brainHold,
+    brainMove: progressAt(understand, 0.05) ?? STAGE.brainMove,
+    brainExplode: progressAt(understand, 0.48) ?? STAGE.brainExplode,
+    bulbForm: progressAt(how, 0.04) ?? STAGE.bulbForm,
+    bulbHold: progressAt(how, 0.68) ?? STAGE.bulbHold,
+    bulbExplode: progressAt(team, 0.06) ?? STAGE.bulbExplode,
+    earthForm: progressAt(earth, 0.08) ?? STAGE.earthForm,
+    earthHold: progressAt(earth, 0.52) ?? STAGE.earthHold,
+    earthExplode: progressAt(results, 0.52) ?? STAGE.earthExplode,
+    logoForm: progressAt(logo, 0.08) ?? STAGE.logoForm,
+  }
+
+  let prev = 0.01
+  for (let i = 0; i < STAGE_KEYS.length; i++) {
+    const key = STAGE_KEYS[i]
+    STAGE[key] = clampStage(prev, raw[key])
+    prev = STAGE[key]
+  }
+}
+
 function applyScrollCamera(p) {
   // Copy holds stay OUT so type sits in a dark lane or over a
   // distant silhouette. Dolly IN only during morphs — no copy.
@@ -2393,17 +2462,16 @@ function applyScrollCamera(p) {
       p < STAGE.brainHold ||
       (p >= STAGE.brainHold + 0.036 && p < STAGE.brainMove) ||
       (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
-      (p >= STAGE.earthForm && p < STAGE.earthHold) ||
-      midScrollCopyLive()
+      (p >= STAGE.earthForm && p < STAGE.earthHold)
 
-    // Dolly back so the full form fits the tall-phone FOV. Do not
-    // yaw the camera left — that used to shove the mesh into a
-    // right-edge sliver while the rest of the beat stayed black.
+    // Jose frames share the beat: type in the top lane, form large
+    // in the lower third. A 2.08× pullback shrank every hold into
+    // a distant sliver. Keep the form readable; do not yaw left.
     cameraTarget.z *= onLogo
-      ? 2.15
+      ? 2.05
       : onCopyHold
-        ? 2.08
-        : 1.72
+        ? 1.42
+        : 1.28
 
     if (!onLogo) {
       cameraTarget.x *= 0.08
@@ -2482,7 +2550,9 @@ function holdTeamMorph() {
   currentStage = 'lightbulb'
   setHoldShot(5.18, 51, 0.08)
   transformTarget.x = desktopOrMobileX(NOTES_X)
-  transformTarget.y = isMobile() ? 0.04 : copyHoldY(0)
+  // Phone team frame is the pair PNG. Park the morph low and small
+  // so it reads as floor glow, not a second hero sitting on the H1.
+  transformTarget.y = isMobile() ? MOBILE_TEAM_Y : copyHoldY(0)
   transformTarget.s = isMobile()
     ? MOBILE_TEAM_SCALE
     : DESKTOP_HOLD_SCALE
@@ -2501,6 +2571,19 @@ function applyTeamHoldIfLive() {
     copyIsLive('.earth-hold') ||
     copyIsLive('.copy-results') ||
     copyIsLive('.copy-consult')
+  ) {
+    return
+  }
+
+  // Never yank an in-flight morph back to a bulb hold — that was
+  // the jump between How-it-works and Mentors-who-stay.
+  if (
+    currentStage.endsWith('explosion') ||
+    currentStage.endsWith('forming') ||
+    currentStage === 'earth' ||
+    currentStage === 'logo' ||
+    currentStage === 'brain' ||
+    currentStage === 'brain-moving'
   ) {
     return
   }
@@ -2582,10 +2665,10 @@ function containFormInView() {
     ? (midHold ? 0.16 : 0.14)
     : 0.14
   const padTop = mobile
-    ? (teamCopy ? 0.34 : bulbCopy ? 0.40 : midHold ? 0.32 : 0.26)
+    ? (teamCopy ? 0.46 : bulbCopy ? 0.48 : midHold ? 0.44 : 0.30)
     : (tall ? 0.12 : 0.12)
   const padBot = mobile
-    ? (midHold ? 0.14 : 0.12)
+    ? (midHold ? 0.03 : 0.05)
     : (tall ? 0.22 : 0.14)
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
@@ -2615,19 +2698,26 @@ function containFormInView() {
       -0.16,
       Math.min(0.16, transformTarget.x)
     )
-    let cap = midHold ? 0.42 : 0.56
+    // Jose frames: hero/bulb sit in the lower third at a large
+    // read. Old caps (0.28–0.42) plus a positive Y floor shoved
+    // every hold onto the headline. Keep a high ceiling; let the
+    // frustum pads be the only clip guard.
+    let cap = midHold ? 0.94 : 0.98
     if (
       copyIsLive('.earth-hold') ||
       copyIsLive('.copy-results')
     ) {
-      cap = 0.28
-      transformTarget.y = Math.max(transformTarget.y, 0.04)
+      cap = 0.58
+      transformTarget.y = Math.min(transformTarget.y, -0.28)
     } else if (teamCopy) {
-      cap = 0.42
-      transformTarget.y = Math.max(transformTarget.y, 0.02)
+      cap = 0.44
+      transformTarget.y = Math.min(transformTarget.y, -0.58)
     } else if (bulbCopy) {
-      cap = 0.38
-      transformTarget.y = Math.max(transformTarget.y, -0.02)
+      cap = 0.86
+      transformTarget.y = Math.min(transformTarget.y, -0.62)
+    } else if (copyIsLive('.copy-hero')) {
+      cap = 0.96
+      transformTarget.y = Math.min(transformTarget.y, -0.72)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -3050,7 +3140,9 @@ function updateStory() {
       )
 
     transformTarget.y =
-      copyHoldY(0)
+      isMobile()
+        ? MOBILE_BULB_Y
+        : copyHoldY(0)
 
     transformTarget.s =
       isMobile()
@@ -3866,8 +3958,10 @@ function setupCopyTravel() {
           scrollTrigger: {
             trigger: heroChapter,
             start: 'top top',
-            end: '+=170%',
+            endTrigger: document.querySelector('.chapter-morph-a') || heroChapter,
+            end: document.querySelector('.chapter-morph-a') ? 'top 28%' : '+=90%',
             scrub: true,
+            invalidateOnRefresh: true,
           },
         })
       } else {
@@ -3882,14 +3976,16 @@ function setupCopyTravel() {
           scrollTrigger: {
             trigger: heroChapter,
             start: 'top top',
-            end: '+=170%',
+            endTrigger: morphA || heroChapter,
+            end: morphA ? 'top 28%' : '+=90%',
             scrub: copyScrub,
+            invalidateOnRefresh: true,
             onUpdate: syncCopySlot,
           },
         })
-          .to(hero, { y: vh * -0.28, duration: 0.72, ease: 'none' })
-          .to(hero, { y: -(vh + 80), duration: 0.28, ease: 'power1.in' })
-          .to(fadeProxy(hero), { copyFade: 0, duration: 0.16, ease: 'none' }, 0.28)
+          .to(hero, { y: vh * -0.12, duration: 0.72, ease: 'none' })
+          .to(hero, { y: -(vh * 0.55), duration: 0.28, ease: 'power1.in' })
+          .to(fadeProxy(hero), { copyFade: 0, duration: 0.22, ease: 'none' }, 0.58)
       }
     }
 
@@ -3898,11 +3994,13 @@ function setupCopyTravel() {
       ['.t3-understand'],
       {
         trigger: morphA,
-        start: 'top 88%',
-        end: 'bottom top',
+        endTrigger: lbChapter || morphA,
+        start: 'top 86%',
+        end: lbChapter ? 'top 24%' : 'bottom 16%',
+        invalidateOnRefresh: true,
       },
       [
-        { enter: 0.10, hold: 0.80, exit: 0.08, stay: true, fadeWait: 0 },
+        { enter: 0.12, hold: 0.70, exit: 0.14, stay: false, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3913,11 +4011,12 @@ function setupCopyTravel() {
       {
         trigger: lbChapter,
         endTrigger: morphB,
-        start: 'top 92%',
-        end: 'top 8%',
+        start: 'top 88%',
+        end: 'top 22%',
+        invalidateOnRefresh: true,
       },
       [
-        { enter: 0.12, hold: 0.80, exit: 0.08, stay: true, fadeWait: 0 },
+        { enter: 0.12, hold: 0.70, exit: 0.14, stay: false, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3927,11 +4026,13 @@ function setupCopyTravel() {
       ['.t5-main'],
       {
         trigger: morphB,
-        start: 'top 78%',
-        end: 'bottom top',
+        endTrigger: earthChapter || morphB,
+        start: 'top 84%',
+        end: earthChapter ? 'top 22%' : 'bottom 14%',
+        invalidateOnRefresh: true,
       },
       [
-        { enter: 0.10, hold: 0.80, exit: 0.08, stay: true, fadeWait: 0 },
+        { enter: 0.12, hold: 0.70, exit: 0.14, stay: false, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3942,11 +4043,13 @@ function setupCopyTravel() {
         ['.earth-hold'],
         {
           trigger: earthChapter,
-          start: 'top 82%',
-          end: 'bottom top',
+          endTrigger: resultsChapter || earthChapter,
+          start: 'top 84%',
+          end: resultsChapter ? 'top 22%' : 'bottom 14%',
+          invalidateOnRefresh: true,
         },
         [
-          { enter: 0.10, hold: 0.72, exit: 0.08, stay: true, fadeWait: 0 },
+          { enter: 0.12, hold: 0.68, exit: 0.14, stay: false, fadeWait: 0 },
         ],
         copyScrub
       )
@@ -3958,11 +4061,12 @@ function setupCopyTravel() {
         ['.copy-results'],
         {
           trigger: resultsChapter,
-          start: 'top 82%',
-          end: 'bottom top',
+          start: 'top 84%',
+          end: 'bottom 18%',
+          invalidateOnRefresh: true,
         },
         [
-          { enter: 0.10, hold: 0.72, exit: 0.08, stay: true, fadeWait: 0 },
+          { enter: 0.12, hold: 0.68, exit: 0.14, stay: false, fadeWait: 0 },
         ],
         copyScrub
       )
@@ -4409,6 +4513,7 @@ function createPage() {
 
   setupNav()
   mountLookBar({ route: '/', tipped: false })
+  measureChapterStages()
 
   // ==================================================
   // MASTER SCROLL
@@ -4436,9 +4541,11 @@ function createPage() {
             ? false
             : (
                 MOBILE_AT_LOAD || TOUCH_DEVICE
-                  ? 0.92
-                  : 0.7
+                  ? 1.05
+                  : 0.78
               ),
+
+        invalidateOnRefresh: true,
 
         onUpdate:
           updateStory,
@@ -4491,6 +4598,7 @@ function createPage() {
   }
 
   setupCopyTravel()
+  measureChapterStages()
   ScrollTrigger.refresh()
   setupCopyJumpSnap()
 
@@ -5661,6 +5769,7 @@ window.addEventListener(
       refreshTimer =
         setTimeout(
           () => {
+            measureChapterStages()
             updateStory()
 
             ScrollTrigger.refresh()

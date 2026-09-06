@@ -709,13 +709,13 @@ body.is-static-home .earth-hold {
 }
 
 .chapter-morph-a {
-  min-height: 500vh;
-  min-height: 500svh;
+  min-height: 220vh;
+  min-height: 220svh;
 }
 
 .chapter-morph-b {
-  min-height: 120vh;
-  min-height: 120svh;
+  min-height: 140vh;
+  min-height: 140svh;
 }
 
 .chapter-morph-c {
@@ -724,14 +724,14 @@ body.is-static-home .earth-hold {
 }
 
 .chapter-lb-hold-item {
-  min-height: 160vh;
-  min-height: 160svh;
+  min-height: 140vh;
+  min-height: 140svh;
   justify-content: center;
 }
 
 .chapter-how {
-  min-height: 640vh;
-  min-height: 640svh;
+  min-height: 220vh;
+  min-height: 220svh;
   justify-content: flex-start;
 }
 
@@ -768,14 +768,14 @@ body.is-static-home .earth-hold {
 }
 
 .chapter-earth {
-  min-height: 160vh;
-  min-height: 160svh;
+  min-height: 130vh;
+  min-height: 130svh;
   justify-content: center;
 }
 
 .chapter-results {
-  min-height: 160vh;
-  min-height: 160svh;
+  min-height: 130vh;
+  min-height: 130svh;
   justify-content: center;
 }
 
@@ -1746,13 +1746,13 @@ body.is-static-home .earth-hold {
   }
 
   .chapter-morph-a {
-    min-height: 500vh;
-    min-height: 500svh;
+    min-height: 165vh;
+    min-height: 165svh;
   }
 
   .chapter-morph-b {
-    min-height: 110vh;
-    min-height: 110svh;
+    min-height: 145vh;
+    min-height: 145svh;
   }
 
   .chapter-morph-c {
@@ -1761,18 +1761,13 @@ body.is-static-home .earth-hold {
   }
 
   .chapter-lb-hold-item {
-    min-height: 160vh;
-    min-height: 160svh;
+    min-height: 145vh;
+    min-height: 145svh;
   }
 
   .chapter-how {
-    min-height: 560vh;
-    min-height: 560svh;
-  }
-
-  .chapter-morph-b {
-    min-height: 160vh;
-    min-height: 160svh;
+    min-height: 165vh;
+    min-height: 165svh;
   }
 
   .chapter-team {
@@ -1781,13 +1776,13 @@ body.is-static-home .earth-hold {
   }
 
   .chapter-earth {
-    min-height: 160vh;
-    min-height: 160svh;
+    min-height: 120vh;
+    min-height: 120svh;
   }
 
   .chapter-results {
-    min-height: 160vh;
-    min-height: 160svh;
+    min-height: 120vh;
+    min-height: 120svh;
   }
 
   .logo-hold-chapter {
@@ -4571,7 +4566,7 @@ a.subject-chip {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .home-frame::before {
@@ -4979,18 +4974,22 @@ body.is-still-shot .jose-viz {
 
 .chapter-hero .jose-viz--brain {
   top: auto;
-  bottom: 8%;
+  bottom: 5%;
   right: 50%;
   transform: translateX(50%);
-  width: min(92vw, 340px);
-  height: 200px;
+  width: min(96vw, 380px);
+  height: 34vh;
+  min-height: 240px;
 }
 
 .chapter-how .jose-viz--bulb {
-  top: 84px;
-  right: -12px;
-  width: 168px;
-  height: 168px;
+  top: auto;
+  bottom: 5%;
+  right: 50%;
+  transform: translateX(50%);
+  width: min(88vw, 320px);
+  height: 30vh;
+  min-height: 210px;
 }
 
 .chapter-morph-b .jose-viz--pair {
@@ -5038,15 +5037,38 @@ body.is-still-shot .jose-viz {
 
 .jose-viz--orbs {
   position: absolute;
-  top: 72px;
-  right: 8px;
-  width: 72px;
-  height: 72px;
+  top: 58px;
+  right: -4px;
+  width: 148px;
+  height: 186px;
   background:
-    radial-gradient(circle at 70% 20%, #ff5c00 0 4px, transparent 5px),
-    radial-gradient(circle at 80% 8%, #a78bfa 0 3px, transparent 4px),
-    radial-gradient(circle at 40% 70%, #3d8bff 0 10px, transparent 18px);
-  opacity: 0.85;
+    radial-gradient(circle at 82% 10%, #ff5c00 0 9px, transparent 11px),
+    radial-gradient(circle at 68% 32%, #fb7185 0 10px, transparent 12px),
+    radial-gradient(circle at 50% 56%, #a78bfa 0 11px, transparent 13px),
+    radial-gradient(circle at 32% 84%, #22d3ee 0 13px, transparent 16px);
+  filter:
+    drop-shadow(0 0 14px rgba(255, 92, 0, 0.4))
+    drop-shadow(0 0 10px rgba(34, 211, 238, 0.28));
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.jose-viz--orbs::before {
+  content: "";
+  position: absolute;
+  inset: 8% 18% 6% 22%;
+  background:
+    linear-gradient(
+      155deg,
+      transparent 0 18%,
+      rgba(255, 92, 0, 0.35) 18% 20%,
+      transparent 20% 42%,
+      rgba(167, 139, 250, 0.32) 42% 44%,
+      transparent 44% 68%,
+      rgba(34, 211, 238, 0.3) 68% 70%,
+      transparent 70%
+    );
+  pointer-events: none;
 }
 
 .jose-viz--bars {
@@ -5355,6 +5377,7 @@ body.is-still-shot .home-after {
 body.is-still-shot .home-frame,
 body.is-still-shot .chapter {
   min-height: 100svh;
+  overflow: hidden;
 }
 
 @media (max-width: 767px) {
@@ -5390,8 +5413,16 @@ body.is-still-shot .chapter {
     line-height: 1.05;
   }
 
-  body.is-static-home .jose-viz--brain {
-    height: 160px;
+  body.is-static-home .jose-viz--brain,
+  body.is-still-shot .jose-viz--brain {
+    height: 34vh;
+    min-height: 240px;
+  }
+
+  body.is-static-home .jose-viz--bulb,
+  body.is-still-shot .jose-viz--bulb {
+    height: 30vh;
+    min-height: 210px;
   }
 
   .home-frame {
@@ -5581,10 +5612,14 @@ body.is-still-shot .chapter {
   }
 
   .chapter-morph-b .jose-viz--pair-shot {
-    width: min(94vw, 360px);
-    height: 170px;
-    bottom: 4%;
-    filter: none;
+    display: block;
+    width: min(96vw, 390px);
+    height: 36vh;
+    min-height: 220px;
+    bottom: 3%;
+    right: 50%;
+    transform: translateX(50%);
+    filter: drop-shadow(0 0 28px rgba(61, 139, 255, 0.22));
   }
 }
 
@@ -5995,12 +6030,14 @@ body.is-still-shot .chapter {
     gap: 4px;
   }
 
-  /* Phone icons are ~100px. Plates are authored at 320 so orange
-     vertices survive the downscale. No hue-rotate / drop-shadow
-     tint — bloom lives in the PNG so we don't paint orange frames. */
+  /* Phone icons sit in the mid-band like Jose's Ch6 still.
+     Plates stay 320-authored so orange vertices survive.
+     No hue-rotate / drop-shadow tint. */
   #pathways .plant-stage-frame {
-    width: calc(100% + 12px);
-    margin-inline: -6px;
+    width: calc(100% + 16px);
+    margin-inline: -8px;
+    aspect-ratio: 4 / 5;
+    min-height: 17vh;
     border-radius: 10px;
   }
 
@@ -6018,5 +6055,66 @@ body.is-still-shot .chapter {
 
   #pathways .frame-book {
     margin-top: 10px;
+  }
+}
+
+/* Jose frame anchors — live phone scroll.
+   WebGL is the hero/bulb. Pair PNG + home-after viz must show
+   at the same slot the stills use, not as 72px brochure chips. */
+@media (max-width: 767px) {
+  .home-frame--hiw .jose-viz--orbs {
+    display: block;
+    top: 52px;
+    right: -6px;
+    width: 150px;
+    height: 188px;
+    z-index: 2;
+  }
+
+  #how-it-works {
+    padding-top: calc(var(--mm-nav-h) + 10px);
+  }
+
+  #how-it-works > h2 {
+    max-width: 14ch;
+    padding-right: 96px;
+  }
+
+  #results-more .score-hero-row,
+  #mentors .mentor-hero-row {
+    grid-template-columns: 1fr 118px;
+    align-items: end;
+  }
+
+  #results-more .jose-viz--bars {
+    display: block;
+    width: 118px;
+    height: 92px;
+  }
+
+  #mentors .jose-viz--pair {
+    display: block;
+    width: 118px;
+    height: 88px;
+  }
+
+  #group-classes .fit-portals {
+    margin: 18px 0 12px;
+    min-height: 0;
+  }
+
+  #group-classes .fit-portal {
+    min-height: 132px;
+    border-radius: 18px;
+  }
+
+  .home-frame--subjects .subject-3x3 {
+    margin-top: 14px;
+    gap: 8px;
+  }
+
+  .logo-hold-chapter {
+    min-height: 160vh;
+    min-height: 160svh;
   }
 }
