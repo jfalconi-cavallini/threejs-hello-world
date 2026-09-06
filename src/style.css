@@ -4249,6 +4249,19 @@ a.subject-chip {
   opacity: 0.55;
 }
 
+.mentor-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.mentor-photo--shot {
+  background: #0b1220;
+}
+
 .mentor-initials {
   position: relative;
   z-index: 1;
@@ -4930,38 +4943,23 @@ body.is-still-shot .jose-viz {
 
 .jose-viz--bars {
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  height: 72px;
-  margin: 12px 0 4px;
+  width: 92px;
+  height: 78px;
+  margin: 8px 0 0;
 }
 
-.jose-viz--bars i {
+.jose-bars-svg {
   display: block;
-  width: 18px;
-  border-radius: 6px 6px 0 0;
-  background:
-    radial-gradient(circle at 50% 20%, #8ec5ff, transparent 55%),
-    repeating-linear-gradient(180deg, #3d8bff 0 3px, transparent 3px 6px);
-  box-shadow: 0 0 14px rgba(61, 139, 255, 0.45);
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter:
+    drop-shadow(0 0 10px rgba(61, 139, 255, 0.55))
+    drop-shadow(0 0 6px rgba(255, 92, 0, 0.35));
 }
 
-.jose-viz--bars i:nth-child(1) { height: 28px; }
-.jose-viz--bars i:nth-child(2) { height: 40px; }
-.jose-viz--bars i:nth-child(3) { height: 52px; }
-.jose-viz--bars i:nth-child(4) { height: 68px; }
-
-.jose-viz-arrow {
-  position: absolute;
-  left: 6px;
-  right: 0;
-  bottom: 8px;
-  height: 3px;
-  background: linear-gradient(90deg, #ff5c00, transparent);
-  transform: rotate(-28deg);
-  transform-origin: left bottom;
-  box-shadow: 0 0 12px #ff5c00;
+.jose-bar-halo {
+  opacity: 0.42;
 }
 
 .frame-scroll {
@@ -5353,7 +5351,8 @@ body.is-still-shot .chapter {
   }
 
   .home-frame--scores .jose-viz--bars {
-    height: 44px;
+    width: 86px;
+    height: 64px;
     margin: 8px 0 0;
   }
 
@@ -5454,7 +5453,7 @@ body.is-still-shot .chapter {
 }
 
 /* Ch9 + Ch10 phone fold lock — last so it wins.
-   390×844 must show 2×2 + quote + BOOK, and all four mentor cards. */
+   390×844 must show 2×2 + quote + BOOK, and all four mentor photos + BOOK. */
 @media (max-width: 767px) {
   #results-more,
   #mentors {
@@ -5500,14 +5499,16 @@ body.is-still-shot .chapter {
   }
 
   #results-more .jose-viz--bars {
-    display: flex;
-    height: 64px;
+    display: block;
+    width: 86px;
+    height: 68px;
     margin: 0;
-    gap: 5px;
   }
 
-  #results-more .jose-viz--bars i {
-    width: 14px;
+  #results-more .jose-bars-svg {
+    filter:
+      drop-shadow(0 0 8px rgba(61, 139, 255, 0.62))
+      drop-shadow(0 0 5px rgba(255, 92, 0, 0.42));
   }
 
   #mentors .jose-viz--pair {
@@ -5738,25 +5739,26 @@ body.is-still-shot .chapter {
   }
 
   #mentors .mentor-dir {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 6px;
-    overflow: visible;
+    overflow: hidden;
     padding: 0;
     margin: 0 0 8px;
+    scroll-snap-type: none;
   }
 
   #mentors .mentor-dir-card,
   #mentors .glow-card.mentor-dir-card {
+    flex: 1 1 0;
     min-width: 0;
-    padding: 7px 7px 8px;
+    padding: 6px 5px 7px;
     border-radius: 12px;
   }
 
   #mentors .mentor-dir-card .example-tag {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: 5px;
+    left: 5px;
     z-index: 2;
     margin: 0;
     padding: 1px 5px;
@@ -5764,9 +5766,9 @@ body.is-still-shot .chapter {
   }
 
   #mentors .mentor-photo {
-    height: 44px;
+    height: 72px;
     aspect-ratio: auto;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
     border-radius: 8px;
   }
 
@@ -5779,6 +5781,10 @@ body.is-still-shot .chapter {
   #mentors .mentor-initials {
     font-size: 13px;
     margin-bottom: 2px;
+  }
+
+  #mentors .mentor-tags span:nth-child(n + 3) {
+    display: none;
   }
 
   #mentors .mentor-dir-card h3 {
