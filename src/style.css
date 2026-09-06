@@ -3447,10 +3447,10 @@ body.is-after-cinematic .metaminds-nav {
   font-weight: 600;
 }
 
-.results-frame-cta {
+.results-frame .results-frame-cta {
   width: 100%;
   justify-content: center;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .home-after .page-cta-band {
