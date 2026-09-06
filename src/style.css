@@ -322,11 +322,11 @@ body.is-static-home .earth-hold {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #05070d;
-  border: 1.5px solid #ffffff;
+  background: #ffffff;
+  border: 0;
   border-radius: 999px;
-  padding: 6px 16px 6px 12px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  padding: 7px 16px 7px 12px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
 }
 
 .brand-logo {
@@ -1573,10 +1573,10 @@ body.is-static-home .earth-hold {
 
 .footer-plate {
   border-radius: 999px;
-  padding: 5px 14px 5px 10px;
-  background: #05070d;
-  border: 1.5px solid #ffffff;
-  box-shadow: none;
+  padding: 6px 14px 6px 10px;
+  background: #ffffff;
+  border: 0;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
 }
 
 .footer-logo {
@@ -1709,10 +1709,10 @@ body.is-static-home .earth-hold {
   .metaminds-nav--cinematic .brand-plate,
   .footer-plate {
     border-radius: 999px;
-    padding: 4px 12px 4px 8px;
-    background: #05070d;
-    border: 1.5px solid #ffffff;
-    box-shadow: none;
+    padding: 5px 13px 5px 9px;
+    background: #ffffff;
+    border: 0;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
   }
 
   .brand-logo {
