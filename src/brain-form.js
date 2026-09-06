@@ -1,5 +1,5 @@
 // Hero / morph brain topology comes from public/models/brain.glb
-// (area-weighted triangle samples → public/particles/brain.f32.bin).
+// (outer-cortex triangle samples → public/particles/brain.f32.bin).
 // JOSE LOCK: do not replace the GLB sample with a procedural blob
 // or a PNG/JPG/CSS photo plate.
 
@@ -41,7 +41,7 @@ function normalizeBounds(output, count, desiredSize) {
 // the cortex silhouette (two lobes + fissure) faces the hold.
 export function finishBrainPositions(positions, desiredSize = 3.2) {
   const count = positions.length / 3
-  const pitch = -0.82
+  const pitch = -0.64
   const c = Math.cos(pitch)
   const s = Math.sin(pitch)
 
@@ -56,6 +56,25 @@ export function finishBrainPositions(positions, desiredSize = 3.2) {
     positions[i3] = x
     positions[i3 + 1] = y * c - z * s
     positions[i3 + 2] = y * s + z * c
+  }
+
+  normalizeBounds(positions, count, desiredSize)
+
+  // Open a thin dark midline so 1.6k phone points do not fill the
+  // longitudinal fissure. Keep this a groove, not a cheek split.
+  const halfGap = desiredSize * 0.024
+  const groove = desiredSize * 0.018
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3
+    let x = positions[i3]
+    const ax = Math.abs(x)
+    if (ax < halfGap * 2.6) {
+      const side = x < 0 ? -1 : x > 0 ? 1 : i % 2 ? 1 : -1
+      x += side * (halfGap * 2.6 - ax) * 0.48
+      positions[i3] = x
+    }
+    const mid = Math.exp(-(positions[i3] * positions[i3]) / (groove * 3.4))
+    positions[i3 + 1] -= mid * desiredSize * 0.028
   }
 
   normalizeBounds(positions, count, desiredSize)
