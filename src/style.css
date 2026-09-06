@@ -1837,6 +1837,17 @@ body.is-static-home .scene-canvas {
     line-height: 1.35;
   }
 
+  .t3-understand .subject-grid--beat {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .t3-understand .subject-grid--beat .subject-chip {
+    min-height: 28px;
+    padding: 4px 9px;
+    font-size: 10px;
+  }
+
   .copy-lane p:not(.eyebrow):not(.teach-subjects):not(.teach-range) {
     margin-top: 12px;
     max-width: none;
@@ -3318,6 +3329,47 @@ body.is-after-cinematic .metaminds-nav {
   box-shadow: 0 0 18px rgba(61, 139, 255, 0.12);
 }
 
+.compare-card .score-kicker {
+  margin-bottom: 10px;
+}
+
+.compare-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.compare-list li {
+  position: relative;
+  padding: 8px 0 8px 18px;
+  color: rgba(243, 246, 249, 0.78);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.compare-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mm-electric);
+  box-shadow: 0 0 10px rgba(61, 139, 255, 0.55);
+}
+
+.program-grid--glow {
+  gap: 18px;
+}
+
+.program-grid--glow article {
+  padding: 28px 26px;
+  border-radius: 18px;
+  background: transparent;
+  border: 0;
+}
+
 .quote-card {
   margin-top: 28px;
   max-width: 52ch;
@@ -3567,6 +3619,18 @@ body.is-after-cinematic .metaminds-nav {
 
 a.subject-chip {
   text-decoration: none;
+}
+
+.subject-grid--beat {
+  width: min(100%, 460px);
+  margin-top: 14px;
+  gap: 8px;
+}
+
+.subject-grid--beat .subject-chip {
+  min-height: 32px;
+  padding: 5px 11px;
+  font-size: 11px;
 }
 
 @media (min-width: 960px) {

@@ -4263,6 +4263,15 @@ function createPage() {
           </a>
         </div>
         <p class="beat-quiet">One dedicated mentor. A plan you can see.</p>
+        <div class="subject-grid subject-grid--beat">
+          <a class="subject-chip" href="/programs/sat-act">SAT</a>
+          <a class="subject-chip" href="/programs/sat-act">ACT</a>
+          <a class="subject-chip" href="/programs/ap">AP</a>
+          <a class="subject-chip" href="/programs/academic-tutoring">Math</a>
+          <a class="subject-chip" href="/programs/academic-tutoring">Science</a>
+          <a class="subject-chip" href="/programs/academic-tutoring">Writing</a>
+          <a class="subject-chip" href="/programs/programming-stem">Coding</a>
+        </div>
         <div class="scroll-marker scroll-marker--in-copy">
           SCROLL
           <span></span>

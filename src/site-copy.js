@@ -110,6 +110,8 @@ export const MENTOR_PREVIEW = [
   { name: 'Jose Falconi-Cavallini', line: 'CS and SAT/ACT.' },
   { name: 'Emma Brugman', line: 'ML, data, and SAT/ACT.' },
   { name: 'Johan Falconi-Cavallini', line: 'Engineering and math.' },
+  { name: 'Daniel', line: 'Example mentor card — frame layout.', example: true },
+  { name: 'Priya', line: 'Example mentor card — frame layout.', example: true },
 ]
 
 export const GROUP_PREVIEW_CARDS = [
@@ -247,6 +249,7 @@ export function homeFaqHtml() {
 const SAT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z"/></svg>`
 const SCHOOL_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 1 8l11 5 9-4.09V15h2V8zm-7 9.18V16c0 1.66 3.13 3 7 3s7-1.34 7-3v-3.82l-7 3.18z"/></svg>`
 const PARENT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM9 12.5c-3.05 0-7 1.54-7 4.6V19h8.2v-1.4c0-1.3.5-2.4 1.3-3.3C10.6 13 9.8 12.5 9 12.5zm6.5 0c-.4 0-.9 0-1.3.1 1.5.8 2.5 2 2.5 3.5V19H22v-1.9c0-2.4-3.1-3.6-6.5-3.6z"/></svg>`
+const CODE_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.3 16.3 3.9 12l4.4-4.3L7 6.3 1.7 12 7 17.7zm7.4 0 1.3 1.4L22.3 12 16.99 6.3l-1.3 1.4L20.1 12zM13.1 6.2l-2.2 11.6 1.96.38 2.2-11.6z"/></svg>`
 
 export function resultsScoreCardsHtml() {
   return `
@@ -287,7 +290,30 @@ export function resultsScoreCardsHtml() {
         <p class="score-line">950 → 1110</p>
         <p>Individual student result. Outcomes vary and are not guaranteed.</p>
       </article>
+      <article class="glow-card score-card">
+        <p class="example-tag">Example</p>
+        <div class="results-frame-head">
+          <span class="results-ico results-ico--school">${SCHOOL_ICO}</span>
+          <p class="score-kicker">AP Calc</p>
+        </div>
+        <p class="score-line score-line--sm">3 → 5</p>
+        <p>Layout placeholder — not a verified outcome.</p>
+      </article>
+      <article class="glow-card score-card">
+        <p class="example-tag">Example</p>
+        <div class="results-frame-head">
+          <span class="results-ico results-ico--sat">${CODE_ICO}</span>
+          <p class="score-kicker">Python</p>
+        </div>
+        <p class="score-line score-line--sm">Beginner → Confident</p>
+        <p>Layout placeholder — not a verified outcome.</p>
+      </article>
     </div>
+    <article class="glow-card quote-card">
+      <p class="example-tag">Example</p>
+      <p class="quote-text">“We finally see the week — not just the hour.”</p>
+      <p class="quote-by">A parent — layout placeholder</p>
+    </article>
   `
 }
 
@@ -392,6 +418,7 @@ export function mentorPreviewHtml() {
   return MENTOR_PREVIEW.map(
     (person) => `
       <article class="mentor-card glow-card">
+        ${person.example ? '<p class="example-tag">Example</p>' : ''}
         ${mediaPlaceholder('Mentor photo')}
         <h3>${person.name}</h3>
         <p>${person.line}</p>
@@ -562,13 +589,23 @@ export function homeAfterChaptersHtml() {
       <h2>Choose the support that fits.</h2>
       <p>1-on-1 mentoring is the core. Small groups are separate — same standards, shared goals.</p>
       <div class="compare-grid">
-        <article class="glow-card">
+        <article class="glow-card compare-card">
+          <p class="score-kicker">Core</p>
           <h3>1-on-1 mentoring</h3>
-          <p>One dedicated mentor. A plan you can see. Notes after every session.</p>
+          <ul class="compare-list">
+            <li>One dedicated mentor</li>
+            <li>A plan you can see</li>
+            <li>Notes after every session</li>
+          </ul>
         </article>
-        <article class="glow-card">
+        <article class="glow-card compare-card">
+          <p class="score-kicker">Separate format</p>
           <h3>Small group programs</h3>
-          <p>Small groups are separate from 1-on-1. Same standards. Shared goals.</p>
+          <ul class="compare-list">
+            <li>Same standards</li>
+            <li>Shared goals</li>
+            <li>Ask what’s running</li>
+          </ul>
         </article>
       </div>
       <p class="page-quiet">What’s running changes. We won’t list a fake catalog.</p>
@@ -626,7 +663,7 @@ export function groupPreviewCardsHtml() {
 export function programHubHtml() {
   const cards = PROGRAM_HUB_CARDS.map(
     (item) => `
-      <article>
+      <article class="glow-card">
         <h3>${item.title}</h3>
         <p>${item.body}</p>
         <p><a href="${item.href}">Open program</a></p>
@@ -646,7 +683,16 @@ export function programHubHtml() {
       ${ctaRow()}
     </section>
     <section class="page-block">
-      <div class="program-grid">${cards}</div>
+      <div class="program-grid program-grid--glow">${cards}</div>
+      <div class="subject-grid">
+        <a class="subject-chip" href="/programs/sat-act">SAT</a>
+        <a class="subject-chip" href="/programs/sat-act">ACT</a>
+        <a class="subject-chip" href="/programs/ap">AP</a>
+        <a class="subject-chip" href="/programs/academic-tutoring">Math</a>
+        <a class="subject-chip" href="/programs/academic-tutoring">Science</a>
+        <a class="subject-chip" href="/programs/academic-tutoring">Writing</a>
+        <a class="subject-chip" href="/programs/programming-stem">Coding</a>
+      </div>
       <p class="page-quiet">
         Virtual is primary. In person when it fits your family and we have a mentor nearby.
       </p>
