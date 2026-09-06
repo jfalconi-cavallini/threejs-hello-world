@@ -41,7 +41,7 @@ function normalizeBounds(output, count, desiredSize) {
 // the cortex silhouette (two lobes + fissure) faces the hold.
 export function finishBrainPositions(positions, desiredSize = 3.2) {
   const count = positions.length / 3
-  const pitch = -0.58
+  const pitch = -0.82
   const c = Math.cos(pitch)
   const s = Math.sin(pitch)
 

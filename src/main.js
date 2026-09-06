@@ -257,7 +257,7 @@ const LOGO_SIZE = 4.6
 // in the right half with air. 4.1–4.8 parked the mesh past the
 // right clip even at 1440px (lookAt only follows 18% of form X).
 const RIGHT_X = 1.72
-const HERO_BRAIN_X = 1.96
+const HERO_BRAIN_X = 2.42
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
@@ -268,15 +268,15 @@ const EARTH_X = 1.78
 // well. Type stays upper-left — never cover headline / CTA.
 // Framing only. Do not raise particle count.
 const MOBILE_X = 0.02
-const MOBILE_HERO_X = 0.86
+const MOBILE_HERO_X = 0.98
 const MOBILE_HOLD_Y = -1.35
-const MOBILE_HERO_Y = -1.46
+const MOBILE_HERO_Y = -1.72
 const MOBILE_BULB_Y = -1.68
 const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 1.38
+const MOBILE_HERO_SCALE = 1.22
 const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
 const MOBILE_MORPH_SCALE = 0.68
@@ -284,8 +284,8 @@ const MOBILE_BULB_SCALE = 0.74
 const MOBILE_EARTH_SCALE = 0.44
 const MOBILE_TEAM_SCALE = 0.22
 const DESKTOP_HOLD_SCALE = 0.78
-const DESKTOP_HERO_SCALE = 0.76
-const DESKTOP_HERO_Y = -0.48
+const DESKTOP_HERO_SCALE = 0.68
+const DESKTOP_HERO_Y = -0.78
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -2456,8 +2456,8 @@ function applyScrollCamera(p) {
   // Copy holds stay OUT so type sits in a dark lane or over a
   // distant silhouette. Dolly IN only during morphs — no copy.
   const keys = [
-    { p: 0.000, z: 4.55, fov: 50, x: -0.88 },
-    { p: STAGE.brainHold, z: 4.40, fov: 51, x: -0.82 },
+    { p: 0.000, z: 4.55, fov: 50, x: -1.18 },
+    { p: STAGE.brainHold, z: 4.40, fov: 51, x: -1.12 },
     // Hold wide through the page-2 block — no dolly-in while there's
     // copy on screen — then ease in across the longer explosion.
     { p: STAGE.brainMove, z: 4.40, fov: 51, x: -0.82 },
@@ -2704,12 +2704,16 @@ function containFormInView() {
     Math.tan((fov * Math.PI) / 360) * z
   const halfW = halfH * aspect
   const midHold = midScrollCopyLive()
-  const lookX = mobile
-    ? transformTarget.x * 0.22
-    : transformTarget.x * 0.18
-  const lookY = mobile
-    ? transformTarget.y * 0.08
-    : transformTarget.y * 0.42
+  const lookX = currentStage === 'brain'
+    ? transformTarget.x * (mobile ? 0.03 : 0.06)
+    : mobile
+      ? transformTarget.x * 0.22
+      : transformTarget.x * 0.18
+  const lookY = currentStage === 'brain'
+    ? transformTarget.y * (mobile ? 0.02 : 0.12)
+    : mobile
+      ? transformTarget.y * 0.08
+      : transformTarget.y * 0.42
   const bulbCopy =
     copyIsLive('.lb-intro')
   const teamCopy = teamCopyLive()
@@ -2780,9 +2784,9 @@ function containFormInView() {
       cap = 0.82
       transformTarget.y = Math.min(transformTarget.y, -1.45)
     } else if (heroCopy) {
-      cap = 1.42
-      transformTarget.x = Math.max(0.62, Math.min(1.02, transformTarget.x))
-      transformTarget.y = Math.min(transformTarget.y, -1.28)
+      cap = 1.24
+      transformTarget.x = Math.max(0.78, Math.min(1.12, transformTarget.x))
+      transformTarget.y = Math.min(transformTarget.y, -1.52)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -2790,9 +2794,9 @@ function containFormInView() {
       size * 0.54 * transformTarget.s
     )
   } else if (heroCopy) {
-    transformTarget.x = Math.max(1.62, transformTarget.x)
-    transformTarget.y = Math.min(transformTarget.y, -0.36)
-    transformTarget.s = Math.min(transformTarget.s, 0.82)
+    transformTarget.x = Math.max(2.05, transformTarget.x)
+    transformTarget.y = Math.min(transformTarget.y, -0.62)
+    transformTarget.s = Math.min(transformTarget.s, 0.72)
   }
 
   if (!heroCopy && transformTarget.x - radius < viewL) {
@@ -3824,7 +3828,7 @@ async function bootExperience() {
     'brain',
     BRAIN_GLB_URL,
     BRAIN_SIZE,
-    0.18
+    0.10
   )
 
   renderer = createWebGLRenderer()
@@ -5364,10 +5368,18 @@ function animate() {
 
     // Phone: follow the form in X so it stays in frame; barely
     // follow Y so a below-type park does not recenter onto the H1.
+    // Do not chase the hero brain back to center — that recenters
+    // a lower-right park onto the headline / CTA.
+    const onHeroBrain =
+      currentStage === 'brain'
     const lookFollowX =
-      isMobile() ? 0.22 : 0.18
+      onHeroBrain
+        ? (isMobile() ? 0.03 : 0.06)
+        : isMobile() ? 0.22 : 0.18
     const lookFollowY =
-      isMobile() ? 0.08 : 0.42
+      onHeroBrain
+        ? (isMobile() ? 0.02 : 0.12)
+        : isMobile() ? 0.08 : 0.42
 
     lookTarget.x +=
       (
@@ -5672,7 +5684,7 @@ function animate() {
         ) *
         0.1
 
-      const softTarget = onBrainHold ? 0.82 : 0
+      const softTarget = onBrainHold ? 0.92 : 0
       particleMaterial.uniforms.uSoft.value +=
         (
           softTarget -

@@ -285,7 +285,7 @@ const jobs = [
     name: 'brain',
     file: 'brain.glb',
     size: BRAIN_SIZE,
-    puff: 0.18,
+    puff: 0.10,
   },
   {
     name: 'lightbulb',
