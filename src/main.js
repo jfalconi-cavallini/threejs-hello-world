@@ -259,19 +259,19 @@ const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390×844): Jose elite hero — hemispheric brain sitting on
-// a floor in the lower well. Type stays upper-left. Shape/camera
-// only. Do not raise particle count.
+// Phone (~390×844): Jose elite hero — 2D brain plate in the lower
+// well (CSS/img). Particle morph stays for later chapters only.
+// Type stays upper-left. Framing only. Do not raise particle count.
 const MOBILE_X = 0.02
-const MOBILE_HERO_X = 0.08
+const MOBILE_HERO_X = 0.58
 const MOBILE_HOLD_Y = -1.35
-const MOBILE_HERO_Y = -1.32
+const MOBILE_HERO_Y = -1.18
 const MOBILE_BULB_Y = -1.68
 const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 1.28
+const MOBILE_HERO_SCALE = 1.68
 const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
 const MOBILE_MORPH_SCALE = 0.68
@@ -636,26 +636,6 @@ const INK =
     0xf3f6f9
   )
 
-const HERO_AMBER =
-  new THREE.Color(
-    0xffb450
-  )
-
-const HERO_ORANGE =
-  new THREE.Color(
-    0xff5c00
-  )
-
-const HERO_CYAN =
-  new THREE.Color(
-    0x3d8bff
-  )
-
-const HERO_ICE =
-  new THREE.Color(
-    0x67e8f9
-  )
-
 const tempColor =
   new THREE.Color()
 
@@ -730,7 +710,6 @@ function createPointMaterial({
     uSize: { value: size },
     uDrift: { value: drift },
     uAlpha: { value: alpha },
-    uSoft: { value: 0 },
   }
 
   const material =
@@ -747,7 +726,6 @@ function createPointMaterial({
         uniform float uPixelRatio;
         uniform float uSize;
         uniform float uDrift;
-        uniform float uSoft;
         attribute float aScale;
         attribute vec3 color;
         varying vec3 vColor;
@@ -766,7 +744,7 @@ function createPointMaterial({
           float dist = max(0.42, -mvPosition.z);
           float atten = 12.4 / dist;
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, mix(33.0, 14.0, uSoft));
+          sz = min(sz, 33.0);
           gl_PointSize = max(sz, 1.4);
           gl_Position = projectionMatrix * mvPosition;
           // Slow tumble, unique per particle so the field doesn't
@@ -776,7 +754,6 @@ function createPointMaterial({
       `,
       fragmentShader: `
         uniform float uAlpha;
-        uniform float uSoft;
         varying vec3 vColor;
         varying float vAngle;
 
@@ -800,19 +777,16 @@ function createPointMaterial({
           vec2 rc = vec2(ca * c.x - sa * c.y, sa * c.x + ca * c.y);
 
           float d = sdEquilateralTriangle(rc, 0.62);
-          float disc = length(c);
 
           float lw = 0.07;
           float aa = 0.05;
           float edge = 1.0 - smoothstep(lw - aa, lw + aa, abs(d));
           float fill = smoothstep(0.0, -0.55, d) * 0.16;
-          float tri = clamp(edge + fill, 0.0, 1.0);
-          float glow = smoothstep(0.92, 0.12, disc);
-          float core = mix(tri, glow, uSoft);
+          float core = clamp(edge + fill, 0.0, 1.0);
 
           if (core < 0.02) discard;
 
-          gl_FragColor = vec4(vColor * mix(1.1, 1.35, uSoft), core * uAlpha);
+          gl_FragColor = vec4(vColor * 1.1, core * uAlpha);
         }
       `,
     })
@@ -1622,121 +1596,6 @@ function modelToParticlePositions(
 // same area-weighted random fill as the brain / lightbulb.
 // No grid, no glyph raster — just scatter within the model.
 // ======================================================
-
-function mulberry32(seed) {
-  let a = seed >>> 0
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0
-    let t = a
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-// Dedicated hero plate — two anatomical hemispheres with a
-// longitudinal fissure and temporal droop. Same particle count
-// as the morph budget (no extra Points). The puffed GLB bake
-// reads as a sphere; this silhouette is the Jose object.
-function generateHemisphericBrainPositions(count, desiredSize) {
-  const rand = mulberry32(0xb0a12)
-  const output = new Float32Array(count * 3)
-  let written = 0
-  let guard = 0
-
-  while (written < count && guard < count * 24) {
-    guard += 1
-    const hemi = written % 2 === 0 ? -1 : 1
-    const theta = rand() * Math.PI * 2
-    const phi = Math.acos(2 * rand() - 1)
-    let x = Math.sin(phi) * Math.cos(theta)
-    let y = Math.cos(phi)
-    let z = Math.sin(phi) * Math.sin(theta)
-
-    x = hemi * (0.22 + Math.abs(x) * 0.90)
-    x *= 1.12
-    y *= 0.58
-    z *= 0.52
-    y += 0.12
-
-    const temporal = Math.max(0, -y + 0.04) * Math.abs(x)
-    y -= temporal * 0.78
-    x += hemi * temporal * 0.28
-    z += temporal * 0.16
-
-    if (z > 0 && y > -0.05) {
-      z += 0.08 * (y + 0.18)
-    }
-
-    if (Math.abs(x) < 0.11 && y > -0.18) {
-      continue
-    }
-
-    const wrinkle =
-      Math.sin(x * 16 + y * 11) * Math.cos(z * 13) * 0.028
-    const len = Math.hypot(x, y, z) || 1
-    x += (x / len) * wrinkle
-    y += (y / len) * wrinkle
-    z += (z / len) * wrinkle
-
-    const inward = rand() * 0.16
-    x *= 1 - inward
-    y *= 1 - inward
-    z *= 1 - inward
-
-    // Slight elevated-front tilt so both lobes and the floor
-    // contact read in one still.
-    const tilt = -0.38
-    const cy = y * Math.cos(tilt) - z * Math.sin(tilt)
-    const cz = y * Math.sin(tilt) + z * Math.cos(tilt)
-
-    output[written * 3] = x
-    output[written * 3 + 1] = cy
-    output[written * 3 + 2] = cz
-    written += 1
-  }
-
-  let minX = Infinity
-  let minY = Infinity
-  let minZ = Infinity
-  let maxX = -Infinity
-  let maxY = -Infinity
-  let maxZ = -Infinity
-
-  for (let i = 0; i < written; i++) {
-    const i3 = i * 3
-    minX = Math.min(minX, output[i3])
-    minY = Math.min(minY, output[i3 + 1])
-    minZ = Math.min(minZ, output[i3 + 2])
-    maxX = Math.max(maxX, output[i3])
-    maxY = Math.max(maxY, output[i3 + 1])
-    maxZ = Math.max(maxZ, output[i3 + 2])
-  }
-
-  const cx = (minX + maxX) * 0.5
-  const cy = (minY + maxY) * 0.5
-  const cz = (minZ + maxZ) * 0.5
-  const span = Math.max(maxX - minX, maxY - minY, maxZ - minZ) || 1
-  const scale = desiredSize / span
-
-  for (let i = 0; i < written; i++) {
-    const i3 = i * 3
-    output[i3] = (output[i3] - cx) * scale
-    output[i3 + 1] = (output[i3 + 1] - cy) * scale
-    output[i3 + 2] = (output[i3 + 2] - cz) * scale
-  }
-
-  if (written < count) {
-    for (let i = written; i < count; i++) {
-      const src = (i % written) * 3
-      output[i * 3] = output[src]
-      output[i * 3 + 1] = output[src + 1]
-      output[i * 3 + 2] = output[src + 2]
-    }
-  }
-
-  return output
-}
 
 function generateLogoPositions(logoScene) {
   return modelToParticlePositions(
@@ -2625,10 +2484,10 @@ function applyScrollCamera(p) {
       cameraTarget.x *= onHeroHold ? 0.02 : 0.08
     }
 
-    // Slight lift so the hemispheres and the floor plate share
-    // one still. Other holds keep y = 0.
+    // Slight lift only — keep the large brain pulled up under the
+    // CTA. Other holds keep y = 0.
     if (onHeroHold) {
-      cameraTarget.y = 0.14
+      cameraTarget.y = 0.06
     }
   }
 
@@ -2868,7 +2727,7 @@ function containFormInView() {
 
   if (mobile) {
     transformTarget.x = heroCopy
-      ? Math.max(-0.12, Math.min(0.22, transformTarget.x))
+      ? Math.max(-0.04, Math.min(0.82, transformTarget.x))
       : Math.max(-0.16, Math.min(0.16, transformTarget.x))
     // Jose frames: hero/bulb sit in the lower third at a large
     // read. Old caps (0.28–0.42) plus a positive Y floor shoved
@@ -2888,8 +2747,8 @@ function containFormInView() {
       cap = 0.82
       transformTarget.y = Math.min(transformTarget.y, -1.45)
     } else if (heroCopy) {
-      cap = 1.32
-      transformTarget.y = Math.min(transformTarget.y, -1.18)
+      cap = 1.78
+      transformTarget.y = Math.min(transformTarget.y, -0.92)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -3088,10 +2947,10 @@ function updateStory() {
         : DESKTOP_HERO_SCALE
 
     transformTarget.rx =
-      -0.18
+      -0.02
 
     transformTarget.ry =
-      0.04
+      0.08
 
     transformTarget.rz =
       0
@@ -3865,38 +3724,15 @@ function bindBrainForm() {
   updateStory()
 }
 
-function sculptHeroBrainForm(source) {
-  const hemi = generateHemisphericBrainPositions(
-    PARTICLE_COUNT,
-    BRAIN_SIZE
-  )
-
-  if (!source || source.length < hemi.length) {
-    return hemi
-  }
-
-  // Keep a little of the GLB bake as surface noise so the hold
-  // still feels sampled, but the AABB / cleft is the plate.
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const i3 = i * 3
-    hemi[i3] += source[i3] * 0.04
-    hemi[i3 + 1] += source[i3 + 1] * 0.04
-    hemi[i3 + 2] += source[i3 + 2] * 0.04
-  }
-
-  return hemi
-}
-
 async function bootExperience() {
   // CPU only. Do not construct WebGL until the brain buffer
   // is in memory — first paint must not decode 15MB GLBs.
-  const bakedBrain = await loadFormPositions(
+  brainPositions = await loadFormPositions(
     'brain',
     '/models/brain.glb',
     BRAIN_SIZE,
-    0.08
+    0.4
   )
-  brainPositions = sculptHeroBrainForm(bakedBrain)
 
   renderer = createWebGLRenderer()
   bindBrainForm()
@@ -4536,13 +4372,13 @@ function createPage() {
         </div>
       </div>
       <div class="hero-brain-plate" aria-hidden="true">
-        <div class="hero-brain-stage">
-          <img class="hero-brain-form" src="/frames/hero-brain-hemi.svg" alt="">
-          <div class="hero-brain-mirror">
-            <img class="hero-brain-reflection" src="/frames/hero-brain-hemi.svg" alt="">
-          </div>
-          <i class="hero-brain-floor-line"></i>
-        </div>
+        <img
+          class="hero-brain-form"
+          src="/frames/hero-brain-plate.jpg"
+          alt=""
+          width="1152"
+          height="864"
+        >
       </div>
       <div class="hero-atmosphere" aria-hidden="true">
         <div class="hero-atmosphere-net"></div>
@@ -5096,41 +4932,14 @@ function updateParticleInstances(
           }
         }
       } else {
-        const isBrainForm =
-          currentStage === 'brain' ||
-          currentStage === 'brain-moving' ||
-          currentStage === 'brain-explosion'
-
         const normalizedX =
           THREE.MathUtils.clamp(
-            isBrainForm
-              ? (x + 1.55) / 3.1
-              : (x + 2.6) / 5.2,
+            (x + 2.6) / 5.2,
             0,
             1
           )
 
-        if (isBrainForm) {
-          if (normalizedX < 0.48) {
-            tempColor.lerpColors(
-              HERO_ORANGE,
-              HERO_AMBER,
-              normalizedX / 0.48
-            )
-          } else if (normalizedX < 0.52) {
-            tempColor.lerpColors(
-              HERO_ORANGE,
-              HERO_CYAN,
-              (normalizedX - 0.48) / 0.04
-            )
-          } else {
-            tempColor.lerpColors(
-              HERO_CYAN,
-              HERO_ICE,
-              (normalizedX - 0.52) / 0.48
-            )
-          }
-        } else if (normalizedX < 0.45) {
+        if (normalizedX < 0.45) {
           tempColor.lerpColors(
             ORANGE,
             BURNT_ORANGE,
@@ -5735,27 +5544,12 @@ function animate() {
       particleMaterial.uniforms.uAlpha.value +=
         (
           (
-            onBrainHold ? 0.22 :
+            onBrainHold ? 0.45 :
             0.9
           ) -
           particleMaterial.uniforms.uAlpha.value
         ) *
         0.1
-
-      const heroSoft = onBrainHold ? 1 : 0
-      const heroSize = onBrainHold
-        ? (MOBILE_AT_LOAD ? 3.2 : 2.8)
-        : (MOBILE_AT_LOAD ? 8.5 : 7)
-      const heroDrift = onBrainHold
-        ? (REDUCED_MOTION ? 0 : 0.008)
-        : (REDUCED_MOTION ? 0 : 0.042)
-
-      particleMaterial.uniforms.uSoft.value +=
-        (heroSoft - particleMaterial.uniforms.uSoft.value) * 0.16
-      particleMaterial.uniforms.uSize.value +=
-        (heroSize - particleMaterial.uniforms.uSize.value) * 0.16
-      particleMaterial.uniforms.uDrift.value +=
-        (heroDrift - particleMaterial.uniforms.uDrift.value) * 0.16
 
       if (logoDetail) {
         for (let li = 0; li < logoDetail.length; li++) {
