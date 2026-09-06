@@ -14,6 +14,11 @@ import {
   createFooter,
   setupNav,
   ARROW_ICON,
+  TARGET_ICON,
+  NOTE_ICON,
+  PARENT_ICON,
+  VIDEO_ICON,
+  NEARBY_ICON,
 } from './chrome.js'
 import { createHomeAfter } from './home-after.js'
 
@@ -2404,10 +2409,6 @@ function midScrollCopyLive() {
     copyIsLive('.t3-intro') ||
     copyIsLive('.t3-morph') ||
     copyIsLive('.lb-intro') ||
-    copyIsLive('.lb-feature-1') ||
-    copyIsLive('.lb-feature-2') ||
-    copyIsLive('.lb-feature-3') ||
-    copyIsLive('.lb-feature-4') ||
     copyIsLive('.t5-main') ||
     copyIsLive('.earth-hold') ||
     copyIsLive('.copy-results') ||
@@ -2521,11 +2522,7 @@ function containFormInView() {
     ? transformTarget.y * 0.08
     : transformTarget.y * 0.42
   const bulbCopy =
-    copyIsLive('.lb-intro') ||
-    copyIsLive('.lb-feature-1') ||
-    copyIsLive('.lb-feature-2') ||
-    copyIsLive('.lb-feature-3') ||
-    copyIsLive('.lb-feature-4')
+    copyIsLive('.lb-intro')
   const teamCopy = teamCopyLive()
   const tall =
     currentStage === 'lightbulb' ||
@@ -3726,13 +3723,7 @@ function setupCopyTravel() {
 
     wireCopyCluster(
       desktop,
-      [
-        '.lb-intro',
-        '.lb-feature-1',
-        '.lb-feature-2',
-        '.lb-feature-3',
-        '.lb-feature-4',
-      ],
+      ['.lb-intro'],
       {
         trigger: lbChapter,
         endTrigger: morphB,
@@ -3740,11 +3731,7 @@ function setupCopyTravel() {
         end: 'top 8%',
       },
       [
-        { enter: 0.12, hold: 0.56, exit: 0.12, fadeWait: 0 },
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
+        { enter: 0.12, hold: 0.80, exit: 0.08, stay: true, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3855,7 +3842,7 @@ function setupCopyTravel() {
 const HASH_COPY = {
   '#s1': '.copy-hero',
   '#bulb': '.lb-intro',
-  '#notes': '.lb-feature-4',
+  '#notes': '.lb-intro',
   '#team': '.t5-main',
   '#grow': '.earth-hold',
   '#plan': '.copy-results',
@@ -3869,6 +3856,7 @@ function liveCopyForGeometry() {
     ['.chapter-results', '.copy-results'],
     ['.chapter-earth', '.earth-hold'],
     ['.chapter-morph-b', '.t5-main'],
+    ['.chapter-how', '.lb-intro'],
     ['.chapter-morph-a', '.t3-intro'],
     ['.chapter-hero', '.copy-hero'],
   ]
@@ -4040,7 +4028,8 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <h1>A mentor who<br> stays with<br> your child.</h1>
+        <p class="eyebrow eyebrow-dash">Personalized tutoring</p>
+        <h1>A mentor who<br> stays with<br> your child<span class="stop">.</span></h1>
         <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
         <div class="hero-actions">
           <a class="primary-button hero-cta" href="/consult">
@@ -4068,46 +4057,66 @@ function createPage() {
       </div>
     </section>
 
-    <section class="chapter chapter-lb-hold-item" id="bulb">
+    <section class="chapter chapter-lb-hold-item chapter-how" id="bulb">
+      <span id="notes" class="hash-pin"></span>
       <div class="copy copy-lane lb-intro">
-        <p class="eyebrow"><span class="beat-meta">Bulb · </span>What you see</p>
-        <h2>Tutoring shouldn’t disappear when the hour ends.</h2>
-      </div>
-    </section>
-
-    <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-lane lb-feature-1">
-        <h2>Session notes</h2>
-        <p>What we covered and what comes next — written by the tutor who taught, not a template.</p>
-      </div>
-    </section>
-
-    <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-lane lb-feature-2">
-        <h2>Targeted practice</h2>
-        <p>Homework that matches the weak spot from that session. Not a random worksheet pile.</p>
-      </div>
-    </section>
-
-    <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-lane lb-feature-3">
-        <h2>Skill tracking</h2>
-        <p>See what’s sticking and what still needs work — week to week, in plain language.</p>
-      </div>
-    </section>
-
-    <section class="chapter chapter-lb-hold-item" id="notes">
-      <div class="copy copy-lane lb-feature-4">
-        <h2>Parent updates</h2>
-        <p>You’re not guessing how tutoring is going. You get the picture without sitting in the call.</p>
+        <p class="eyebrow eyebrow-dash">How it works</p>
+        <h2>Tutoring shouldn’t disappear when the hour ends<span class="stop">.</span></h2>
+        <p>Every session should lead to the next step.</p>
+        <div class="beat-cards">
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${TARGET_ICON}</span>
+            <div>
+              <h3>Targeted practice</h3>
+              <p>Homework matched to the weak spot from that session.</p>
+            </div>
+          </article>
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${NOTE_ICON}</span>
+            <div>
+              <h3>Session notes</h3>
+              <p>Clear notes on what was covered and what comes next.</p>
+            </div>
+          </article>
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${PARENT_ICON}</span>
+            <div>
+              <h3>Parent updates</h3>
+              <p>Quick updates so you know how things are going.</p>
+            </div>
+          </article>
+        </div>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
-        <h2>Mentors who<br> stay.</h2>
-        <p>The right mentor doesn’t have to live down the street.</p>
-        <p>Virtual is primary. In person when a mentor is already nearby.</p>
+        <p class="eyebrow eyebrow-dash">Mentors who stay</p>
+        <h2>The right mentor doesn’t have to live down the street<span class="stop">.</span></h2>
+        <p>Virtual is primary. In person is available when a tutor is already nearby.</p>
+        <div class="beat-cards beat-cards--pair">
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${VIDEO_ICON}</span>
+            <div>
+              <h3>1-on-1 virtual tutoring</h3>
+            </div>
+          </article>
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${NEARBY_ICON}</span>
+            <div>
+              <h3>In-person by availability</h3>
+            </div>
+          </article>
+        </div>
+        <p class="beat-tagline">The goal is the right fit, not just the closest tutor.</p>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 
