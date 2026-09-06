@@ -259,9 +259,9 @@ const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390×844): Jose elite hero — large form in the lower-right
-// well, pulled up under the CTA. Type stays upper-left. Framing
-// only (X / Y / scale / camera). Do not raise particle count.
+// Phone (~390×844): Jose elite hero — 2D brain plate in the lower
+// well (CSS/img). Particle morph stays for later chapters only.
+// Type stays upper-left. Framing only. Do not raise particle count.
 const MOBILE_X = 0.02
 const MOBILE_HERO_X = 0.58
 const MOBILE_HOLD_Y = -1.35
@@ -4370,6 +4370,15 @@ function createPage() {
             ${ARROW_ICON}
           </a>
         </div>
+      </div>
+      <div class="hero-brain-plate" aria-hidden="true">
+        <img
+          class="hero-brain-form"
+          src="/frames/hero-brain-plate.jpg"
+          alt=""
+          width="1152"
+          height="864"
+        >
       </div>
       <div class="hero-atmosphere" aria-hidden="true">
         <div class="hero-atmosphere-net"></div>
