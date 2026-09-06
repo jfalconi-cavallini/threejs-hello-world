@@ -4356,7 +4356,7 @@ function createPage() {
   main.innerHTML = `
 
     <section class="chapter chapter-hero" id="s1">
-      <div class="copy copy-left copy-hero">
+      <div class="copy copy-left copy-hero is-live">
         <p class="eyebrow eyebrow-dash"><span class="eyebrow-stack"><span>Personalized tutoring</span><span>for a brighter tomorrow</span></span></p>
         <h1>A mentor who stays<br>with your child<span class="stop">.</span></h1>
         <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
