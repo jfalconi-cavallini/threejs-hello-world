@@ -263,20 +263,20 @@ const EARTH_X = 1.78
 // large enough to read as the still coming alive. Type stays in
 // the top lane. Do not recenter onto the H1 or shrink to a sliver.
 const MOBILE_X = 0.02
-const MOBILE_HOLD_Y = -1.22
-const MOBILE_HERO_Y = -1.08
-const MOBILE_BULB_Y = -1.62
-const MOBILE_TEAM_Y = -1.55
+const MOBILE_HOLD_Y = -1.35
+const MOBILE_HERO_Y = -1.42
+const MOBILE_BULB_Y = -1.68
+const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 0.86
-const MOBILE_HOLD_SCALE = 0.58
+const MOBILE_HERO_SCALE = 1.12
+const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
-const MOBILE_MORPH_SCALE = 0.62
-const MOBILE_BULB_SCALE = 0.56
+const MOBILE_MORPH_SCALE = 0.68
+const MOBILE_BULB_SCALE = 0.74
 const MOBILE_EARTH_SCALE = 0.44
-const MOBILE_TEAM_SCALE = 0.24
+const MOBILE_TEAM_SCALE = 0.22
 const DESKTOP_HOLD_SCALE = 0.78
 const DESKTOP_HERO_SCALE = 0.90
 
@@ -2467,14 +2467,16 @@ function applyScrollCamera(p) {
       (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
       (p >= STAGE.earthForm && p < STAGE.earthHold)
 
-    // Jose frames share the beat: type in the top lane, form large
-    // in the lower third. A 2.08× pullback shrank every hold into
-    // a distant sliver. Keep the form readable; do not yaw left.
+    // Hero stays closer so the brain fills the lower third instead
+    // of sitting behind the CTA as a distant sliver.
+    const onHero = p < STAGE.brainMove
     cameraTarget.z *= onLogo
       ? 2.05
-      : onCopyHold
-        ? 1.42
-        : 1.28
+      : onHero
+        ? 1.12
+        : onCopyHold
+          ? 1.28
+          : 1.18
 
     if (!onLogo) {
       cameraTarget.x *= 0.08
@@ -2650,9 +2652,12 @@ function containFormInView() {
     camera.fov || 0,
     cameraTarget.fov || 50
   )
-  const z = Math.min(
-    camera.position.z || 99,
-    cameraTarget.z || 4.55
+  // Use the intended hold distance. Math.min(current, target)
+  // picked the closer camera during the chase and shrank/recentered
+  // the hero brain onto the CTA.
+  const z = Math.max(
+    cameraTarget.z || 4.55,
+    camera.position.z || 4.55
   )
   const halfH =
     Math.tan((fov * Math.PI) / 360) * z
@@ -2674,11 +2679,12 @@ function containFormInView() {
   const padX = mobile
     ? (midHold ? 0.16 : 0.14)
     : 0.14
+  const heroCopy = copyIsLive('.copy-hero')
   const padTop = mobile
-    ? (teamCopy ? 0.58 : bulbCopy ? 0.56 : midHold ? 0.48 : 0.32)
+    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.50 : midHold ? 0.46 : 0.32)
     : (tall ? 0.12 : 0.12)
   const padBot = mobile
-    ? (midHold ? 0.03 : 0.05)
+    ? ((heroCopy || bulbCopy) ? -0.08 : midHold ? 0.02 : 0.05)
     : (tall ? 0.22 : 0.14)
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
@@ -2694,8 +2700,8 @@ function containFormInView() {
   let radius =
     size * (tall ? (mobile ? 0.58 : 0.66) : 0.54) * transformTarget.s
   const maxR = Math.min(
-    (viewR - viewL) * 0.42,
-    (viewT - viewB) * 0.42
+    (viewR - viewL) * (heroCopy ? 0.56 : 0.46),
+    (viewT - viewB) * (heroCopy || bulbCopy ? 0.58 : 0.44)
   )
 
   if (radius > maxR && radius > 0) {
@@ -2712,7 +2718,7 @@ function containFormInView() {
     // read. Old caps (0.28–0.42) plus a positive Y floor shoved
     // every hold onto the headline. Keep a high ceiling; let the
     // frustum pads be the only clip guard.
-    let cap = midHold ? 0.88 : 0.94
+    let cap = midHold ? 0.96 : 1.08
     if (
       copyIsLive('.earth-hold') ||
       copyIsLive('.copy-results')
@@ -2720,14 +2726,14 @@ function containFormInView() {
       cap = 0.48
       transformTarget.y = Math.min(transformTarget.y, -0.55)
     } else if (teamCopy) {
-      cap = 0.28
-      transformTarget.y = Math.min(transformTarget.y, -1.35)
+      cap = 0.26
+      transformTarget.y = Math.min(transformTarget.y, -1.40)
     } else if (bulbCopy) {
-      cap = 0.60
-      transformTarget.y = Math.min(transformTarget.y, -1.35)
-    } else if (copyIsLive('.copy-hero')) {
-      cap = 0.90
-      transformTarget.y = Math.min(transformTarget.y, -0.88)
+      cap = 0.82
+      transformTarget.y = Math.min(transformTarget.y, -1.45)
+    } else if (heroCopy) {
+      cap = 1.18
+      transformTarget.y = Math.min(transformTarget.y, -1.22)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -2744,7 +2750,12 @@ function containFormInView() {
     transformTarget.x = viewR - radius
   }
 
-  if (transformTarget.y - radius < viewB) {
+  // Jose hero/bulb frames clip the floor. Pushing Y up to stay
+  // inside viewB is what parked the brain behind the CTA.
+  if (
+    !(mobile && (heroCopy || bulbCopy)) &&
+    transformTarget.y - radius < viewB
+  ) {
     transformTarget.y = viewB + radius
   }
 
@@ -3105,7 +3116,9 @@ function updateStory() {
       )
 
     transformTarget.y =
-      copyHoldY(0)
+      isMobile()
+        ? MOBILE_BULB_Y
+        : copyHoldY(0)
 
     transformTarget.ry =
       lerp(
