@@ -114,6 +114,7 @@ export const MENTOR_PREVIEW = [
     tags: ['Math', 'SAT/ACT', 'Programming'],
     bio: 'UCSD Computer Science. Passionate about helping students break down hard problems and build confidence.',
     initials: 'JF',
+    photo: '/mentors/jose.jpg',
   },
   {
     name: 'Emma',
@@ -122,6 +123,7 @@ export const MENTOR_PREVIEW = [
     tags: ['Science', 'Math', 'College Prep'],
     bio: 'UCSD Neuroscience. Berkeley master’s. Loves helping students understand and enjoy learning.',
     initials: 'EB',
+    photo: '/mentors/emma.jpg',
   },
   {
     name: 'Johan',
@@ -139,6 +141,7 @@ export const MENTOR_PREVIEW = [
     bio: 'UT Austin. Experienced in AP courses and test prep. Enjoys making challenging concepts click.',
     initials: 'D',
     example: true,
+    photo: '/mentors/daniel.jpg',
   },
   {
     name: 'Priya',
@@ -148,6 +151,7 @@ export const MENTOR_PREVIEW = [
     bio: 'UT Dallas. Passionate about STEM and helping students build strong foundations in science.',
     initials: 'P',
     example: true,
+    photo: '/mentors/priya.jpg',
   },
 ]
 
@@ -508,6 +512,86 @@ function glyph(d) {
   return `<svg class="frame-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="${d}"/></svg>`
 }
 
+function risingBarsViz() {
+  const heights = [26, 36, 47, 59, 70]
+  const barW = 10.6
+  const step = 14.6
+  const base = 74
+  const startX = 2.4
+  const bars = heights.map((h, i) => {
+    const x = startX + i * step
+    const y = base - h
+    const hatch = []
+    for (let yy = y + 0.6; yy < base - 0.4; yy += 1.15) {
+      const t = (base - yy) / h
+      hatch.push(
+        `<rect x="${x + 0.35}" y="${yy.toFixed(2)}" width="${barW - 0.7}" height="0.92" rx="0.32" fill="#e0f2fe" opacity="${(0.16 + t * 0.5).toFixed(2)}"/>`
+      )
+    }
+    return `
+      <ellipse class="jose-bar-halo" cx="${x + barW / 2}" cy="${y + 3}" rx="${barW}" ry="7.5" fill="#7dd3fc"/>
+      <rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="2.1" fill="url(#ch9-bar)" filter="url(#ch9-grain)"/>
+      ${hatch.join('')}
+      <ellipse cx="${x + barW / 2}" cy="${y + 1.1}" rx="${barW * 0.46}" ry="2.1" fill="#f0f9ff" opacity="0.95"/>
+    `
+  }).join('')
+
+  const trail = []
+  for (let t = 0; t <= 1.001; t += 0.055) {
+    const x = 5 + t * 74
+    const y = 68.5 - (t * 0.35 + t * t * 0.65) * 58
+    const r = 0.55 + t * 1.25
+    trail.push(
+      `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${r.toFixed(2)}" fill="#ff7a18" opacity="${(0.28 + t * 0.62).toFixed(2)}"/>`
+    )
+  }
+
+  return `
+    <svg class="jose-bars-svg" viewBox="0 0 90 78" aria-hidden="true">
+      <defs>
+        <linearGradient id="ch9-bar" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#1e3a8a"/>
+          <stop offset="0.38" stop-color="#2563eb"/>
+          <stop offset="0.74" stop-color="#60a5fa"/>
+          <stop offset="1" stop-color="#c4b5fd"/>
+        </linearGradient>
+        <linearGradient id="ch9-arrow" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stop-color="#ff3d00"/>
+          <stop offset="0.5" stop-color="#ff6a00"/>
+          <stop offset="1" stop-color="#ffc38a"/>
+        </linearGradient>
+        <filter id="ch9-grain" x="-25%" y="-25%" width="150%" height="150%">
+          <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="3" seed="4" result="n"/>
+          <feColorMatrix in="n" type="luminanceToAlpha" result="a"/>
+          <feComponentTransfer in="a" result="t">
+            <feFuncA type="linear" slope="0.75"/>
+          </feComponentTransfer>
+          <feFlood flood-color="#9ec5ff" result="c"/>
+          <feComposite in="c" in2="t" operator="in" result="g"/>
+          <feBlend in="SourceGraphic" in2="g" mode="overlay"/>
+        </filter>
+        <filter id="ch9-arrow-glow" x="-50%" y="-90%" width="200%" height="260%">
+          <feGaussianBlur stdDeviation="1.9" result="b"/>
+          <feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 0.32 0 0 0  0 0 0 0 0  0 0 0 1.55 0" result="o"/>
+          <feMerge>
+            <feMergeNode in="o"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <marker id="ch9-head" markerWidth="8.5" markerHeight="8.5" refX="7.2" refY="4.25" orient="auto">
+          <path d="M0 0.4 L8.5 4.25 L0 8.1 Z" fill="#ff8a2a"/>
+        </marker>
+      </defs>
+      <ellipse cx="46" cy="62" rx="40" ry="18" fill="#3d8bff" opacity="0.26"/>
+      ${bars}
+      <g filter="url(#ch9-arrow-glow)">
+        ${trail.join('')}
+        <path d="M5.5 67.5 Q 36 52 79 9.5" stroke="url(#ch9-arrow)" stroke-width="3.8" stroke-linecap="round" fill="none" marker-end="url(#ch9-head)"/>
+      </g>
+    </svg>
+  `
+}
+
 const HIW_ICOS = {
   '01': glyph('M4 4h16v12H7l-3 3zM8 8h8v2H8zm0 4h5v2H8z'),
   '02': glyph('M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM9 12.5c-3.05 0-7 1.54-7 4.6V19h8.2v-1.4c0-1.3.5-2.4 1.3-3.3C10.6 13 9.8 12.5 9 12.5zm6.5 0c-.4 0-.9 0-1.3.1 1.5.8 2.5 2 2.5 3.5V19H22v-1.9c0-2.4-3.1-3.6-6.5-3.6z'),
@@ -537,9 +621,10 @@ export function mentorPreviewHtml({ home = false } = {}) {
     (person) => `
       <article class="mentor-card glow-card mentor-dir-card">
         ${person.example ? '<p class="example-tag">Example</p>' : ''}
-        <div class="mentor-photo" aria-hidden="true">
-          <span class="mentor-sil"></span>
-          <span class="mentor-initials">${person.initials}</span>
+        <div class="mentor-photo${person.photo ? ' mentor-photo--shot' : ''}" aria-hidden="true">
+          ${person.photo
+            ? `<img class="mentor-shot" src="${person.photo}" alt="" width="160" height="160">`
+            : `<span class="mentor-sil"></span><span class="mentor-initials">${person.initials}</span>`}
         </div>
         <h3>${person.name}</h3>
         <p class="mentor-role">${person.role}</p>
@@ -642,11 +727,8 @@ export function homeAfterChaptersHtml() {
       <p class="eyebrow eyebrow-dash">How they grow</p>
       <h2>Support that grows with them<span class="stop">.</span></h2>
       <p>From building foundations to achieving big goals, MetaMinds stays with your child through every stage.</p>
-      <div class="plant-timeline plant-timeline--3" aria-hidden="true">
-        <div class="plant-col"><span class="plant-viz plant-viz--1"><span class="plant-stem"></span><span class="plant-bud"></span></span></div>
-        <div class="plant-col"><span class="plant-viz plant-viz--2"><span class="plant-stem"></span><span class="plant-leaf plant-leaf--l"></span><span class="plant-leaf plant-leaf--r"></span><span class="plant-bud"></span></span></div>
-        <div class="plant-col"><span class="plant-viz plant-viz--4"><span class="plant-stem"></span><span class="plant-leaf plant-leaf--l"></span><span class="plant-leaf plant-leaf--r"></span><span class="plant-leaf plant-leaf--hi"></span><span class="plant-bud"></span></span></div>
-        <span class="plant-horizon"></span>
+      <div class="plant-timeline plant-timeline--frame" aria-hidden="true">
+        <img class="plant-frame" src="/frames/ch06-trees.png" alt="" width="780" height="439">
       </div>
       <div class="grow-rail grow-rail--frame">
         ${growStages.map(([title, body, dot]) => `
@@ -729,8 +811,7 @@ export function homeAfterChaptersHtml() {
           <p>With the right support, students gain confidence and reach goals they once thought were out of reach.</p>
         </div>
         <div class="jose-viz jose-viz--bars" aria-hidden="true">
-          <i></i><i></i><i></i><i></i>
-          <span class="jose-viz-arrow"></span>
+          ${risingBarsViz()}
         </div>
       </div>
       ${resultsScoreCardsHtml()}

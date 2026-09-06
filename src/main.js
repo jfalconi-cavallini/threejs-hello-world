@@ -4338,7 +4338,9 @@ function createPage() {
           SCROLL
         </div>
       </div>
-      <div class="jose-viz jose-viz--pair" aria-hidden="true"></div>
+      <div class="jose-viz jose-viz--pair jose-viz--pair-shot" aria-hidden="true">
+        <img src="/frames/ch03-tutoring.png" alt="" width="780" height="439">
+      </div>
     </section>
 
     <section class="chapter chapter-earth" id="grow">

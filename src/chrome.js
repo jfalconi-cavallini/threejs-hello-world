@@ -127,7 +127,7 @@ function navActive(page, id) {
 const LOCKUP = `
       <span class="brand-plate">
         <img
-          src="/metaminds-logo-lock.png"
+          src="/metaminds-logo-lock-on-white.png"
           alt="MetaMinds STEM Academy"
           class="brand-logo"
         >
@@ -256,7 +256,7 @@ export function createFooter() {
     <a class="footer-brand" href="/">
       <span class="brand-plate footer-plate">
         <img
-          src="/metaminds-logo-lock.png"
+          src="/metaminds-logo-lock-on-white.png"
           alt="MetaMinds STEM Academy"
           class="footer-logo"
         >
