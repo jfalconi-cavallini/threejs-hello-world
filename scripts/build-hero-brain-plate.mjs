@@ -2,12 +2,8 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// Deterministic hemispheric brain plate. Same silhouette the live
-// morph sculpts toward — warm left / cool right, sitting on a floor.
 const W = 800
-const H = 520
-const CX = 400
-const CY = 248
+const H = 480
 
 function mulberry32(seed) {
   let a = seed >>> 0
@@ -20,153 +16,123 @@ function mulberry32(seed) {
   }
 }
 
-function brainLocal(hemi, rand) {
-  const theta = rand() * Math.PI * 2
-  const u = rand()
-  const phi = Math.acos(2 * u - 1)
-  let x = Math.sin(phi) * Math.cos(theta)
-  let y = Math.cos(phi)
-  let z = Math.sin(phi) * Math.sin(theta)
+// Front-elevated brain lobes. Wider than tall, open fissure,
+// temporal droop. Not two overlapping circles.
+const LEFT = `
+  M 392 78
+  C 348 52 268 48 198 78
+  C 128 108 88 168 96 228
+  C 104 286 142 328 198 348
+  C 248 366 304 352 348 318
+  C 372 298 386 262 390 214
+  C 394 168 396 118 392 78
+  Z
+`
+const RIGHT = `
+  M 408 78
+  C 452 52 532 48 602 78
+  C 672 108 712 168 704 228
+  C 696 286 658 328 602 348
+  C 552 366 496 352 452 318
+  C 428 298 414 262 410 214
+  C 406 168 404 118 408 78
+  Z
+`
 
-  x = hemi * (0.16 + Math.abs(x) * 0.84)
-  x *= 0.92
-  y *= 0.70
-  z *= 0.62
-  y += 0.10
-
-  const temporal = Math.max(0, -y + 0.02) * Math.abs(x)
-  y -= temporal * 0.62
-  x += hemi * temporal * 0.22
-  z += temporal * 0.18
-
-  if (z > 0 && y > -0.05) {
-    z += 0.10 * (y + 0.18)
-  }
-
-  const wrinkle =
-    Math.sin(x * 16 + y * 11) * Math.cos(z * 13) * 0.028
-  const len = Math.hypot(x, y, z) || 1
-  x += (x / len) * wrinkle
-  y += (y / len) * wrinkle
-  z += (z / len) * wrinkle
-
-  const inward = rand() * 0.16
-  x *= 1 - inward
-  y *= 1 - inward
-  z *= 1 - inward
-
-  return { x, y, z }
-}
-
-function project(p) {
-  const sx = CX + p.x * 310
-  const sy = CY - p.y * 250 - p.z * 36
-  return { x: sx, y: sy, z: p.z }
-}
-
-function hex(warm, t) {
-  const lerp = (a, b, u) => Math.round(a + (b - a) * u)
-  if (warm) {
-    const r = lerp(255, 255, t)
-    const g = lerp(92, 184, t)
-    const b = lerp(0, 80, t)
-    return `rgb(${r},${g},${b})`
-  }
-  const r = lerp(30, 103, t)
-  const g = lerp(90, 232, t)
-  const b = lerp(255, 249, t)
-  return `rgb(${r},${g},${b})`
+function pointInLobe(x, y, hemi) {
+  const cx = hemi < 0 ? 268 : 532
+  const cy = 198
+  const dx = (x - cx) / 168
+  const dy = (y - cy) / 132
+  const temporal = y > 250 ? ((x - (hemi < 0 ? 210 : 590)) / 90) * 0.18 : 0
+  const rx = 1 + Math.max(0, -temporal)
+  const ry = 1 + (y > 280 ? 0.12 : 0)
+  if (hemi < 0 && x > 394) return false
+  if (hemi > 0 && x < 406) return false
+  return (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) < 1
 }
 
 const rand = mulberry32(0xb0a12)
 const dots = []
-const max = 720
-let guard = 0
-
-while (dots.length < max && guard < max * 40) {
-  guard += 1
+while (dots.length < 820) {
   const hemi = dots.length % 2 === 0 ? -1 : 1
-  const p = brainLocal(hemi, rand)
-  if (Math.abs(p.x) < 0.055 && p.y > -0.12) continue
-  const q = project(p)
-  if (q.x < 36 || q.x > W - 36 || q.y < 28 || q.y > 430) continue
-  dots.push({ ...q, hemi, warm: hemi < 0 })
+  const x = 90 + rand() * 620
+  const y = 50 + rand() * 340
+  if (!pointInLobe(x, y, hemi)) continue
+  const t = Math.min(1, Math.abs(x - 400) / 240)
+  const depth = rand()
+  const r = 1.05 + depth * 2.15
+  const warm = hemi < 0
+  const fill = warm
+    ? `rgb(255,${Math.round(92 + t * 90)},${Math.round(t * 40)})`
+    : `rgb(${Math.round(40 + t * 60)},${Math.round(120 + t * 90)},255)`
+  dots.push(
+    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="${fill}" fill-opacity="${(0.46 + depth * 0.48).toFixed(2)}"/>`
+  )
 }
 
-const nodes = []
 const nRand = mulberry32(0x51a7)
-for (let i = 0; i < 28; i++) {
-  const hemi = i % 2 === 0 ? -1 : 1
-  const p = brainLocal(hemi, nRand)
-  const q = project({
-    x: p.x * 1.38,
-    y: p.y * 1.12,
-    z: p.z * 1.2,
-  })
-  nodes.push(q)
+const nodes = []
+while (nodes.length < 22) {
+  const hemi = nodes.length % 2 === 0 ? -1 : 1
+  const x = 70 + nRand() * 660
+  const y = 40 + nRand() * 360
+  if (!pointInLobe(x, y, hemi) && nRand() > 0.35) continue
+  nodes.push({ x, y, hemi })
 }
 
 const links = []
 for (let i = 0; i < nodes.length; i++) {
-  const dists = nodes
+  const near = nodes
     .map((n, j) => ({ j, d: Math.hypot(n.x - nodes[i].x, n.y - nodes[i].y) }))
-    .filter((n) => n.j > i && n.d > 18 && n.d < 150)
+    .filter((n) => n.j > i && n.d > 24 && n.d < 140)
     .sort((a, b) => a.d - b.d)
     .slice(0, 2)
-  for (const n of dists) links.push([i, n.j])
+  for (const n of near) links.push([i, n.j])
 }
-
-const particleCircles = dots
-  .map((d) => {
-    const depth = (d.z + 0.7) / 1.4
-    const r = 1.1 + depth * 2.1
-    const t = Math.abs(d.x - CX) / 310
-    const fill = hex(d.warm, Math.min(1, t))
-    const op = 0.42 + depth * 0.5
-    return `<circle cx="${d.x.toFixed(1)}" cy="${d.y.toFixed(1)}" r="${r.toFixed(2)}" fill="${fill}" fill-opacity="${op.toFixed(2)}"/>`
-  })
-  .join('')
 
 const plexus = [
   ...links.map(([a, b]) => {
-    const c = nodes[a].x < CX ? '255,92,0' : '61,139,255'
-    return `<line x1="${nodes[a].x.toFixed(1)}" y1="${nodes[a].y.toFixed(1)}" x2="${nodes[b].x.toFixed(1)}" y2="${nodes[b].y.toFixed(1)}" stroke="rgb(${c})" stroke-opacity="0.22" stroke-width="0.7"/>`
+    const c = nodes[a].x < 400 ? '255,92,0' : '61,139,255'
+    return `<line x1="${nodes[a].x.toFixed(1)}" y1="${nodes[a].y.toFixed(1)}" x2="${nodes[b].x.toFixed(1)}" y2="${nodes[b].y.toFixed(1)}" stroke="rgb(${c})" stroke-opacity="0.28" stroke-width="0.8"/>`
   }),
   ...nodes.map((n) => {
-    const c = n.x < CX ? '255,92,0' : '61,139,255'
-    return `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="1.6" fill="rgb(${c})" fill-opacity="0.55"/>`
+    const c = n.x < 400 ? '255,92,0' : '61,139,255'
+    return `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="1.7" fill="rgb(${c})" fill-opacity="0.6"/>`
   }),
 ].join('')
 
 const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" fill="none">
   <defs>
-    <radialGradient id="leftGlow" cx="36%" cy="48%" r="42%">
-      <stop offset="0%" stop-color="#ff8a1a" stop-opacity="0.95"/>
-      <stop offset="42%" stop-color="#ff5c00" stop-opacity="0.55"/>
+    <clipPath id="leftLobe"><path d="${LEFT}"/></clipPath>
+    <clipPath id="rightLobe"><path d="${RIGHT}"/></clipPath>
+    <radialGradient id="leftGlow" cx="38%" cy="46%" r="58%">
+      <stop offset="0%" stop-color="#ffb450" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#ff5c00" stop-opacity="0.55"/>
       <stop offset="100%" stop-color="#ff5c00" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="rightGlow" cx="64%" cy="46%" r="42%">
-      <stop offset="0%" stop-color="#67e8f9" stop-opacity="0.88"/>
-      <stop offset="40%" stop-color="#3d8bff" stop-opacity="0.52"/>
+    <radialGradient id="rightGlow" cx="62%" cy="46%" r="58%">
+      <stop offset="0%" stop-color="#67e8f9" stop-opacity="0.9"/>
+      <stop offset="45%" stop-color="#3d8bff" stop-opacity="0.52"/>
       <stop offset="100%" stop-color="#3d8bff" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="core" cx="50%" cy="52%" r="28%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-    </radialGradient>
   </defs>
-  <ellipse cx="292" cy="262" rx="168" ry="142" fill="url(#leftGlow)"/>
-  <ellipse cx="508" cy="254" rx="168" ry="142" fill="url(#rightGlow)"/>
-  <ellipse cx="400" cy="268" rx="86" ry="110" fill="url(#core)"/>
-  <g opacity="0.9">${plexus}</g>
-  <g>${particleCircles}</g>
+  <g clip-path="url(#leftLobe)">
+    <rect x="80" y="40" width="330" height="340" fill="url(#leftGlow)"/>
+  </g>
+  <g clip-path="url(#rightLobe)">
+    <rect x="390" y="40" width="330" height="340" fill="url(#rightGlow)"/>
+  </g>
+  <path d="${LEFT}" stroke="rgba(255,184,80,0.35)" stroke-width="1.2"/>
+  <path d="${RIGHT}" stroke="rgba(103,232,249,0.32)" stroke-width="1.2"/>
+  <g opacity="0.88">${plexus}</g>
+  <g>${dots.join('')}</g>
 </svg>
 `
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = path.join(root, 'public', 'frames')
 mkdirSync(outDir, { recursive: true })
-const out = path.join(outDir, 'hero-brain-hemi.svg')
-writeFileSync(out, svg)
-console.log(`${out}  ${svg.length} bytes  ${dots.length} dots`)
+writeFileSync(path.join(outDir, 'hero-brain-hemi.svg'), svg)
+console.log(`hero-brain-hemi.svg  ${svg.length} bytes  ${dots.length} dots`)

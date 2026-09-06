@@ -1653,22 +1653,22 @@ function generateHemisphericBrainPositions(count, desiredSize) {
     let y = Math.cos(phi)
     let z = Math.sin(phi) * Math.sin(theta)
 
-    x = hemi * (0.16 + Math.abs(x) * 0.84)
-    x *= 0.92
-    y *= 0.70
-    z *= 0.62
-    y += 0.10
+    x = hemi * (0.22 + Math.abs(x) * 0.90)
+    x *= 1.12
+    y *= 0.58
+    z *= 0.52
+    y += 0.12
 
-    const temporal = Math.max(0, -y + 0.02) * Math.abs(x)
-    y -= temporal * 0.62
-    x += hemi * temporal * 0.22
-    z += temporal * 0.18
+    const temporal = Math.max(0, -y + 0.04) * Math.abs(x)
+    y -= temporal * 0.78
+    x += hemi * temporal * 0.28
+    z += temporal * 0.16
 
     if (z > 0 && y > -0.05) {
-      z += 0.10 * (y + 0.18)
+      z += 0.08 * (y + 0.18)
     }
 
-    if (Math.abs(x) < 0.055 && y > -0.12) {
+    if (Math.abs(x) < 0.11 && y > -0.18) {
       continue
     }
 
@@ -5735,7 +5735,7 @@ function animate() {
       particleMaterial.uniforms.uAlpha.value +=
         (
           (
-            onBrainHold ? 0.55 :
+            onBrainHold ? 0.22 :
             0.9
           ) -
           particleMaterial.uniforms.uAlpha.value
@@ -5744,10 +5744,10 @@ function animate() {
 
       const heroSoft = onBrainHold ? 1 : 0
       const heroSize = onBrainHold
-        ? (MOBILE_AT_LOAD ? 4.4 : 3.8)
+        ? (MOBILE_AT_LOAD ? 3.2 : 2.8)
         : (MOBILE_AT_LOAD ? 8.5 : 7)
       const heroDrift = onBrainHold
-        ? (REDUCED_MOTION ? 0 : 0.012)
+        ? (REDUCED_MOTION ? 0 : 0.008)
         : (REDUCED_MOTION ? 0 : 0.042)
 
       particleMaterial.uniforms.uSoft.value +=
