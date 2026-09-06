@@ -2406,8 +2406,7 @@ function copyIsLive(selector) {
 function midScrollCopyLive() {
   return (
     copyIsLive('.copy-hero') ||
-    copyIsLive('.t3-intro') ||
-    copyIsLive('.t3-morph') ||
+    copyIsLive('.t3-understand') ||
     copyIsLive('.lb-intro') ||
     copyIsLive('.t5-main') ||
     copyIsLive('.earth-hold') ||
@@ -3708,15 +3707,14 @@ function setupCopyTravel() {
 
     wireCopyCluster(
       desktop,
-      ['.t3-intro', '.t3-morph'],
+      ['.t3-understand'],
       {
         trigger: morphA,
         start: 'top 88%',
         end: 'bottom top',
       },
       [
-        { enter: 0.10, hold: 0.36, exit: 0.10, fadeWait: 0 },
-        { enter: 0.10, hold: 0.44, exit: 0.08, stay: true, fadeWait: 0 },
+        { enter: 0.10, hold: 0.80, exit: 0.08, stay: true, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3857,7 +3855,7 @@ function liveCopyForGeometry() {
     ['.chapter-earth', '.earth-hold'],
     ['.chapter-morph-b', '.t5-main'],
     ['.chapter-how', '.lb-intro'],
-    ['.chapter-morph-a', '.t3-intro'],
+    ['.chapter-morph-a', '.t3-understand'],
     ['.chapter-hero', '.copy-hero'],
   ]
 
@@ -4045,15 +4043,43 @@ function createPage() {
       </div>
     </section>
 
-    <section class="chapter chapter-morph chapter-morph-a">
-      <div class="copy copy-lane t3-intro">
-        <p class="eyebrow"><span class="beat-meta">Brain · </span>What we teach</p>
-        <h2>Every student gets stuck for a different reason.</h2>
-      </div>
-      <div class="copy copy-lane t3-morph">
-        <h2>Understanding changes everything.</h2>
-        <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
-        <p class="teach-range">K–12 through college.</p>
+    <section class="chapter chapter-morph chapter-morph-a chapter-understand" id="understand">
+      <div class="copy copy-lane t3-understand">
+        <p class="eyebrow eyebrow-dash">Understanding</p>
+        <h2>Understanding changes everything<span class="stop">.</span></h2>
+        <p class="beat-lead">SAT. ACT. AP. Math. Science. Writing. Coding. K–12 through college.</p>
+        <p>We start with what they already know, where the gaps are, and what to work on next.</p>
+        <div class="beat-cards beat-cards--paths">
+          <a class="beat-card beat-card--link" href="/programs/academic-tutoring">
+            <div>
+              <h3>Elementary &amp; Middle School</h3>
+              <p>Build fundamentals, confidence, organization, and strong learning habits.</p>
+            </div>
+          </a>
+          <a class="beat-card beat-card--link" href="/programs/ap">
+            <div>
+              <h3>High School &amp; AP</h3>
+              <p>Keep up with harder coursework, fill gaps, and prepare for what comes next.</p>
+            </div>
+          </a>
+          <a class="beat-card beat-card--link" href="/programs/sat-act">
+            <div>
+              <h3>SAT &amp; ACT</h3>
+              <p>Diagnose weaknesses, build strategy, practice deliberately, and track progress.</p>
+            </div>
+          </a>
+          <a class="beat-card beat-card--link" href="/programs/programming-stem">
+            <div>
+              <h3>Programming &amp; STEM</h3>
+              <p>Learn to build with code, robotics, engineering, and real projects.</p>
+            </div>
+          </a>
+        </div>
+        <p class="beat-quiet">One dedicated mentor. A plan you can see.</p>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 
