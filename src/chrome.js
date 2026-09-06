@@ -266,6 +266,7 @@ export function createFooter() {
       <a href="/consult">Consult</a>
       <a href="mailto:metamindsstemacademy@gmail.com">metamindsstemacademy@gmail.com</a>
     </nav>
+    <p class="footer-whisper">DFW. Zoom. A mentor who stays.</p>
   `
   return footer
 }

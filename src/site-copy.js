@@ -464,7 +464,7 @@ export function homeAfterChaptersHtml() {
         </article>
         <article class="glow-card">
           <h3>Small group programs</h3>
-          <p>Small groups are separate from 1-on-1. Same standards. Shared goals. A different format — not a discount track.</p>
+          <p>Small groups are separate from 1-on-1. Same standards. Shared goals.</p>
         </article>
       </div>
       <p class="page-quiet">What’s running changes. We won’t list a fake catalog.</p>

@@ -1414,6 +1414,7 @@ body.is-static-home .scene-canvas {
   z-index: 2;
   pointer-events: auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
@@ -1423,6 +1424,17 @@ body.is-static-home .scene-canvas {
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.footer-whisper {
+  flex: 1 0 100%;
+  margin: 0;
+  color: var(--mm-mute);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  text-transform: none;
 }
 
 .footer-brand {
