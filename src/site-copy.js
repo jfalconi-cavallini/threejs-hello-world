@@ -746,38 +746,7 @@ export function apHtml() {
   `
 }
 
-export function programmingStemHtml() {
-  return `
-    <section class="page-hero">
-      <p class="eyebrow">Programming &amp; STEM</p>
-      <h1>Programming &amp; STEM</h1>
-      <p class="page-lead">
-        Learn to build with code, robotics, engineering, and real projects.
-      </p>
-      ${ctaRow()}
-    </section>
-    <section class="page-block">
-      <h2>Projects, not playlists</h2>
-      <p>
-        Projects a student can point to — not a playlist of videos.
-        One dedicated mentor who stays with the work.
-      </p>
-      ${mediaPlaceholder('Program photo')}
-    </section>
-    <section class="page-block">
-      <h2>What we cover</h2>
-      <p>
-        Code, robotics, and engineering as real work — projects
-        a student can point to, not a playlist of videos.
-      </p>
-      <p class="page-quiet">
-        AI can assist a tutor. It does not replace the mentor or invent the curriculum.
-      </p>
-      ${allProgramsLink()}
-    </section>
-    ${CHILD_CLOSE}
-  `
-}
+export { programmingStemHtml } from './frame-routes.js'
 
 export function groupClassesHtml() {
   return `

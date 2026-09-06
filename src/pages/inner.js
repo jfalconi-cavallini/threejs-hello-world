@@ -32,6 +32,8 @@ const pages = {
   },
   'programming-stem': {
     nav: 'programs',
+    frame: true,
+    lookRoute: '/programs/programming-stem',
     html: programmingStemHtml(),
   },
   'group-classes': {
@@ -76,5 +78,7 @@ if (!spec) {
   mountPage({
     page: spec.nav,
     html: spec.html,
+    frame: spec.frame,
+    lookRoute: spec.lookRoute,
   })
 }
