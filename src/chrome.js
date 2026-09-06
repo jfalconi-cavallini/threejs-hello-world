@@ -226,6 +226,8 @@ export function createNavbar({ page = 'home' } = {}) {
         <a class="${navActive(page, 'results').trim()}" href="/results">Results</a>
         <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
         <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
+        <a class="${navActive(page, 'mentors').trim()}" href="/mentors">Mentors</a>
+        <a class="${navActive(page, 'parents').trim()}" href="/parents">Parents</a>
         <a class="${navActive(page, 'login').trim()}" href="/login">Sign In</a>
       </div>
       <a href="/consult" class="primary-button nav-panel-cta">
@@ -259,6 +261,7 @@ export function createFooter() {
       <a href="/results">Results</a>
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
+      <a href="/mentors">Mentors</a>
       <a href="/parents">Parents</a>
       <a href="/consult">Consult</a>
       <a href="mailto:metamindsstemacademy@gmail.com">metamindsstemacademy@gmail.com</a>

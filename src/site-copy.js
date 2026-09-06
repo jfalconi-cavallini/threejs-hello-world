@@ -581,6 +581,33 @@ export function parentsPageHtml() {
   `
 }
 
+export function mentorsPageHtml() {
+  return `
+    <section class="page-hero">
+      <p class="eyebrow">Mentors</p>
+      <h1>Mentors who stay.</h1>
+      <p class="page-lead">
+        The right mentor doesn’t have to live down the street.
+        Virtual is primary. In person is available when a tutor is already nearby.
+      </p>
+      ${ctaRow()}
+    </section>
+    <section class="page-block">
+      <h2>This page is a stub.</h2>
+      <p>
+        No roster, rates, or mentor ladder here yet.
+        Founders are on <a href="/about">About</a>.
+        The working door is the free consult.
+      </p>
+      ${mediaPlaceholder('Mentor photos')}
+    </section>
+    ${consultBand(
+      'Want the right fit?',
+      'Book the free consult — that’s the working door today.'
+    )}
+  `
+}
+
 export function loginPageHtml() {
   return `
     <section class="page-hero page-hero--empty">

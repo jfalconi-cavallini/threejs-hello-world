@@ -15,6 +15,7 @@ const htmlPages = {
   '/results': '/results.html',
   '/login': '/login.html',
   '/parents': '/parents.html',
+  '/mentors': '/mentors.html',
 }
 
 function cleanHtmlUrls() {
@@ -63,6 +64,7 @@ export default defineConfig({
         results: 'results.html',
         login: 'login.html',
         parents: 'parents.html',
+        mentors: 'mentors.html',
         notFound: '404.html',
       },
     },
