@@ -5675,21 +5675,44 @@ window.addEventListener(
   }
 )
 
+function scrollStillTarget() {
+  const sel = new URLSearchParams(window.location.search).get('still')
+  if (!sel) {
+    return
+  }
+
+  const el = document.querySelector(sel)
+  if (!el) {
+    return
+  }
+
+  document.body.classList.add('is-still-shot')
+  document.querySelectorAll('.chapter, .home-frame, .page-block').forEach((node) => {
+    if (node === el || node.contains(el) || el.contains(node)) {
+      return
+    }
+    node.setAttribute('hidden', '')
+  })
+  window.scrollTo(0, 0)
+}
+
 async function startHome() {
   createPage()
-
-  await afterIdle()
 
   if (previousBootCrashed()) {
     clearBootAttempt()
     enableStaticFallback(true)
+    scrollStillTarget()
     return
   }
 
   if (shouldSkipWebGL()) {
     enableStaticFallback()
+    scrollStillTarget()
     return
   }
+
+  await afterIdle()
 
   try {
     markBootAttempt()

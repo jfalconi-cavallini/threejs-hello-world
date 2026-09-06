@@ -223,6 +223,51 @@ body.is-static-home .scene-canvas {
   display: none;
 }
 
+body.is-still-shot .static-hero-still {
+  display: none;
+}
+
+body.is-static-home .boot-screen {
+  display: none;
+}
+
+/* Static stills / lighter page: un-pin cinematic copy so each
+   chapter is a phone frame. WebGL scroll path is unchanged. */
+body.is-static-home .chapter {
+  min-height: 100svh !important;
+  height: auto !important;
+  display: flex;
+  align-items: flex-start;
+  padding: calc(var(--mm-nav-h) + 12px) 16px 28px !important;
+}
+
+body.is-static-home .chapter-morph-c {
+  display: none;
+}
+
+body.is-static-home .copy,
+body.is-static-home .copy-hero,
+body.is-static-home .copy-lane,
+body.is-static-home .copy-team,
+body.is-static-home .copy-results,
+body.is-static-home .copy-consult,
+body.is-static-home .t3-understand,
+body.is-static-home .t5-main,
+body.is-static-home .lb-intro,
+body.is-static-home .earth-hold {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
 .static-hero-still img {
   width: min(420px, 38vw);
   height: auto;
@@ -1459,6 +1504,13 @@ body.is-static-home .scene-canvas {
   font-size: 10px;
   letter-spacing: 0.28em;
   color: var(--mm-mute);
+}
+
+.copy .scroll-marker--in-copy {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  margin-top: 22px;
 }
 
 .scroll-marker span {
@@ -3853,8 +3905,8 @@ a.subject-chip {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: end;
   gap: 8px;
-  margin: 36px 0 8px;
-  min-height: 132px;
+  margin: 22px 0 8px;
+  min-height: 148px;
   padding: 8px 4px 18px;
   overflow: hidden;
 }
@@ -4481,11 +4533,36 @@ a.subject-chip {
 }
 
 .home-frame--results .results-frame {
-  margin-top: 18px;
+  margin-top: 14px;
+  padding: 12px 12px 14px;
+}
+
+.home-frame--results .results-frame-block {
+  padding: 10px 4px 12px;
+}
+
+.home-frame--results .results-chart {
+  max-height: 72px;
+  margin-top: 8px;
+}
+
+.home-frame--results .score-line {
+  font-size: clamp(28px, 8vw, 36px);
+}
+
+.home-frame--results .results-frame-cta {
+  margin-top: 8px;
+  min-height: 44px;
+}
+
+@media (max-width: 767px) {
+  .home-frame--results > p:not(.eyebrow) {
+    display: none;
+  }
 }
 
 .home-frame .hiw-step {
-  padding: 12px 12px 12px 10px;
+  padding: 10px 10px 10px 8px;
 }
 
 .home-frame .hiw-step h3 {
