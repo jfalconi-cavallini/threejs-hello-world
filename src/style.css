@@ -5992,7 +5992,25 @@ body.is-still-shot .chapter {
 
   #pathways .grow-rail--stages {
     margin-top: 10px;
-    gap: 6px;
+    gap: 4px;
+  }
+
+  /* Phone icons are ~100px. Plates are authored at 320 so orange
+     vertices survive the downscale; a hair more size + orange
+     drop-shadow keeps the dual read without hue-rotate/paint. */
+  #pathways .plant-stage-frame {
+    width: calc(100% + 12px);
+    margin-inline: -6px;
+    border-radius: 10px;
+    overflow: visible;
+  }
+
+  #pathways .grow-copy--stage[data-stage="1"] .plant-stage,
+  #pathways .grow-copy--stage[data-stage="2"] .plant-stage,
+  #pathways .grow-copy--stage[data-stage="4"] .plant-stage {
+    filter:
+      drop-shadow(0 0 2px rgba(255, 92, 0, 0.7))
+      drop-shadow(0 0 5px rgba(255, 120, 36, 0.38));
   }
 
   #pathways .grow-copy--stage p {
