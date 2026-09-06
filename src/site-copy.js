@@ -723,7 +723,7 @@ export function homeAfterChaptersHtml() {
           <article class="grow-copy grow-copy--stage${src ? ' is-ready' : ' is-slot'}" data-stage="${i + 1}">
             <div class="plant-stage-frame" aria-hidden="true">
               ${src
-                ? `<img class="plant-stage" src="${src}" alt="" width="620" height="620">`
+                ? `<img class="plant-stage" src="${src}" alt="" width="320" height="320">`
                 : `<span class="plant-stage-slot" data-stage="${i + 1}"></span>`}
             </div>
             <span class="plant-dot ${dot}"></span>

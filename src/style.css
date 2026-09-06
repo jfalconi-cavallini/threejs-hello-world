@@ -5992,7 +5992,16 @@ body.is-still-shot .chapter {
 
   #pathways .grow-rail--stages {
     margin-top: 10px;
-    gap: 6px;
+    gap: 4px;
+  }
+
+  /* Phone icons are ~100px. Plates are authored at 320 so orange
+     vertices survive the downscale. No hue-rotate / drop-shadow
+     tint — bloom lives in the PNG so we don't paint orange frames. */
+  #pathways .plant-stage-frame {
+    width: calc(100% + 12px);
+    margin-inline: -6px;
+    border-radius: 10px;
   }
 
   #pathways .grow-copy--stage p {
