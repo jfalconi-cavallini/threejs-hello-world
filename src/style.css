@@ -4395,6 +4395,18 @@ a.subject-chip {
   margin: 28px 0 8px;
 }
 
+.fit-portals--one {
+  grid-template-columns: 1fr;
+  max-width: 280px;
+  margin-inline: auto;
+}
+
+.compare-grid--one {
+  grid-template-columns: 1fr;
+  max-width: 420px;
+  margin-inline: auto;
+}
+
 .fit-portal {
   min-height: 108px;
   border-radius: 16px;
@@ -4536,6 +4548,10 @@ a.subject-chip {
 
   .compare-grid--fit {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .compare-grid--fit.compare-grid--one {
+    grid-template-columns: 1fr;
   }
 
   .subject-3x3 {
@@ -4764,6 +4780,10 @@ a.subject-chip {
     gap: 8px;
   }
 
+  #group-classes .compare-grid--fit.compare-grid--one {
+    grid-template-columns: 1fr;
+  }
+
   #group-classes .compare-card {
     padding: 12px 10px 14px;
   }
@@ -4785,6 +4805,10 @@ a.subject-chip {
 
   #group-classes .compare-list li:nth-child(n + 5) {
     display: none;
+  }
+
+  #group-classes .compare-grid--one .compare-list li:nth-child(n + 5) {
+    display: list-item;
   }
 
   #group-classes .fit-link {
@@ -5578,6 +5602,10 @@ body.is-still-shot .chapter {
     display: none;
   }
 
+  .home-frame--fit .compare-grid--one .compare-list li:nth-child(n + 5) {
+    display: list-item;
+  }
+
   .quote-card--frame .quote-text {
     font-size: 15px;
   }
@@ -6030,15 +6058,21 @@ body.is-still-shot .chapter {
     gap: 4px;
   }
 
-  /* Phone icons sit in the mid-band like Jose's Ch6 still.
-     Plates stay 320-authored so orange vertices survive.
-     No hue-rotate / drop-shadow tint. */
+  /* Phone icons ~110px. Plates are 320-authored so orange vertices
+     survive the downscale. No hue-rotate / drop-shadow tint —
+     bloom lives in the PNG so we don't paint orange cores. */
   #pathways .plant-stage-frame {
-    width: calc(100% + 16px);
-    margin-inline: -8px;
-    aspect-ratio: 4 / 5;
-    min-height: 17vh;
+    width: calc(100% + 12px);
+    margin-inline: -6px;
     border-radius: 10px;
+  }
+
+  #pathways .plant-stage {
+    object-fit: contain;
+    object-position: center bottom;
+    transform: none;
+    filter: none;
+    mix-blend-mode: normal;
   }
 
   #pathways .grow-copy--stage p {
@@ -6198,19 +6232,24 @@ body.is-still-shot .chapter {
     overflow: visible;
   }
 
+  /* 2×2 cells wrap labels. Keep plates at the bbbb33c icon scale
+     so orange vertex bloom does not read as orange-dominant fill. */
   #pathways .plant-stage-frame {
-    width: 100%;
-    margin-inline: 0;
+    width: min(118px, 100%);
+    margin-inline: auto;
     aspect-ratio: 1;
-    min-height: 42vw;
+    min-height: 0;
     height: auto;
-    overflow: visible;
-    background: transparent;
+    overflow: hidden;
+    background: #000;
   }
 
   #pathways .plant-stage {
-    object-position: center center;
-    transform: scale(1.12);
+    object-fit: contain;
+    object-position: center bottom;
+    transform: none;
+    filter: none;
+    mix-blend-mode: normal;
   }
 
   #pathways .grow-copy--stage h3 {
@@ -6392,5 +6431,32 @@ body.is-still-shot .chapter {
 
   #progress {
     padding-top: 28px;
+  }
+}
+
+/* Live chapter joins: sticky lockup must not clip the prior
+   section’s last lines or the next section’s eyebrow.
+   Still-shots keep the packed 100svh frames. */
+body:not(.is-still-shot) .home-after .page-block,
+body:not(.is-still-shot) .home-after .home-frame {
+  scroll-margin-top: var(--mm-clearance);
+  padding-top: var(--mm-clearance);
+  padding-bottom: var(--mm-clearance);
+}
+
+@media (max-width: 767px) {
+  body:not(.is-still-shot) #pathways,
+  body:not(.is-still-shot) #how-it-works,
+  body:not(.is-still-shot) #results,
+  body:not(.is-still-shot) #results-more,
+  body:not(.is-still-shot) #mentors,
+  body:not(.is-still-shot) #group-classes,
+  body:not(.is-still-shot) #subjects,
+  body:not(.is-still-shot) #start-earlier,
+  body:not(.is-still-shot) #progress,
+  body:not(.is-still-shot) #pricing-preview,
+  body:not(.is-still-shot) .home-after .page-block:first-child {
+    padding-top: var(--mm-clearance);
+    padding-bottom: var(--mm-clearance);
   }
 }

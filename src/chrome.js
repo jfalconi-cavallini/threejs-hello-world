@@ -139,7 +139,6 @@ export const PROGRAM_LINKS = [
   { href: '/programs/sat-act', label: 'SAT & ACT Prep' },
   { href: '/programs/ap', label: 'AP & Advanced Courses' },
   { href: '/programs/programming-stem', label: 'Programming & STEM' },
-  { href: '/programs/group-classes', label: 'Group Classes' },
 ]
 
 const CONSULT_CTA = `

@@ -44,11 +44,6 @@ export const PROGRAM_HUB_CARDS = [
     title: 'Programming & STEM',
     body: 'Build with code, robotics, engineering, and real projects.',
   },
-  {
-    href: '/programs/group-classes',
-    title: 'Group Classes',
-    body: 'Small groups are separate from 1-on-1. Same standards. Ask what’s running.',
-  },
 ]
 
 export const HOW_IT_WORKS_STEPS = [
@@ -881,20 +876,14 @@ export function homeAfterChaptersHtml() {
     <section class="home-frame home-frame--fit" id="group-classes">
       <p class="eyebrow eyebrow-dash">Find the right fit</p>
       <h2>Choose the kind of support that fits<span class="stop">.</span></h2>
-      <p>1-on-1 mentoring is the core. Small groups are a separate format — same standards, shared goals.</p>
-      <div class="fit-portals" aria-hidden="true">
+      <p>Live support is 1-on-1 mentoring. One dedicated mentor. A plan you can actually see.</p>
+      <div class="fit-portals fit-portals--one" aria-hidden="true">
         <div class="fit-portal fit-portal--one">
           <span class="fit-fig fit-fig--solo"></span>
           <span>1-on-1</span>
         </div>
-        <div class="fit-portal fit-portal--group">
-          <span class="fit-fig fit-fig--a"></span>
-          <span class="fit-fig fit-fig--b"></span>
-          <span class="fit-fig fit-fig--c"></span>
-          <span>Group</span>
-        </div>
       </div>
-      <div class="compare-grid compare-grid--fit">
+      <div class="compare-grid compare-grid--fit compare-grid--one">
         <article class="glow-card compare-card compare-card--one">
           <span class="compare-ico compare-ico--one" aria-hidden="true">${glyph('M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 1.5c-3.3 0-8 1.7-8 5V20h16v-1.5c0-3.3-4.7-5-8-5z')}</span>
           <h3>1-on-1 Mentoring</h3>
@@ -909,49 +898,12 @@ export function homeAfterChaptersHtml() {
           </ul>
           <a class="fit-link fit-link--one" href="/consult">Learn more${ARROW_ICON}</a>
         </article>
-        <article class="glow-card compare-card compare-card--group">
-          <span class="compare-ico compare-ico--group" aria-hidden="true">${TRAIT_ICOS[0][1]}</span>
-          <h3>Small Group Classes</h3>
-          <p class="score-kicker">Learn together. Go further.</p>
-          <ul class="compare-list">
-            <li>Same standards. Shared goals.</li>
-            <li>Structured curriculum</li>
-            <li>Great for SAT prep and programming</li>
-            <li>Learn with motivated peers</li>
-            <li>Engaging and interactive</li>
-            <li>Taught by experienced mentors</li>
-          </ul>
-          <a class="fit-link fit-link--group" href="/programs/group-classes">Explore group classes${ARROW_ICON}</a>
-        </article>
       </div>
       <article class="glow-card partner-card partner-card--icon fit-consult">
         <span class="partner-ico" aria-hidden="true">${glyph('M12 3 3 8v2h18V8zm-7 9h2v7H5zm5 0h4v7h-4zm7 0h2v7h-2z')}</span>
-        <p>Not sure which is right for your student? We’ll help you decide during your free consultation.</p>
+        <p>Not sure where to start? We’ll map the work to your child during your free consultation.</p>
         <a class="fit-consult-link" href="/consult">Book a consultation${ARROW_ICON}</a>
       </article>
-      <p class="score-kicker group-topics-label">Common group class topics</p>
-      <div class="group-topics group-topics--4">
-        <article class="glow-card topic-card">
-          <span class="topic-thumb topic-thumb--sat" aria-hidden="true"></span>
-          <h3>SAT Prep</h3>
-          <p>Strategy, practice, and real progress.</p>
-        </article>
-        <article class="glow-card topic-card">
-          <span class="topic-thumb topic-thumb--code" aria-hidden="true"></span>
-          <h3>Programming</h3>
-          <p>From beginner to advanced.</p>
-        </article>
-        <article class="glow-card topic-card">
-          <span class="topic-thumb topic-thumb--robot" aria-hidden="true"></span>
-          <h3>Robotics &amp; STEM</h3>
-          <p>Build, create, problem solve.</p>
-        </article>
-        <article class="glow-card topic-card">
-          <span class="topic-thumb topic-thumb--math" aria-hidden="true"></span>
-          <h3>Math Enrichment</h3>
-          <p>Stronger foundations and deeper understanding.</p>
-        </article>
-      </div>
       ${bookWide()}
       ${frameScroll()}
     </section>
@@ -962,7 +914,6 @@ export function homeAfterChaptersHtml() {
       <p>Rate follows your child’s level. Full numbers on Pricing — not here.</p>
       <div class="chip-row">
         <span class="subject-chip">1-on-1 mentoring</span>
-        <span class="subject-chip">Small group programs</span>
         <span class="subject-chip">In-person in select areas</span>
       </div>
       <p class="page-quiet">Want the top mentor band at any age? That’s the College rate — see Pricing.</p>
@@ -1010,9 +961,8 @@ export function programHubHtml() {
       <p class="eyebrow">Programs</p>
       <h1>Find the work that fits.</h1>
       <p class="page-lead">
-        Academic tutoring, SAT &amp; ACT, AP, programming &amp; STEM,
-        and small group programs. One dedicated mentor. Notes after
-        every session.
+        Academic tutoring, SAT &amp; ACT, AP, and programming &amp; STEM.
+        One dedicated mentor. Notes after every session.
       </p>
       ${ctaRow()}
     </section>
@@ -1131,27 +1081,17 @@ export { programmingStemHtml } from './frame-routes.js'
 export function groupClassesHtml() {
   return `
     <section class="page-hero">
-      <p class="eyebrow">Group Classes</p>
-      <h1>Small group programs</h1>
+      <p class="eyebrow">Programs</p>
+      <h1>1-on-1 mentoring is the live offer.</h1>
       <p class="page-lead">
-        1-on-1 mentoring is the core. Small group programs are separate — same standards, shared goals.
+        Personalized tutoring with one dedicated mentor. The consult is how we match the work to your child.
       </p>
       ${ctaRow()}
     </section>
     <section class="page-block">
-      <h2>Honest inventory</h2>
+      <h2>What we run today</h2>
       <p>
-        What’s running changes. We won’t list a fake catalog.
-      </p>
-      ${mediaPlaceholder('Group class photo')}
-    </section>
-    <section class="page-block">
-      <h2>When a group fits</h2>
-      <p>
-        Same standards. Shared goals. Ask what’s running.
-      </p>
-      <p class="page-quiet">
-        Do not invent seat counts.
+        Live support is 1-on-1. We don’t list a group catalog we can’t staff.
       </p>
       ${allProgramsLink()}
     </section>

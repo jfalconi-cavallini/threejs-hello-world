@@ -78,7 +78,7 @@ mountPage({
       <div class="include-grid">
         <article>
           <h3>1-on-1 mentoring</h3>
-          <p>1-on-1 mentoring is the core. Small group programs are separate — same standards, shared goals.</p>
+          <p>1-on-1 mentoring is the core. One dedicated mentor. Notes after every session.</p>
         </article>
         <article>
           <h3>Session notes</h3>
