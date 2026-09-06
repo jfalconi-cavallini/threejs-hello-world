@@ -726,7 +726,7 @@ export function howItWorksPageHtml() {
     </section>
     ${consultBand(
       'Start with the free consult.',
-      'Thirty minutes. We figure out whether MetaMinds is the right fit.'
+      'Thirty minutes. No obligation. We figure out whether MetaMinds is the right fit.'
     )}
   `
 }
