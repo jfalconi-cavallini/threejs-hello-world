@@ -283,6 +283,22 @@ export function homeFaqHtml() {
   `
 }
 
+function subjectGlyph(tone) {
+  const key = String(tone || '').replace('subject-ico--', '')
+  const paths = {
+    math: 'M7 7h3v3H7zm7 0h3v3h-3zM7 14h3v3H7zm7 0h3v3h-3zM4 4h16v2H4zm0 14h16v2H4z',
+    eng: 'M6 4h5a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H6zm7 0h5v13.5h-5.5A2.5 2.5 0 0 0 16 20V7a3 3 0 0 0-3-3z',
+    sci: 'M9 3h6v2h-1l-2 7h4l-5 9-1.2-2.2L13 12H8.8L11 5H9z',
+    sat: 'M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z',
+    code: 'M8.3 16.3 3.9 12l4.4-4.3L7 6.3 1.7 12 7 17.7zm7.4 0 1.3 1.4L22.3 12 16.99 6.3l-1.3 1.4L20.1 12z',
+    ap: 'M12 3 3 8v2h18V8zm-7 9h2v7H5zm5 0h4v7h-4zm7 0h2v7h-2z',
+    hw: 'M4 18.5 16.8 5.7l2.5 2.5L6.5 21H4zM18.1 4.4l1.5-1.5 2.5 2.5-1.5 1.5z',
+    coach: 'M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9zm0 2a7 7 0 1 1-7 7 7 7 0 0 1 7-7zm0 3.2 2.4 4.8H9.6z',
+    stem: 'M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6zm0 4.2 4.8 2.4V12c0 3.2-2 5.8-4.8 6.8-2.8-1-4.8-3.6-4.8-6.8V8.6z',
+  }
+  return `<svg class="subject-glyph" viewBox="0 0 24 24"><path fill="currentColor" d="${paths[key] || paths.math}"/></svg>`
+}
+
 const SAT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z"/></svg>`
 const SCHOOL_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 1 8l11 5 9-4.09V15h2V8zm-7 9.18V16c0 1.66 3.13 3 7 3s7-1.34 7-3v-3.82l-7 3.18z"/></svg>`
 const PARENT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM9 12.5c-3.05 0-7 1.54-7 4.6V19h8.2v-1.4c0-1.3.5-2.4 1.3-3.3C10.6 13 9.8 12.5 9 12.5zm6.5 0c-.4 0-.9 0-1.3.1 1.5.8 2.5 2 2.5 3.5V19H22v-1.9c0-2.4-3.1-3.6-6.5-3.6z"/></svg>`
@@ -478,7 +494,10 @@ export function mentorPreviewHtml() {
     (person) => `
       <article class="mentor-card glow-card mentor-dir-card">
         ${person.example ? '<p class="example-tag">Example</p>' : ''}
-        <div class="mentor-photo" aria-hidden="true"><span>${person.initials}</span></div>
+        <div class="mentor-photo" aria-hidden="true">
+          <span class="mentor-sil"></span>
+          <span class="mentor-initials">${person.initials}</span>
+        </div>
         <h3>${person.name} <span class="mentor-role">${person.role}</span></h3>
         <div class="mentor-tags">${(person.tags || []).map((tag) => `<span>${tag}</span>`).join('')}</div>
         <p>${person.bio || person.line}</p>
@@ -549,6 +568,23 @@ export function homeAfterChaptersHtml() {
         <p class="example-tag">Preview — not live yet.</p>
         <h3>Parent portal — not live yet.</h3>
         <p>We’re building a clearer home for notes, plans, and updates. A full parent login is not available yet.</p>
+        <div class="portal-mock" aria-hidden="true">
+          <div class="portal-mock-chrome">
+            <span></span><span></span><span></span>
+            <em>Parent view</em>
+          </div>
+          <div class="portal-mock-body">
+            <div class="portal-mock-note">
+              <strong>Last session</strong>
+              <i></i><i></i>
+            </div>
+            <div class="portal-mock-skills">
+              <div><label>Focus</label><b style="--p:72%"></b></div>
+              <div><label>Practice</label><b style="--p:54%"></b></div>
+              <div><label>Next step</label><b style="--p:81%"></b></div>
+            </div>
+          </div>
+        </div>
         <p>Today the working door is the free consult and direct updates from your mentor — not a self-serve parent login.</p>
         <p><a href="/parents">Parents page</a></p>
       </div>
@@ -565,7 +601,13 @@ export function homeAfterChaptersHtml() {
       <div class="plant-timeline" aria-hidden="true">
         ${growStages.map(([title], i) => `
           <div class="plant-col">
-            <span class="plant-viz plant-viz--${i + 1}"></span>
+            <span class="plant-viz plant-viz--${i + 1}">
+              <span class="plant-stem"></span>
+              <span class="plant-leaf plant-leaf--l"></span>
+              <span class="plant-leaf plant-leaf--r"></span>
+              <span class="plant-leaf plant-leaf--hi"></span>
+              <span class="plant-bud"></span>
+            </span>
             <span class="plant-dot plant-dot--${i + 1}"></span>
           </div>
         `).join('')}
@@ -645,7 +687,7 @@ export function homeAfterChaptersHtml() {
       <div class="subject-3x3">
         ${subjects3.map(([title, body, href, tone]) => `
           <a class="glow-card subject-tile" href="${href}">
-            <span class="subject-ico ${tone}" aria-hidden="true"></span>
+            <span class="subject-ico ${tone}" aria-hidden="true">${subjectGlyph(tone)}</span>
             <h3>${title}</h3>
             <p>${body}</p>
           </a>
@@ -688,8 +730,16 @@ export function homeAfterChaptersHtml() {
       <h2>Choose the kind of support that fits.</h2>
       <p>1-on-1 mentoring is the core. Small groups are a separate format — same standards, shared goals.</p>
       <div class="fit-portals" aria-hidden="true">
-        <div class="fit-portal fit-portal--one"><span>1-on-1</span></div>
-        <div class="fit-portal fit-portal--group"><span>Group</span></div>
+        <div class="fit-portal fit-portal--one">
+          <span class="fit-fig fit-fig--solo"></span>
+          <span>1-on-1</span>
+        </div>
+        <div class="fit-portal fit-portal--group">
+          <span class="fit-fig fit-fig--a"></span>
+          <span class="fit-fig fit-fig--b"></span>
+          <span class="fit-fig fit-fig--c"></span>
+          <span>Group</span>
+        </div>
       </div>
       <div class="compare-grid compare-grid--fit">
         <article class="glow-card compare-card compare-card--one">
