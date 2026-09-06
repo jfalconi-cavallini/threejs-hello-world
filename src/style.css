@@ -172,6 +172,38 @@ body.is-close-hold .copy:not(.copy-consult) {
   color: var(--mm-mute);
 }
 
+.boot-static-link {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--mm-mute);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.static-fallback-note {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 80;
+  max-width: 280px;
+  padding: 12px 14px;
+  background: rgba(8, 10, 14, 0.88);
+  border: 1px solid rgba(243, 246, 249, 0.12);
+  color: var(--mm-mute);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.static-fallback-note p {
+  margin: 0 0 6px;
+}
+
+.static-fallback-note a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .static-hero-still {
   display: none;
   position: fixed;

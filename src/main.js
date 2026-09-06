@@ -74,6 +74,7 @@ function mountChrome() {
         class="boot-logo"
       >
       <p>Loading</p>
+      <a class="boot-static-link" href="?static=1">Use a lighter page</a>
     </div>
   `
 
@@ -160,6 +161,7 @@ function disposeExistingRenderer() {
 
   if (previous) {
     previous.setAnimationLoop(null)
+    loseGlContext(previous.getContext?.())
     previous.dispose()
     previous.domElement?.remove()
     import.meta.hot.data.renderer = null
@@ -347,13 +349,28 @@ let webglEnabled = false
 let firstFrameAt = 0
 let firstFrameTimer = 0
 
+function loseGlContext(gl) {
+  try {
+    gl?.getExtension?.('WEBGL_lose_context')?.loseContext()
+  } catch {
+    // Context may already be gone.
+  }
+}
+
 function webglIsAvailable() {
   try {
     const probe = document.createElement('canvas')
-    return !!(
+    const gl =
       probe.getContext('webgl2') ||
       probe.getContext('webgl')
-    )
+
+    if (!gl) {
+      return false
+    }
+
+    // Do not leave a probe context alive across the real renderer.
+    loseGlContext(gl)
+    return true
   } catch {
     return false
   }
@@ -385,10 +402,36 @@ function afterIdle() {
   })
 }
 
-function enableStaticFallback() {
+const wantedStaticPage =
+  new URLSearchParams(window.location.search).has('static') ||
+  new URLSearchParams(window.location.search).has('nowebgl')
+
+function showStaticFallbackNote() {
+  if (wantedStaticPage) {
+    return
+  }
+
+  let note = document.querySelector('.static-fallback-note')
+  if (!note) {
+    note = document.createElement('div')
+    note.className = 'static-fallback-note'
+    note.innerHTML = `
+      <p>3D preview unavailable on this refresh.</p>
+      <a href="?static=1">Open the lighter page</a>
+    `
+    document.body.appendChild(note)
+  }
+
+  note.hidden = false
+}
+
+function enableStaticFallback(fromError = false) {
   document.body.classList.add('is-static-home')
   if (bootScreen) {
     bootScreen.classList.add('is-done')
+  }
+  if (fromError) {
+    showStaticFallbackNote()
   }
 }
 
@@ -401,6 +444,7 @@ function teardownWebGL() {
   }
 
   webglEnabled = false
+  clearBootAttempt()
 
   if (composer) {
     composer.dispose?.()
@@ -410,6 +454,7 @@ function teardownWebGL() {
 
   if (renderer) {
     renderer.setAnimationLoop(null)
+    loseGlContext(renderer.getContext?.())
     renderer.dispose()
     renderer.domElement?.remove()
     renderer = null
@@ -419,7 +464,7 @@ function teardownWebGL() {
     import.meta.hot.data.renderer = null
   }
 
-  enableStaticFallback()
+  enableStaticFallback(true)
 }
 
 function createWebGLRenderer() {
@@ -1388,9 +1433,12 @@ function modelToParticlePositions(
   // numbers and Aw Snap'd before createPage. Mobile keeps a
   // reservoir of faces; desktop caps the typed buffer.
   const STRIDE = 10 // 9 floats + 1 area
+  // Desktop was a hard 20k-tri pack (800KB) on every GLB. Cap at
+  // count * 4 so a 5k-point bake fallback cannot spike past the
+  // particle budget. Happy path never packs — it reads .f32.bin.
   const maxTris = MOBILE_AT_LOAD
     ? Math.max(count * 8, 2400)
-    : 20000
+    : Math.max(count * 4, 64)
   const packed =
     new Float32Array(maxTris * STRIDE)
   let stored = 0
@@ -2421,6 +2469,7 @@ function teamCopyLive() {
 
 function holdTeamMorph() {
   if (!lightbulbPositions) {
+    ensureDeferredForms()
     return
   }
 
@@ -2635,7 +2684,7 @@ function updateReducedMotionStory(
     currentStage = 'lightbulb'
 
     writeStaticTarget(
-      lightbulbPositions
+      bulbTarget()
     )
 
     transformTarget.x =
@@ -2648,7 +2697,7 @@ function updateReducedMotionStory(
     currentStage = 'earth'
 
     writeStaticTarget(
-      earthPositions
+      earthTarget()
     )
 
     transformTarget.x =
@@ -2661,7 +2710,7 @@ function updateReducedMotionStory(
     currentStage = 'logo'
 
     writeStaticTarget(
-      logoPositions
+      logoTarget()
     )
 
     transformTarget.x =
@@ -2708,6 +2757,12 @@ function updateStory() {
 
   const p =
     story.progress
+
+  // Kick bulb/logo/earth as soon as scroll leaves the hero so
+  // the morph is ready before STAGE.brainExplode (0.20).
+  if (p >= STAGE.brainMove) {
+    ensureDeferredForms()
+  }
 
   if (scrollProgressBar) {
     scrollProgressBar.style.transform =
@@ -2929,7 +2984,7 @@ function updateStory() {
 
     writeMorphTarget(
       explosionFor(brainPositions, 2.85),
-      lightbulbPositions,
+      bulbTarget(),
       t,
       -1
     )
@@ -2974,7 +3029,7 @@ function updateStory() {
   else if (p < STAGE.bulbHold) {
     if (currentStage !== 'lightbulb') {
       writeStaticTarget(
-        lightbulbPositions
+        bulbTarget()
       )
     }
 
@@ -3027,8 +3082,8 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      lightbulbPositions,
-      explosionFor(lightbulbPositions, 2.6),
+      bulbTarget(),
+      explosionFor(bulbTarget(), 2.6),
       t,
       -1
     )
@@ -3073,8 +3128,8 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      explosionFor(lightbulbPositions, 2.6),
-      earthPositions,
+      explosionFor(bulbTarget(), 2.6),
+      earthTarget(),
       t,
       1
     )
@@ -3119,7 +3174,7 @@ function updateStory() {
   else if (p < STAGE.earthHold) {
     if (currentStage !== 'earth') {
       writeStaticTarget(
-        earthPositions
+        earthTarget()
       )
     }
 
@@ -3184,8 +3239,8 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      earthPositions,
-      explosionFor(earthPositions, 3.2),
+      earthTarget(),
+      explosionFor(earthTarget(), 3.2),
       t,
       1
     )
@@ -3252,8 +3307,8 @@ function updateStory() {
       )
 
     writeMorphTarget(
-      explosionFor(earthPositions, 3.2),
-      logoPositions,
+      explosionFor(earthTarget(), 3.2),
+      logoTarget(),
       t,
       -1
     )
@@ -3288,13 +3343,13 @@ function updateStory() {
   else {
     if (currentStage !== 'logo') {
       writeStaticTarget(
-        logoPositions
+        logoTarget()
       )
       currentPositions.set(
-        logoPositions
+        logoTarget()
       )
       displayPositions.set(
-        logoPositions
+        logoTarget()
       )
       particleGeometry.attributes.position.needsUpdate =
         true
@@ -3339,90 +3394,221 @@ function updateStory() {
 // ======================================================
 // LOAD MODELS
 // ======================================================
-// Sequential load → sample → dispose. 3356b7d decoded
-// lightbulb.glb (15MB) + logo (7.6MB) + brain at once and
-// kept the source meshes, which OOMs phones before createPage.
+// Hard-refresh Aw Snap 9 was the cold decode of lightbulb.glb
+// (14.7MB) + logo.glb (7.6MB) + the 20k-tri pack before first
+// paint. Happy path reads prebaked Float32 bins (~60KB). First
+// frame is brain only. Bulb / logo / earth wait until after
+// that frame (or until scroll nears their morph). GLB decode
+// is last-resort fallback and stays sequential — never dual.
 
-async function bootExperience() {
-  renderer.render(scene, camera)
+const BAKE_POINT_COUNT = 5000
+const BOOT_FLAG_KEY = 'mm-gl-boot'
+const FORM_BAKES = {
+  brain: '/particles/brain.f32.bin',
+  lightbulb: '/particles/lightbulb.f32.bin',
+  logo: '/particles/logo.f32.bin',
+}
 
-  const brainGLB =
-    await loadGLB(
-      '/models/brain.glb'
-    )
+function markBootAttempt() {
+  try {
+    sessionStorage.setItem(BOOT_FLAG_KEY, '1')
+  } catch {
+    // Private mode / blocked storage.
+  }
+}
 
-  brainPositions =
-    modelToParticlePositions(
-      brainGLB.scene,
-      BRAIN_SIZE,
-      0.4
-    )
+function clearBootAttempt() {
+  try {
+    sessionStorage.removeItem(BOOT_FLAG_KEY)
+  } catch {
+    // ignore
+  }
+}
 
-  // Phase 1: no logo/hero overlays. Dispose brain before
-  // the next GLB so two source meshes are never resident.
-  disposeObject3D(brainGLB.scene)
+function previousBootCrashed() {
+  try {
+    return sessionStorage.getItem(BOOT_FLAG_KEY) === '1'
+  } catch {
+    return false
+  }
+}
 
-  const bulbGLB =
-    await loadGLB(
-      '/models/lightbulb.glb'
-    )
-
-  lightbulbPositions =
-    modelToParticlePositions(
-      bulbGLB.scene,
-      LIGHTBULB_SIZE
-    )
-
-  disposeObject3D(bulbGLB.scene)
-
-  const landGeoJSON =
-    await fetch('/geojson/ne_110m_land.json')
-      .then((r) => r.json())
-
-  earthPositions =
-    generateGlobePositions(landGeoJSON)
-
-  const logoGLB =
-    await loadGLB(
-      '/models/metaminds-logo.glb'
-    )
-
-  logoPositions =
-    generateLogoPositions(
-      logoGLB.scene
-    )
-
-  disposeObject3D(logoGLB.scene)
-
-  if (
-    !brainPositions ||
-    !lightbulbPositions ||
-    !logoPositions
-  ) {
-    throw new Error(
-      'One or more models contained no usable mesh vertices.'
-    )
+function sliceBake(full) {
+  if (full.length < PARTICLE_COUNT * 3) {
+    return null
   }
 
-  currentPositions.set(
-    brainPositions
-  )
+  if (full.length === PARTICLE_COUNT * 3) {
+    return full
+  }
 
-  storyTargetPositions.set(
-    brainPositions
-  )
+  return full.subarray(0, PARTICLE_COUNT * 3)
+}
 
+async function loadBakedPositions(url) {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Missing particle bake ${url}`)
+  }
+
+  const buffer = await response.arrayBuffer()
+  const full = new Float32Array(buffer)
+  if (full.length < BAKE_POINT_COUNT * 3) {
+    throw new Error(`Short particle bake ${url}`)
+  }
+
+  return sliceBake(full)
+}
+
+async function sampleGlbForm(url, desiredSize, puffScale = 1) {
+  const glb = await loadGLB(url)
+  const positions = modelToParticlePositions(
+    glb.scene,
+    desiredSize,
+    puffScale
+  )
+  disposeObject3D(glb.scene)
+  return positions
+}
+
+async function loadFormPositions(name, glbUrl, desiredSize, puffScale = 1) {
+  try {
+    return await loadBakedPositions(FORM_BAKES[name])
+  } catch {
+    return sampleGlbForm(glbUrl, desiredSize, puffScale)
+  }
+}
+
+let deferredFormsPromise = null
+
+function ensureDeferredForms() {
+  if (!deferredFormsPromise) {
+    deferredFormsPromise = loadDeferredForms()
+  }
+
+  return deferredFormsPromise
+}
+
+async function loadDeferredForms() {
+  // Bakes are tiny — fetch bulb + logo + land together.
+  // If a bake is missing, fall back to one GLB at a time
+  // and dispose before the next (never dual GLB).
+  try {
+    const [bulb, logo, land] = await Promise.all([
+      loadBakedPositions(FORM_BAKES.lightbulb),
+      loadBakedPositions(FORM_BAKES.logo),
+      fetch('/geojson/ne_110m_land.json').then((r) => r.json()),
+    ])
+
+    lightbulbPositions = bulb
+    logoPositions = logo
+    earthPositions = generateGlobePositions(land)
+  } catch {
+    if (!lightbulbPositions) {
+      lightbulbPositions = await sampleGlbForm(
+        '/models/lightbulb.glb',
+        LIGHTBULB_SIZE
+      )
+      await afterIdle()
+    }
+
+    if (!earthPositions) {
+      const land = await fetch('/geojson/ne_110m_land.json')
+        .then((r) => r.json())
+      earthPositions = generateGlobePositions(land)
+    }
+
+    if (!logoPositions) {
+      await afterIdle()
+      logoPositions = await sampleGlbForm(
+        '/models/metaminds-logo.glb',
+        LOGO_SIZE,
+        0.25
+      )
+    }
+  }
+
+  if (modelsReady) {
+    updateStory()
+  }
+}
+
+function bulbTarget() {
+  if (!lightbulbPositions) {
+    ensureDeferredForms()
+  }
+
+  return lightbulbPositions || brainPositions
+}
+
+function earthTarget() {
+  if (!earthPositions) {
+    ensureDeferredForms()
+  }
+
+  return earthPositions || bulbTarget()
+}
+
+function logoTarget() {
+  if (!logoPositions) {
+    ensureDeferredForms()
+  }
+
+  return logoPositions || earthTarget()
+}
+
+function waitForFirstFrame() {
+  return new Promise((resolve) => {
+    if (firstFrameAt || !renderer) {
+      resolve()
+      return
+    }
+
+    const started = performance.now()
+
+    const tick = () => {
+      if (firstFrameAt || !renderer || performance.now() - started > 2800) {
+        resolve()
+        return
+      }
+
+      requestAnimationFrame(tick)
+    }
+
+    requestAnimationFrame(tick)
+  })
+}
+
+function bindBrainForm() {
+  if (!brainPositions) {
+    throw new Error('Brain form failed to load.')
+  }
+
+  currentPositions.set(brainPositions)
+  storyTargetPositions.set(brainPositions)
+  displayPositions.set(brainPositions)
   modelsReady = true
+  updateParticleInstances(true)
+  updateStory()
+}
 
-  updateParticleInstances(
-    true
+async function bootExperience() {
+  // CPU only. Do not construct WebGL until the brain buffer
+  // is in memory — first paint must not decode 15MB GLBs.
+  brainPositions = await loadFormPositions(
+    'brain',
+    '/models/brain.glb',
+    BRAIN_SIZE,
+    0.4
   )
 
-  updateStory()
-
-  // Phase 1: composer stays off. Do not allocate bloom FBOs.
+  renderer = createWebGLRenderer()
+  bindBrainForm()
   startLoop()
   armFirstFrameWatchdog()
+
+  await waitForFirstFrame()
+  ensureDeferredForms()
 }
 
 function syncNavHighlight(
@@ -4675,6 +4861,7 @@ function markFirstFrame() {
     performance.now()
 
   webglEnabled = true
+  clearBootAttempt()
 
   if (firstFrameTimer) {
     clearTimeout(firstFrameTimer)
@@ -5489,13 +5676,19 @@ async function startHome() {
 
   await afterIdle()
 
+  if (previousBootCrashed()) {
+    clearBootAttempt()
+    enableStaticFallback(true)
+    return
+  }
+
   if (shouldSkipWebGL()) {
     enableStaticFallback()
     return
   }
 
   try {
-    renderer = createWebGLRenderer()
+    markBootAttempt()
     await bootExperience()
   } catch (error) {
     console.error(
@@ -5505,5 +5698,27 @@ async function startHome() {
     teardownWebGL()
   }
 }
+
+function releaseGpuForUnload() {
+  clearBootAttempt()
+  stopLoop()
+
+  if (renderer) {
+    renderer.setAnimationLoop(null)
+    loseGlContext(renderer.getContext?.())
+    renderer.dispose()
+    renderer.domElement?.remove()
+    renderer = null
+  }
+}
+
+window.addEventListener('pagehide', releaseGpuForUnload)
+window.addEventListener('freeze', releaseGpuForUnload)
+
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted && !renderer) {
+    enableStaticFallback(true)
+  }
+})
 
 await startHome()
