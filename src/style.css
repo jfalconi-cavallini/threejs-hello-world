@@ -6193,8 +6193,8 @@ body.is-still-shot .chapter {
 
   #pathways .grow-rail--stages {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 12px;
-    margin-top: 16px;
+    gap: 16px 14px;
+    margin-top: 18px;
     overflow: visible;
   }
 
@@ -6202,7 +6202,7 @@ body.is-still-shot .chapter {
     width: 100%;
     margin-inline: 0;
     aspect-ratio: 1;
-    min-height: 38vw;
+    min-height: 42vw;
     height: auto;
     overflow: visible;
     background: transparent;
@@ -6333,18 +6333,43 @@ body.is-still-shot .chapter {
     min-height: 40px;
   }
 
-  #results-more .example-tag {
-    position: static;
-    display: inline-block;
-    margin: 0 0 4px;
-    top: auto;
-    left: auto;
+  #results-more .progress-2x2,
+  #results-more .glow-score-grid {
+    gap: 10px;
+    margin-top: 8px;
   }
 
   #results-more .progress-card,
   #results-more .glow-card.progress-card {
     position: relative;
     overflow: hidden;
+    padding: 12px 12px 14px;
+  }
+
+  #results-more .example-tag {
+    position: static;
+    display: inline-block;
+    margin: 0 0 6px;
+    top: auto;
+    left: auto;
+    font-size: 8px;
+    padding: 2px 7px;
+  }
+
+  #results-more .before-after {
+    margin: 8px 0 6px;
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  #results-more .before-after strong {
+    font-size: 22px;
+  }
+
+  #results-more .progress-card > p:last-child {
+    -webkit-line-clamp: 3;
+    font-size: 11px;
+    line-height: 1.3;
   }
 
   #results {
