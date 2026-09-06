@@ -4446,6 +4446,8 @@ function createPage() {
           </a>
         </div>
       </div>
+      <!-- JOSE LOCK: hero visual is the live Three.js particle field.
+           Elite PNGs are look targets only — never an on-screen plate. -->
       <div class="hero-atmosphere" aria-hidden="true">
         <div class="hero-atmosphere-net"></div>
         <div class="hero-atmosphere-bokeh"></div>

@@ -2,6 +2,8 @@
 // Superior (top-down) silhouette with a longitudinal fissure and
 // sulci. Two disconnected cheek-blobs are the PR #31 fail; this
 // stays one organ with a groove, not a gap.
+// JOSE LOCK: this form is sampled into live Points. Do not replace
+// the hero hold with a PNG/JPG/CSS photo plate.
 
 function mulberry32(seed) {
   let a = seed >>> 0
