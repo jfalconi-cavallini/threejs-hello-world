@@ -213,7 +213,7 @@ export function pathwayCardsHtml() {
 
 export function howItWorksListHtml() {
   return `
-    <ol class="steps work-timeline">
+    <ol class="steps work-timeline work-timeline--rail">
       ${HOW_IT_WORKS_STEPS.map(
         (step) => `
           <li class="work-step glow-card">
@@ -247,6 +247,49 @@ export function homeFaqHtml() {
 const SAT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z"/></svg>`
 const SCHOOL_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 1 8l11 5 9-4.09V15h2V8zm-7 9.18V16c0 1.66 3.13 3 7 3s7-1.34 7-3v-3.82l-7 3.18z"/></svg>`
 const PARENT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM9 12.5c-3.05 0-7 1.54-7 4.6V19h8.2v-1.4c0-1.3.5-2.4 1.3-3.3C10.6 13 9.8 12.5 9 12.5zm6.5 0c-.4 0-.9 0-1.3.1 1.5.8 2.5 2 2.5 3.5V19H22v-1.9c0-2.4-3.1-3.6-6.5-3.6z"/></svg>`
+
+export function resultsScoreCardsHtml() {
+  return `
+    <div class="glow-score-grid">
+      <article class="glow-card score-card">
+        <div class="results-frame-head">
+          <span class="results-ico results-ico--sat">${SAT_ICO}</span>
+          <p class="score-kicker">SAT Math</p>
+          <span class="results-badge">+220</span>
+        </div>
+        <p class="score-line">370 → 590</p>
+        <svg class="results-chart" viewBox="0 0 320 140" role="img" aria-label="SAT Math 370 to 590">
+          <defs>
+            <linearGradient id="results-sat-line" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#3d8bff"/>
+              <stop offset="1" stop-color="#8ec5ff"/>
+            </linearGradient>
+            <linearGradient id="results-sat-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="rgba(61,139,255,0.28)"/>
+              <stop offset="1" stop-color="rgba(61,139,255,0)"/>
+            </linearGradient>
+          </defs>
+          <line x1="24" y1="28" x2="304" y2="28" class="results-chart-grid"/>
+          <line x1="24" y1="64" x2="304" y2="64" class="results-chart-grid"/>
+          <line x1="24" y1="100" x2="304" y2="100" class="results-chart-grid"/>
+          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="url(#results-sat-fill)" stroke="none"/>
+          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="none" stroke="url(#results-sat-line)" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="24" cy="100" r="3.5" fill="#3d8bff"/>
+          <circle cx="296" cy="24" r="4" fill="#8ec5ff"/>
+        </svg>
+      </article>
+      <article class="glow-card score-card">
+        <div class="results-frame-head">
+          <span class="results-ico results-ico--school">${SCHOOL_ICO}</span>
+          <p class="score-kicker">SAT Composite</p>
+          <span class="results-badge">+160</span>
+        </div>
+        <p class="score-line">950 → 1110</p>
+        <p>Individual student result. Outcomes vary and are not guaranteed.</p>
+      </article>
+    </div>
+  `
+}
 
 export function resultsFrameHtml() {
   return `
@@ -338,11 +381,6 @@ export function testimonialsPlaceholderHtml() {
     <section class="page-block" id="testimonials">
       <p class="eyebrow eyebrow-dash">Testimonials</p>
       <h2>What families notice.</h2>
-      <article class="glow-card quote-card">
-        <p class="example-tag">Example</p>
-        <p class="quote-text">“We finally see the week — not just the hour.”</p>
-        <p class="quote-by">A parent — layout placeholder</p>
-      </article>
       <p class="placeholder-note">
         Real parent quotes coming — we don’t invent them.
       </p>
@@ -353,7 +391,7 @@ export function testimonialsPlaceholderHtml() {
 export function mentorPreviewHtml() {
   return MENTOR_PREVIEW.map(
     (person) => `
-      <article class="mentor-card">
+      <article class="mentor-card glow-card">
         ${mediaPlaceholder('Mentor photo')}
         <h3>${person.name}</h3>
         <p>${person.line}</p>
@@ -381,11 +419,13 @@ export function homeAfterChaptersHtml() {
     ['Coding years early', 'Projects stack. A student who builds for years walks into harder STEM with proof, not hope.'],
   ]
   const subjects = [
-    'SAT', 'ACT', 'AP', 'Math', 'Science', 'Writing', 'Coding',
-  ]
-  const extraMentors = [
-    { name: 'Daniel', line: 'Example mentor card — frame layout.', example: true },
-    { name: 'Priya', line: 'Example mentor card — frame layout.', example: true },
+    ['SAT', '/programs/sat-act'],
+    ['ACT', '/programs/sat-act'],
+    ['AP', '/programs/ap'],
+    ['Math', '/programs/academic-tutoring'],
+    ['Science', '/programs/academic-tutoring'],
+    ['Writing', '/programs/academic-tutoring'],
+    ['Coding', '/programs/programming-stem'],
   ]
 
   return `
@@ -420,6 +460,12 @@ export function homeAfterChaptersHtml() {
       <p class="eyebrow eyebrow-dash">How students grow</p>
       <h2>Support that can grow with them.</h2>
       <p>One system from the early years through college — not a one-semester patch.</p>
+      <div class="grow-plants" aria-hidden="true">
+        <span class="grow-plant grow-plant--1"></span>
+        <span class="grow-plant grow-plant--2"></span>
+        <span class="grow-plant grow-plant--3"></span>
+        <span class="grow-plant grow-plant--4"></span>
+      </div>
       <div class="grow-rail">
         ${growStages.map(([title, body], i) => `
           <article class="glow-card grow-card">
@@ -429,8 +475,13 @@ export function homeAfterChaptersHtml() {
           </article>
         `).join('')}
       </div>
-      <p class="beat-tagline">The mentor stays. The plan updates. The student keeps moving.</p>
-      <p class="page-quiet">K–12 through college. Virtual primary.</p>
+      <article class="glow-card partner-card">
+        <p class="beat-tagline">The mentor stays. The plan updates. The student keeps moving.</p>
+        <p>K–12 through college. Virtual primary.</p>
+      </article>
+      <p>
+        <a class="primary-button" href="/consult">Book Free Consultation${ARROW_ICON}</a>
+      </p>
     </section>
 
     <section class="page-block" id="start-earlier">
@@ -465,19 +516,32 @@ export function homeAfterChaptersHtml() {
       <p class="eyebrow eyebrow-dash">Results</p>
       <h2>Real student progress</h2>
       <p>Individual student results. Outcomes vary and are not guaranteed.</p>
-      ${resultsFrameHtml()}
+      ${resultsScoreCardsHtml()}
       <p class="results-disclaimer">
         SAT Math 370 → 590 · SAT Composite 950 → 1110 · Individual student results. Outcomes vary and are not guaranteed.
       </p>
       <p class="page-quiet">We show named outcomes only when they’re real. No averages. No invented quotes.</p>
-      <p><a href="/results">See results</a></p>
+      <div class="hero-actions">
+        <a class="primary-button" href="/consult">Book Free Consultation${ARROW_ICON}</a>
+        <a class="hero-secondary-cta" href="/results">See results</a>
+      </div>
     </section>
 
     <section class="page-block" id="subjects">
       <p class="eyebrow eyebrow-dash">Subjects</p>
       <h2>What we teach</h2>
+      <div class="subject-card-grid">
+        ${PROGRAM_HUB_CARDS.map(
+          (item) => `
+            <a class="glow-card subject-card" href="${item.href}">
+              <h3>${item.title}</h3>
+              <p>${item.body}</p>
+            </a>
+          `
+        ).join('')}
+      </div>
       <div class="subject-grid">
-        ${subjects.map((item) => `<span class="subject-chip">${item}</span>`).join('')}
+        ${subjects.map(([item, href]) => `<a class="subject-chip" href="${href}">${item}</a>`).join('')}
       </div>
       <p class="page-quiet"><a href="/programs">See programs</a></p>
     </section>
@@ -489,14 +553,6 @@ export function homeAfterChaptersHtml() {
       <p>We place mentors by the work your child needs. We don’t sell a public tier ladder.</p>
       <div class="mentor-preview-grid">
         ${mentorPreviewHtml()}
-        ${extraMentors.map((person) => `
-          <article class="mentor-card glow-card">
-            <p class="example-tag">Example</p>
-            ${mediaPlaceholder('Mentor photo')}
-            <h3>${person.name}</h3>
-            <p>${person.line}</p>
-          </article>
-        `).join('')}
       </div>
       <p><a href="/mentors">Meet our mentors</a></p>
     </section>
@@ -516,6 +572,16 @@ export function homeAfterChaptersHtml() {
         </article>
       </div>
       <p class="page-quiet">What’s running changes. We won’t list a fake catalog.</p>
+      <div class="group-topics">
+        ${GROUP_PREVIEW_CARDS.map(
+          (item) => `
+            <article class="glow-card">
+              <h3>${item.title}</h3>
+              <p>${item.body}</p>
+            </article>
+          `
+        ).join('')}
+      </div>
       <p><a href="/programs/group-classes">Explore group classes</a></p>
     </section>
 
