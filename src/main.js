@@ -263,20 +263,20 @@ const EARTH_X = 1.78
 // large enough to read as the still coming alive. Type stays in
 // the top lane. Do not recenter onto the H1 or shrink to a sliver.
 const MOBILE_X = 0.02
-const MOBILE_HOLD_Y = -0.78
-const MOBILE_HERO_Y = -0.96
-const MOBILE_BULB_Y = -0.82
-const MOBILE_TEAM_Y = -0.74
-const MOBILE_RESULTS_Y = -0.48
+const MOBILE_HOLD_Y = -1.22
+const MOBILE_HERO_Y = -1.08
+const MOBILE_BULB_Y = -1.62
+const MOBILE_TEAM_Y = -1.55
+const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 0.92
-const MOBILE_HOLD_SCALE = 0.72
-const MOBILE_RESULTS_SCALE = 0.48
-const MOBILE_MORPH_SCALE = 0.78
-const MOBILE_BULB_SCALE = 0.80
-const MOBILE_EARTH_SCALE = 0.52
-const MOBILE_TEAM_SCALE = 0.38
+const MOBILE_HERO_SCALE = 0.86
+const MOBILE_HOLD_SCALE = 0.58
+const MOBILE_RESULTS_SCALE = 0.42
+const MOBILE_MORPH_SCALE = 0.62
+const MOBILE_BULB_SCALE = 0.56
+const MOBILE_EARTH_SCALE = 0.44
+const MOBILE_TEAM_SCALE = 0.24
 const DESKTOP_HOLD_SCALE = 0.78
 const DESKTOP_HERO_SCALE = 0.90
 
@@ -2395,15 +2395,18 @@ function measureChapterStages() {
   const logo = document.querySelector('.logo-hold-chapter')
 
   const raw = {
-    brainHold: progressAt(hero, 0.18) ?? STAGE.brainHold,
-    brainMove: progressAt(understand, 0.05) ?? STAGE.brainMove,
-    brainExplode: progressAt(understand, 0.48) ?? STAGE.brainExplode,
-    bulbForm: progressAt(how, 0.04) ?? STAGE.bulbForm,
-    bulbHold: progressAt(how, 0.68) ?? STAGE.bulbHold,
-    bulbExplode: progressAt(team, 0.06) ?? STAGE.bulbExplode,
-    earthForm: progressAt(earth, 0.08) ?? STAGE.earthForm,
-    earthHold: progressAt(earth, 0.52) ?? STAGE.earthHold,
-    earthExplode: progressAt(results, 0.52) ?? STAGE.earthExplode,
+    brainHold: progressAt(hero, 0.06) ?? STAGE.brainHold,
+    brainMove: progressAt(understand, 0.02) ?? STAGE.brainMove,
+    brainExplode: progressAt(understand, 0.58) ?? STAGE.brainExplode,
+    // Form the bulb before how-it-works copy lands, then HOLD for
+    // nearly the whole how chapter so the frame is a settled bulb
+    // under the cards — not an explosion sitting on the H2.
+    bulbForm: progressAt(understand, 0.86) ?? STAGE.bulbForm,
+    bulbHold: progressAt(how, 0.06) ?? STAGE.bulbHold,
+    bulbExplode: progressAt(how, 0.88) ?? STAGE.bulbExplode,
+    earthForm: progressAt(team, 0.72) ?? STAGE.earthForm,
+    earthHold: progressAt(earth, 0.08) ?? STAGE.earthHold,
+    earthExplode: progressAt(results, 0.42) ?? STAGE.earthExplode,
     logoForm: progressAt(logo, 0.08) ?? STAGE.logoForm,
   }
 
@@ -2575,8 +2578,15 @@ function applyTeamHoldIfLive() {
     return
   }
 
-  // Never yank an in-flight morph back to a bulb hold — that was
-  // the jump between How-it-works and Mentors-who-stay.
+  // Phone team frame is the pair PNG. Keep any in-flight morph
+  // parked under it — do not rewrite targets back to a bulb (that
+  // snap was the how-it-works → mentors jump).
+  if (isMobile()) {
+    transformTarget.y = Math.min(transformTarget.y, MOBILE_TEAM_Y)
+    transformTarget.s = Math.min(transformTarget.s, MOBILE_TEAM_SCALE)
+    return
+  }
+
   if (
     currentStage.endsWith('explosion') ||
     currentStage.endsWith('forming') ||
@@ -2665,7 +2675,7 @@ function containFormInView() {
     ? (midHold ? 0.16 : 0.14)
     : 0.14
   const padTop = mobile
-    ? (teamCopy ? 0.46 : bulbCopy ? 0.48 : midHold ? 0.44 : 0.30)
+    ? (teamCopy ? 0.58 : bulbCopy ? 0.56 : midHold ? 0.48 : 0.32)
     : (tall ? 0.12 : 0.12)
   const padBot = mobile
     ? (midHold ? 0.03 : 0.05)
@@ -2702,22 +2712,22 @@ function containFormInView() {
     // read. Old caps (0.28–0.42) plus a positive Y floor shoved
     // every hold onto the headline. Keep a high ceiling; let the
     // frustum pads be the only clip guard.
-    let cap = midHold ? 0.94 : 0.98
+    let cap = midHold ? 0.88 : 0.94
     if (
       copyIsLive('.earth-hold') ||
       copyIsLive('.copy-results')
     ) {
-      cap = 0.58
-      transformTarget.y = Math.min(transformTarget.y, -0.28)
+      cap = 0.48
+      transformTarget.y = Math.min(transformTarget.y, -0.55)
     } else if (teamCopy) {
-      cap = 0.44
-      transformTarget.y = Math.min(transformTarget.y, -0.58)
+      cap = 0.28
+      transformTarget.y = Math.min(transformTarget.y, -1.35)
     } else if (bulbCopy) {
-      cap = 0.86
-      transformTarget.y = Math.min(transformTarget.y, -0.62)
+      cap = 0.60
+      transformTarget.y = Math.min(transformTarget.y, -1.35)
     } else if (copyIsLive('.copy-hero')) {
-      cap = 0.96
-      transformTarget.y = Math.min(transformTarget.y, -0.72)
+      cap = 0.90
+      transformTarget.y = Math.min(transformTarget.y, -0.88)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
