@@ -70,9 +70,9 @@ body.is-close-hold .scene-canvas {
   pointer-events: none;
 }
 
-/* Close hold is the PNG lockup. Exclusive-paint races and GSAP
-   y-offset must not be allowed to hide the mark — especially on
-   phone, where the plate is the only readable logo (LOGO_DETAIL=0). */
+/* Close hold is the readable MetaMinds word. Exclusive-paint races
+   and GSAP y-offset must not hide the type — LOGO_DETAIL=0, so the
+   DOM word is the only readable ending. */
 body.is-close-hold .copy-consult {
   opacity: 1 !important;
   visibility: visible !important;
@@ -215,22 +215,12 @@ body.is-close-hold .copy:not(.copy-consult) {
   padding: calc(var(--mm-nav-h) + 48px) 8vw 80px 0;
 }
 
-body.is-static-home .static-hero-still,
-body.is-close-hold .static-hero-still {
+body.is-static-home:not(.is-close-hold) .static-hero-still {
   display: flex;
 }
 
 body.is-close-hold .static-hero-still {
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 1;
-  padding: 0 24px 5vh;
-}
-
-body.is-close-hold .static-hero-still img {
-  width: min(220px, 56vw);
-  opacity: 0.92;
-  filter: none;
+  display: none;
 }
 
 body.is-static-home .scene-canvas {
@@ -239,10 +229,6 @@ body.is-static-home .scene-canvas {
 
 body.is-still-shot .static-hero-still {
   display: none;
-}
-
-body.is-still-shot.is-close-hold .static-hero-still {
-  display: flex;
 }
 
 body.is-static-home .boot-screen {
@@ -1191,27 +1177,15 @@ body.is-static-home .earth-hold {
   z-index: 12;
 }
 
-.end-mark-plate,
-.copy-consult .brand-plate {
-  display: flex;
-  margin: 0 auto 28px;
-  width: fit-content;
-  max-width: min(380px, 56vw);
-  border-radius: 22px;
-  padding: 18px 22px;
-  background: #ffffff;
-  isolation: isolate;
-  opacity: 1;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
-}
-
-.end-mark {
-  width: min(300px, 44vw);
-  height: auto;
-  display: block;
-  background: transparent;
-  opacity: 1;
-  mix-blend-mode: normal;
+.end-word {
+  margin: 0 auto 22px;
+  font-family: var(--font-display);
+  font-size: clamp(52px, 7.2vw, 88px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+  color: #fff;
+  text-shadow: none;
 }
 
 .copy-consult h2 {
@@ -1743,16 +1717,9 @@ body.is-static-home .earth-hold {
     object-position: left center;
   }
 
-  .end-mark-plate,
-  .copy-consult .brand-plate {
-    padding: 18px 20px;
-    margin-bottom: 22px;
-    max-width: min(340px, 88vw);
-    border-radius: 22px;
-  }
-
-  .end-mark {
-    width: min(280px, 76vw);
+  .end-word {
+    font-size: clamp(44px, 12.4vw, 56px);
+    margin-bottom: 18px;
   }
 
   .chapter {
@@ -2109,16 +2076,9 @@ body.is-static-home .earth-hold {
     transform: none !important;
   }
 
-  body.is-close-hold .end-mark-plate,
-  body.is-close-hold .copy-consult .brand-plate {
-    margin-bottom: 18px;
-    padding: 18px 20px;
-    max-width: min(340px, 88vw);
-    border-radius: 22px;
-  }
-
-  body.is-close-hold .end-mark {
-    width: min(280px, 76vw);
+  body.is-close-hold .end-word {
+    font-size: clamp(46px, 13vw, 58px);
+    margin-bottom: 16px;
   }
 
   .copy h1,
@@ -3138,19 +3098,13 @@ body.is-after-cinematic .metaminds-nav {
     bottom: max(16px, env(safe-area-inset-bottom, 0px));
   }
 
-  .end-mark-plate,
-  .copy-consult .brand-plate {
-    margin-bottom: 16px;
-    padding: 16px 18px;
-    border-radius: 22px;
+  .end-word {
+    font-size: clamp(42px, 12vw, 52px);
+    margin-bottom: 14px;
   }
 
-  .end-mark {
-    width: min(260px, 72vw);
-  }
-
-  body.is-close-hold .end-mark {
-    width: min(270px, 74vw);
+  body.is-close-hold .end-word {
+    font-size: clamp(44px, 12.6vw, 54px);
   }
 }
 

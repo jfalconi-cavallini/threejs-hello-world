@@ -4367,21 +4367,12 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
       <div class="copy copy-center copy-consult">
-        <span class="brand-plate end-mark-plate">
-          <img
-            class="end-mark"
-            src="/metaminds-logo-lock.png"
-            alt="MetaMinds STEM Academy"
-          >
-        </span>
+        <p class="end-word">MetaMinds</p>
         <h2>
           One student. One plan. Years of growth.
         </h2>
         <p>
           Free. 30 minutes. No obligation.
-        </p>
-        <p>
-          DFW. Zoom. A mentor who stays.
         </p>
         <a
           href="/consult"
@@ -5261,11 +5252,9 @@ function animate() {
       || document.querySelector('.earth-hold')
         ?.classList.contains('is-live') === true
 
-    // Close plate is the PNG lockup. Hide the particle stage only
-    // once the logo is fully formed, the logo chapter is on screen,
-    // or consult is already painted. Hiding during logo-forming
-    // left a black gap on phone — the canvas went away before the
-    // plate won exclusive paint.
+    // Close hold is the readable MetaMinds word (DOM type, not the
+    // PNG plate). Hide the particle stage once the logo is formed,
+    // the logo chapter is on screen, or consult is already painted.
     const hideStage =
       onLogoHold ||
       isCloseHoldStory() ||
