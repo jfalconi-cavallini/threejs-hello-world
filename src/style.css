@@ -2150,8 +2150,8 @@ body.is-static-home .earth-hold {
   }
 
   .brand-logo {
-    height: 32px;
-    max-width: min(168px, calc(100vw - 136px));
+    height: 36px;
+    max-width: min(196px, calc(100vw - 136px));
   }
 }
 
