@@ -4535,7 +4535,7 @@ function createPage() {
     main
 
   setupNav()
-  mountLookBar({ route: '/', tipped: true })
+  mountLookBar({ route: '/', tipped: false })
   measureChapterStages()
 
   // ==================================================
