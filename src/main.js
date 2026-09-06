@@ -5687,6 +5687,12 @@ function scrollStillTarget() {
   }
 
   document.body.classList.add('is-still-shot')
+  if (
+    el.classList.contains('logo-hold-chapter') ||
+    el.id === 'consultation'
+  ) {
+    document.body.classList.add('is-close-hold')
+  }
   document.querySelectorAll('.chapter, .home-frame, .page-block').forEach((node) => {
     if (node === el || node.contains(el) || el.contains(node)) {
       return
