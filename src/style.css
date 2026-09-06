@@ -4586,6 +4586,39 @@ a.subject-chip {
   .home-frame--results > p:not(.eyebrow) {
     display: none;
   }
+
+  .home-frame--results > h2 {
+    font-size: 30px;
+  }
+
+  .home-frame--results .results-chart-label,
+  .home-frame--results .score-kicker {
+    display: none;
+  }
+
+  .home-frame--results .results-frame-block {
+    padding: 8px 2px 8px;
+  }
+
+  .home-frame--results .results-frame .score-line {
+    margin-top: 6px;
+    font-size: 28px;
+  }
+
+  .home-frame--results .results-chips {
+    margin-top: 8px;
+    gap: 6px;
+  }
+
+  .home-frame--results .results-chips span {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .home-frame--results .results-frame-block p {
+    font-size: 12px;
+    line-height: 1.3;
+  }
 }
 
 .home-frame .hiw-step {
@@ -4657,15 +4690,75 @@ a.subject-chip {
   }
 
   .home-frame .fit-portal {
-    min-height: 120px;
+    min-height: 96px;
     border-radius: 20px;
   }
 
+  .home-frame .hiw-rail {
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  .home-frame .hiw-step {
+    padding: 8px 8px 8px 6px;
+    gap: 8px;
+    grid-template-columns: 44px 1fr;
+  }
+
+  .home-frame .hiw-n {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+  }
+
+  #how-it-works .partner-card,
+  #how-it-works .page-quiet,
+  #mentors .partner-card,
+  #mentors .frame-book,
+  #mentors .page-quiet,
   #group-classes .partner-card,
   #group-classes .score-kicker,
   #group-classes .group-topics,
   #group-classes .page-quiet {
     display: none;
+  }
+
+  #group-classes.compare-grid--fit,
+  #group-classes .compare-grid--fit {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  #group-classes .compare-card {
+    padding: 12px 10px 14px;
+  }
+
+  #group-classes .compare-card h3 {
+    font-size: 13px;
+  }
+
+  #group-classes .compare-list {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  #group-classes .compare-list li {
+    padding: 4px 0 4px 14px;
+    font-size: 11px;
+  }
+
+  #group-classes .compare-list li:nth-child(n + 5) {
+    display: none;
+  }
+
+  #group-classes .fit-link {
+    margin-top: 8px;
+    font-size: 10px;
+  }
+
+  #group-classes .fit-portals {
+    margin: 16px 0 8px;
   }
 }
 
