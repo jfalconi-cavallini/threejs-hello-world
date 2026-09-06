@@ -97,6 +97,14 @@ export const NEARBY_ICON = iconSvg(
    <circle cx="12" cy="10" r="3" />`
 )
 
+export const BEAT_GO = `
+  <span class="beat-card-go" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  </span>
+`
+
 export function mountAtmosphere() {
   if (document.querySelector('.atmosphere')) {
     return

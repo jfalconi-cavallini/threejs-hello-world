@@ -19,6 +19,7 @@ import {
   PARENT_ICON,
   VIDEO_ICON,
   NEARBY_ICON,
+  BEAT_GO,
 } from './chrome.js'
 import { createHomeAfter } from './home-after.js'
 
@@ -4263,15 +4264,6 @@ function createPage() {
           </a>
         </div>
         <p class="beat-quiet">One dedicated mentor. A plan you can see.</p>
-        <div class="subject-grid subject-grid--beat">
-          <a class="subject-chip" href="/programs/sat-act">SAT</a>
-          <a class="subject-chip" href="/programs/sat-act">ACT</a>
-          <a class="subject-chip" href="/programs/ap">AP</a>
-          <a class="subject-chip" href="/programs/academic-tutoring">Math</a>
-          <a class="subject-chip" href="/programs/academic-tutoring">Science</a>
-          <a class="subject-chip" href="/programs/academic-tutoring">Writing</a>
-          <a class="subject-chip" href="/programs/programming-stem">Coding</a>
-        </div>
         <div class="scroll-marker scroll-marker--in-copy">
           SCROLL
           <span></span>
@@ -4286,26 +4278,29 @@ function createPage() {
         <h2>Tutoring shouldn’t disappear when the hour ends<span class="stop">.</span></h2>
         <p>Every session should lead to the next step.</p>
         <div class="beat-cards">
-          <article class="beat-card">
-            <span class="beat-card-icon" aria-hidden="true">${TARGET_ICON}</span>
+          <article class="beat-card beat-card--go">
+            <span class="beat-card-icon beat-card-icon--orange" aria-hidden="true">${TARGET_ICON}</span>
             <div>
               <h3>Targeted practice</h3>
               <p>Homework matched to the weak spot from that session.</p>
             </div>
+            ${BEAT_GO}
           </article>
-          <article class="beat-card">
+          <article class="beat-card beat-card--go">
             <span class="beat-card-icon" aria-hidden="true">${NOTE_ICON}</span>
             <div>
               <h3>Session notes</h3>
               <p>Clear notes on what was covered and what comes next.</p>
             </div>
+            ${BEAT_GO}
           </article>
-          <article class="beat-card">
-            <span class="beat-card-icon" aria-hidden="true">${PARENT_ICON}</span>
+          <article class="beat-card beat-card--go">
+            <span class="beat-card-icon beat-card-icon--orange" aria-hidden="true">${PARENT_ICON}</span>
             <div>
               <h3>Parent updates</h3>
               <p>Quick updates so you know how things are going.</p>
             </div>
+            ${BEAT_GO}
           </article>
         </div>
         <div class="scroll-marker scroll-marker--in-copy">

@@ -107,11 +107,48 @@ export const HOME_FAQ = [
 ]
 
 export const MENTOR_PREVIEW = [
-  { name: 'Jose Falconi-Cavallini', line: 'CS and SAT/ACT.' },
-  { name: 'Emma Brugman', line: 'ML, data, and SAT/ACT.' },
-  { name: 'Johan Falconi-Cavallini', line: 'Engineering and math.' },
-  { name: 'Daniel', line: 'Example mentor card — frame layout.', example: true },
-  { name: 'Priya', line: 'Example mentor card — frame layout.', example: true },
+  {
+    name: 'Jose',
+    role: 'Founder & Mentor',
+    line: 'CS and SAT/ACT.',
+    tags: ['Math', 'SAT/ACT', 'Programming'],
+    bio: 'UCSD Computer Science. Passionate about helping students break down hard problems and build confidence.',
+    initials: 'JF',
+  },
+  {
+    name: 'Emma',
+    role: 'Mentor',
+    line: 'ML, data, and SAT/ACT.',
+    tags: ['Science', 'Math', 'College Prep'],
+    bio: 'UCSD Neuroscience. Berkeley master’s. Loves helping students understand and enjoy learning.',
+    initials: 'EB',
+  },
+  {
+    name: 'Johan',
+    role: 'Mentor',
+    line: 'Engineering and math.',
+    tags: ['Engineering', 'Math'],
+    bio: 'Engineering and math. A mentor who stays with the work.',
+    initials: 'JC',
+  },
+  {
+    name: 'Daniel',
+    role: 'Mentor',
+    line: 'AP, Math, Physics.',
+    tags: ['AP', 'Math', 'Physics'],
+    bio: 'UT Austin. Experienced in AP courses and test prep. Enjoys making challenging concepts click.',
+    initials: 'D',
+    example: true,
+  },
+  {
+    name: 'Priya',
+    role: 'Mentor',
+    tags: ['Biology', 'Chemistry', 'College Prep'],
+    line: 'Biology, Chemistry, College Prep.',
+    bio: 'UT Dallas. Passionate about STEM and helping students build strong foundations in science.',
+    initials: 'P',
+    example: true,
+  },
 ]
 
 export const GROUP_PREVIEW_CARDS = [
@@ -251,68 +288,81 @@ const SCHOOL_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidd
 const PARENT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM9 12.5c-3.05 0-7 1.54-7 4.6V19h8.2v-1.4c0-1.3.5-2.4 1.3-3.3C10.6 13 9.8 12.5 9 12.5zm6.5 0c-.4 0-.9 0-1.3.1 1.5.8 2.5 2 2.5 3.5V19H22v-1.9c0-2.4-3.1-3.6-6.5-3.6z"/></svg>`
 const CODE_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.3 16.3 3.9 12l4.4-4.3L7 6.3 1.7 12 7 17.7zm7.4 0 1.3 1.4L22.3 12 16.99 6.3l-1.3 1.4L20.1 12zM13.1 6.2l-2.2 11.6 1.96.38 2.2-11.6z"/></svg>`
 
+function progressCard({
+  ico,
+  tone,
+  title,
+  before,
+  after,
+  badge,
+  body,
+  example = false,
+}) {
+  return `
+    <article class="glow-card progress-card">
+      ${example ? '<p class="example-tag">Example</p>' : ''}
+      <div class="results-frame-head">
+        <span class="results-ico ${tone}">${ico}</span>
+        <p class="score-kicker">${title}</p>
+        <span class="results-badge">${badge}</span>
+      </div>
+      <p class="before-after">
+        <span>Before <strong>${before}</strong></span>
+        <span class="before-after-arrow">→</span>
+        <span>After <strong>${after}</strong></span>
+      </p>
+      <p>${body}</p>
+    </article>
+  `
+}
+
 export function resultsScoreCardsHtml() {
   return `
-    <div class="glow-score-grid">
-      <article class="glow-card score-card">
-        <div class="results-frame-head">
-          <span class="results-ico results-ico--sat">${SAT_ICO}</span>
-          <p class="score-kicker">SAT Math</p>
-          <span class="results-badge">+220</span>
-        </div>
-        <p class="score-line">370 → 590</p>
-        <svg class="results-chart" viewBox="0 0 320 140" role="img" aria-label="SAT Math 370 to 590">
-          <defs>
-            <linearGradient id="results-sat-line" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#3d8bff"/>
-              <stop offset="1" stop-color="#8ec5ff"/>
-            </linearGradient>
-            <linearGradient id="results-sat-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="rgba(61,139,255,0.28)"/>
-              <stop offset="1" stop-color="rgba(61,139,255,0)"/>
-            </linearGradient>
-          </defs>
-          <line x1="24" y1="28" x2="304" y2="28" class="results-chart-grid"/>
-          <line x1="24" y1="64" x2="304" y2="64" class="results-chart-grid"/>
-          <line x1="24" y1="100" x2="304" y2="100" class="results-chart-grid"/>
-          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="url(#results-sat-fill)" stroke="none"/>
-          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="none" stroke="url(#results-sat-line)" stroke-width="2.6" stroke-linecap="round"/>
-          <circle cx="24" cy="100" r="3.5" fill="#3d8bff"/>
-          <circle cx="296" cy="24" r="4" fill="#8ec5ff"/>
-        </svg>
-      </article>
-      <article class="glow-card score-card">
-        <div class="results-frame-head">
-          <span class="results-ico results-ico--school">${SCHOOL_ICO}</span>
-          <p class="score-kicker">SAT Composite</p>
-          <span class="results-badge">+160</span>
-        </div>
-        <p class="score-line">950 → 1110</p>
-        <p>Individual student result. Outcomes vary and are not guaranteed.</p>
-      </article>
-      <article class="glow-card score-card">
-        <p class="example-tag">Example</p>
-        <div class="results-frame-head">
-          <span class="results-ico results-ico--school">${SCHOOL_ICO}</span>
-          <p class="score-kicker">AP Calc</p>
-        </div>
-        <p class="score-line score-line--sm">3 → 5</p>
-        <p>Layout placeholder — not a verified outcome.</p>
-      </article>
-      <article class="glow-card score-card">
-        <p class="example-tag">Example</p>
-        <div class="results-frame-head">
-          <span class="results-ico results-ico--sat">${CODE_ICO}</span>
-          <p class="score-kicker">Python</p>
-        </div>
-        <p class="score-line score-line--sm">Beginner → Confident</p>
-        <p>Layout placeholder — not a verified outcome.</p>
-      </article>
+    <div class="glow-score-grid progress-2x2">
+      ${progressCard({
+        ico: SAT_ICO,
+        tone: 'results-ico--sat',
+        title: 'SAT Math',
+        before: '370',
+        after: '590',
+        badge: '+220',
+        body: 'Built a stronger foundation and improved problem solving skills.',
+      })}
+      ${progressCard({
+        ico: SCHOOL_ICO,
+        tone: 'results-ico--school',
+        title: 'SAT Composite',
+        before: '950',
+        after: '1110',
+        badge: '+160',
+        body: 'Increased overall score through targeted practice and strategy.',
+      })}
+      ${progressCard({
+        ico: SCHOOL_ICO,
+        tone: 'results-ico--school',
+        title: 'AP Calculus',
+        before: '3',
+        after: '5',
+        badge: '+2',
+        body: 'Deepened conceptual understanding and improved test performance.',
+        example: true,
+      })}
+      ${progressCard({
+        ico: CODE_ICO,
+        tone: 'results-ico--sat',
+        title: 'Intro to Python',
+        before: 'Beginner',
+        after: 'Confident',
+        badge: 'Built real projects',
+        body: 'Went from no experience to building independent projects.',
+        example: true,
+      })}
     </div>
-    <article class="glow-card quote-card">
+    <article class="glow-card quote-card quote-card--frame">
       <p class="example-tag">Example</p>
-      <p class="quote-text">“We finally see the week — not just the hour.”</p>
-      <p class="quote-by">A parent — layout placeholder</p>
+      <p class="quote-mark" aria-hidden="true">“</p>
+      <p class="quote-text">My son’s confidence in math has completely changed. He actually looks forward to his sessions, and his grades have improved a lot.</p>
+      <p class="quote-by">— Parent of 10th Grade Student</p>
     </article>
   `
 }
@@ -331,11 +381,11 @@ export function resultsFrameHtml() {
         <p class="results-frame-sub">SAT Composite 950 → 1110 <span class="results-badge results-badge--ghost">+160</span></p>
         <svg class="results-chart" viewBox="0 0 320 140" role="img" aria-label="SAT Math 370 to 590">
           <defs>
-            <linearGradient id="results-sat-line" x1="0" y1="0" x2="1" y2="0">
+            <linearGradient id="results-frame-sat-line" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0" stop-color="#3d8bff"/>
               <stop offset="1" stop-color="#8ec5ff"/>
             </linearGradient>
-            <linearGradient id="results-sat-fill" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="results-frame-sat-fill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stop-color="rgba(61,139,255,0.28)"/>
               <stop offset="1" stop-color="rgba(61,139,255,0)"/>
             </linearGradient>
@@ -343,8 +393,8 @@ export function resultsFrameHtml() {
           <line x1="24" y1="28" x2="304" y2="28" class="results-chart-grid"/>
           <line x1="24" y1="64" x2="304" y2="64" class="results-chart-grid"/>
           <line x1="24" y1="100" x2="304" y2="100" class="results-chart-grid"/>
-          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="url(#results-sat-fill)" stroke="none"/>
-          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="none" stroke="url(#results-sat-line)" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="url(#results-frame-sat-fill)" stroke="none"/>
+          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="none" stroke="url(#results-frame-sat-line)" stroke-width="2.6" stroke-linecap="round"/>
           <circle cx="24" cy="100" r="3.5" fill="#3d8bff"/>
           <circle cx="296" cy="24" r="4" fill="#8ec5ff"/>
         </svg>
@@ -414,14 +464,24 @@ export function testimonialsPlaceholderHtml() {
   `
 }
 
+function bookWide(extraClass = '') {
+  return `
+    <a class="primary-button frame-book ${extraClass}" href="/consult">
+      Book Free Consultation
+      ${ARROW_ICON}
+    </a>
+  `
+}
+
 export function mentorPreviewHtml() {
   return MENTOR_PREVIEW.map(
     (person) => `
-      <article class="mentor-card glow-card">
+      <article class="mentor-card glow-card mentor-dir-card">
         ${person.example ? '<p class="example-tag">Example</p>' : ''}
-        ${mediaPlaceholder('Mentor photo')}
-        <h3>${person.name}</h3>
-        <p>${person.line}</p>
+        <div class="mentor-photo" aria-hidden="true"><span>${person.initials}</span></div>
+        <h3>${person.name} <span class="mentor-role">${person.role}</span></h3>
+        <div class="mentor-tags">${(person.tags || []).map((tag) => `<span>${tag}</span>`).join('')}</div>
+        <p>${person.bio || person.line}</p>
       </article>
     `
   ).join('')
@@ -435,24 +495,39 @@ export function homeAfterChaptersHtml() {
     ['Parent updates', 'Quick updates so you’re not left guessing how tutoring is going.'],
   ]
   const growStages = [
-    ['Elementary', 'Build reading, math, and habits while the foundation is still soft.'],
-    ['Middle School', 'Keep confidence and organization as coursework gets heavier.'],
-    ['High School', 'AP, exams, and harder classes — with a mentor who stays through the climb.'],
-    ['College & Beyond', 'College coursework and what comes next — same notes, same plan you can see.'],
+    ['Elementary', 'Build strong foundations and confidence.', 1],
+    ['Middle School', 'Strengthen independence, study habits, and core skills.', 2],
+    ['High School', 'Tackle advanced classes, AP courses, and test preparation with confidence.', 3],
+    ['College & Beyond', 'Continue growing with support for college courses, career goals, and real-world skills.', 4],
   ]
   const earlyExamples = [
     ['Middle school math', 'Fractions and algebra readiness compound. Gaps here show up for years.'],
     ['Freshman algebra before the SAT', 'The SAT rewards fluency built early — not a two-week cram over shaky algebra.'],
     ['Coding years early', 'Projects stack. A student who builds for years walks into harder STEM with proof, not hope.'],
   ]
-  const subjects = [
-    ['SAT', '/programs/sat-act'],
-    ['ACT', '/programs/sat-act'],
-    ['AP', '/programs/ap'],
-    ['Math', '/programs/academic-tutoring'],
-    ['Science', '/programs/academic-tutoring'],
-    ['Writing', '/programs/academic-tutoring'],
-    ['Coding', '/programs/programming-stem'],
+  const frameHow = [
+    ['01', 'hiw-n--1', 'Free Consultation', 'We learn about your student, current classes, challenges, goals, and what has or hasn’t worked.'],
+    ['02', 'hiw-n--2', 'Mentor Match', 'We match your student with a mentor based on subject, level, personality, goals, and availability.'],
+    ['03', 'hiw-n--3', 'Build the Plan', 'Initial sessions help identify strengths, gaps, and priorities. We create a tailored plan.'],
+    ['04', 'hiw-n--4', 'Teach, Practice, Track', 'Your student meets regularly, gets targeted practice, and receives detailed session notes and progress tracking.'],
+    ['05', 'hiw-n--5', 'Adjust and Grow', 'We review progress, adjust the plan, and keep supporting your student as their goals evolve.'],
+  ]
+  const mentorTraits = [
+    ['Careful Selection', 'Subject knowledge and communication — not a resume with a GPA on it.'],
+    ['Subject Expertise', 'Matched by academic level and the work your child needs.'],
+    ['Personalized Match', 'Learning style and personality, not whoever is free that week.'],
+    ['A Real Relationship', 'Trust and long-term progress. The mentor stays.'],
+  ]
+  const subjects3 = [
+    ['Math', 'Foundations through calculus — concept first, then fluency.', '/programs/academic-tutoring', 'subject-ico--math'],
+    ['English', 'Writing, reading, and the language that carries every other class.', '/programs/academic-tutoring', 'subject-ico--eng'],
+    ['Science', 'Biology, chemistry, physics — taught so it actually sticks.', '/programs/academic-tutoring', 'subject-ico--sci'],
+    ['SAT / ACT Prep', 'Diagnose, practice, and track — without average-score theater.', '/programs/sat-act', 'subject-ico--sat'],
+    ['Programming', 'Python, projects, and code a student can point to.', '/programs/programming-stem', 'subject-ico--code'],
+    ['AP Support', 'Keep pace with harder coursework. Fill gaps. Walk in ready.', '/programs/ap', 'subject-ico--ap'],
+    ['Homework Help', 'Practice with feedback, not busywork.', '/programs/academic-tutoring', 'subject-ico--hw'],
+    ['Academic Coaching', 'Habits, organization, and a plan you can see.', '/programs/academic-tutoring', 'subject-ico--coach'],
+    ['STEM Enrichment', 'Robotics, engineering, and projects that stack.', '/programs/programming-stem', 'subject-ico--stem'],
   ]
 
   return `
@@ -483,32 +558,32 @@ export function homeAfterChaptersHtml() {
       )}
     </section>
 
-    <section class="page-block" id="pathways">
-      <p class="eyebrow eyebrow-dash">How students grow</p>
-      <h2>Support that can grow with them.</h2>
-      <p>One system from the early years through college — not a one-semester patch.</p>
-      <div class="grow-plants" aria-hidden="true">
-        <span class="grow-plant grow-plant--1"></span>
-        <span class="grow-plant grow-plant--2"></span>
-        <span class="grow-plant grow-plant--3"></span>
-        <span class="grow-plant grow-plant--4"></span>
+    <section class="page-block frame-chapter" id="pathways">
+      <p class="eyebrow eyebrow-dash">How they grow</p>
+      <h2>Support that grows with them.</h2>
+      <p>From building foundations to achieving big goals, MetaMinds stays with your child through every stage.</p>
+      <div class="plant-timeline" aria-hidden="true">
+        ${growStages.map(([title], i) => `
+          <div class="plant-col">
+            <span class="plant-viz plant-viz--${i + 1}"></span>
+            <span class="plant-dot plant-dot--${i + 1}"></span>
+          </div>
+        `).join('')}
+        <span class="plant-horizon"></span>
       </div>
-      <div class="grow-rail">
-        ${growStages.map(([title, body], i) => `
-          <article class="glow-card grow-card">
-            <span class="work-step-n">0${i + 1}</span>
+      <div class="grow-rail grow-rail--frame">
+        ${growStages.map(([title, body]) => `
+          <article class="grow-copy">
             <h3>${title}</h3>
             <p>${body}</p>
           </article>
         `).join('')}
       </div>
       <article class="glow-card partner-card">
-        <p class="beat-tagline">The mentor stays. The plan updates. The student keeps moving.</p>
-        <p>K–12 through college. Virtual primary.</p>
+        <p class="score-kicker">A long-term academic partner</p>
+        <p class="beat-tagline">Your child’s goals will change. Our support evolves with them. Same mission. Every stage.</p>
       </article>
-      <p>
-        <a class="primary-button" href="/consult">Book Free Consultation${ARROW_ICON}</a>
-      </p>
+      ${bookWide()}
     </section>
 
     <section class="page-block" id="start-earlier">
@@ -527,99 +602,151 @@ export function homeAfterChaptersHtml() {
       <p class="page-quiet">Individual results vary. We don’t guarantee outcomes.</p>
     </section>
 
-    <section class="page-block" id="how-it-works">
+    <section class="page-block frame-chapter" id="how-it-works">
       <p class="eyebrow eyebrow-dash">How it works</p>
-      <h2>How MetaMinds works</h2>
-      <p>Five clear steps. One dedicated mentor. A plan you can see.</p>
-      ${howItWorksListHtml()}
+      <h2>A clear process from start to progress.</h2>
+      <p>We keep things simple, structured, and focused on your student’s goals.</p>
+      <ol class="hiw-rail">
+        ${frameHow.map(([n, tone, title, body]) => `
+          <li class="hiw-step glow-card">
+            <span class="hiw-n ${tone}">${n}</span>
+            <div>
+              <h3>${title}</h3>
+              <p>${body}</p>
+            </div>
+          </li>
+        `).join('')}
+      </ol>
+      <article class="glow-card partner-card">
+        <p class="score-kicker">Same goal at every step.</p>
+        <p>More confidence. Better understanding. Real progress.</p>
+      </article>
+      ${bookWide()}
       <p class="page-quiet"><a href="/how-it-works">How it works</a></p>
-      ${consultBand(
-        'Start with the free consult.',
-        'Thirty minutes. No obligation. We figure out whether MetaMinds is the right fit.'
-      )}
     </section>
 
-    <section class="page-block" id="results">
-      <p class="eyebrow eyebrow-dash">Results</p>
-      <h2>Real student progress</h2>
-      <p>Individual student results. Outcomes vary and are not guaranteed.</p>
+    <section class="page-block frame-chapter" id="results">
+      <p class="eyebrow eyebrow-dash">Real student progress</p>
+      <h2>Real students.<br>Real progress.</h2>
+      <p>With the right support, students gain confidence and reach goals they once thought were out of reach.</p>
+      ${resultsFrameHtml()}
       ${resultsScoreCardsHtml()}
       <p class="results-disclaimer">
-        SAT Math 370 → 590 · SAT Composite 950 → 1110 · Individual student results. Outcomes vary and are not guaranteed.
+        SAT Math 370 → 590 and SAT Composite 950 → 1110 are individual student results. AP Calc, Python, and the parent quote are frame examples. Outcomes vary and are not guaranteed.
       </p>
-      <p class="page-quiet">We show named outcomes only when they’re real. No averages. No invented quotes.</p>
-      <div class="hero-actions">
-        <a class="primary-button" href="/consult">Book Free Consultation${ARROW_ICON}</a>
-        <a class="hero-secondary-cta" href="/results">See results</a>
-      </div>
+      ${bookWide()}
+      <p class="page-quiet"><a href="/results">See results</a></p>
     </section>
 
-    <section class="page-block" id="subjects">
-      <p class="eyebrow eyebrow-dash">Subjects</p>
-      <h2>What we teach</h2>
-      <div class="subject-card-grid">
-        ${PROGRAM_HUB_CARDS.map(
-          (item) => `
-            <a class="glow-card subject-card" href="${item.href}">
-              <h3>${item.title}</h3>
-              <p>${item.body}</p>
-            </a>
-          `
-        ).join('')}
+    <section class="page-block frame-chapter" id="subjects">
+      <p class="eyebrow eyebrow-dash">Subjects we offer</p>
+      <h2>Support in the subjects that matter.</h2>
+      <p>From math to programming, we help students build understanding, confidence, and real skills that last.</p>
+      <div class="subject-3x3">
+        ${subjects3.map(([title, body, href, tone]) => `
+          <a class="glow-card subject-tile" href="${href}">
+            <span class="subject-ico ${tone}" aria-hidden="true"></span>
+            <h3>${title}</h3>
+            <p>${body}</p>
+          </a>
+        `).join('')}
       </div>
-      <div class="subject-grid">
-        ${subjects.map(([item, href]) => `<a class="subject-chip" href="${href}">${item}</a>`).join('')}
+      <div class="subject-bar">
+        <span>Personalized learning plans</span>
+        <span>Progress tracking</span>
+        <span>Supportive mentors</span>
       </div>
+      ${bookWide()}
       <p class="page-quiet"><a href="/programs">See programs</a></p>
     </section>
 
-    <section class="page-block" id="mentors">
-      <p class="eyebrow eyebrow-dash">Mentors</p>
-      <h2>Mentors who stay.</h2>
-      <p>Matched to the coursework and the student’s level — not a rotating cast.</p>
-      <p>We place mentors by the work your child needs. We don’t sell a public tier ladder.</p>
-      <div class="mentor-preview-grid">
+    <section class="page-block frame-chapter" id="mentors">
+      <p class="eyebrow eyebrow-dash">Our mentors</p>
+      <h2>The right person matters.</h2>
+      <p>We match your student with a mentor who fits their subject, level, goals, and learning style.</p>
+      <div class="mentor-traits">
+        ${mentorTraits.map(([title, body]) => `
+          <article class="glow-card mentor-trait">
+            <h3>${title}</h3>
+            <p>${body}</p>
+          </article>
+        `).join('')}
+      </div>
+      <p class="score-kicker mentor-dir-label">Meet a few of our mentors</p>
+      <div class="mentor-dir">
         ${mentorPreviewHtml()}
       </div>
-      <p><a href="/mentors">Meet our mentors</a></p>
+      <article class="glow-card partner-card">
+        <p>More than a tutor. Our mentors are students, graduates, and professionals who care about your success.</p>
+      </article>
+      ${bookWide()}
+      <p class="page-quiet"><a href="/mentors">Meet our mentors</a></p>
     </section>
 
-    <section class="page-block" id="group-classes">
-      <p class="eyebrow eyebrow-dash">Choose your support</p>
-      <h2>Choose the support that fits.</h2>
-      <p>1-on-1 mentoring is the core. Small groups are separate — same standards, shared goals.</p>
-      <div class="compare-grid">
-        <article class="glow-card compare-card">
-          <p class="score-kicker">Core</p>
-          <h3>1-on-1 mentoring</h3>
+    <section class="page-block frame-chapter" id="group-classes">
+      <p class="eyebrow eyebrow-dash">Find the right fit</p>
+      <h2>Choose the kind of support that fits.</h2>
+      <p>1-on-1 mentoring is the core. Small groups are a separate format — same standards, shared goals.</p>
+      <div class="fit-portals" aria-hidden="true">
+        <div class="fit-portal fit-portal--one"><span>1-on-1</span></div>
+        <div class="fit-portal fit-portal--group"><span>Group</span></div>
+      </div>
+      <div class="compare-grid compare-grid--fit">
+        <article class="glow-card compare-card compare-card--one">
+          <p class="score-kicker">Personalized. Flexible. Focused.</p>
+          <h3>1-on-1 Mentoring</h3>
           <ul class="compare-list">
-            <li>One dedicated mentor</li>
-            <li>A plan you can see</li>
-            <li>Notes after every session</li>
+            <li>Individualized instruction</li>
+            <li>Support with schoolwork</li>
+            <li>Targeted test preparation</li>
+            <li>Build confidence and study habits</li>
+            <li>Flexible scheduling</li>
+            <li>Adjusts as goals change</li>
           </ul>
+          <a class="fit-link" href="/consult">Learn more${ARROW_ICON}</a>
         </article>
-        <article class="glow-card compare-card">
-          <p class="score-kicker">Separate format</p>
-          <h3>Small group programs</h3>
+        <article class="glow-card compare-card compare-card--group">
+          <p class="score-kicker">Learn together. Go further.</p>
+          <h3>Small Group Classes</h3>
           <ul class="compare-list">
-            <li>Same standards</li>
-            <li>Shared goals</li>
-            <li>Ask what’s running</li>
+            <li>Same standards. Shared goals.</li>
+            <li>Structured curriculum</li>
+            <li>Great for SAT prep and programming</li>
+            <li>Learn with motivated peers</li>
+            <li>Engaging and interactive</li>
+            <li>Taught by experienced mentors</li>
           </ul>
+          <a class="fit-link" href="/programs/group-classes">Explore group classes${ARROW_ICON}</a>
         </article>
       </div>
+      <article class="glow-card partner-card">
+        <p>Not sure which is right for your student? We’ll help you decide during your free consultation.</p>
+      </article>
+      <p class="score-kicker">Common group class topics</p>
+      <div class="group-topics group-topics--4">
+        <article class="glow-card">
+          <h3>SAT Prep</h3>
+          <p>Strategy, practice, and real progress.</p>
+        </article>
+        <article class="glow-card">
+          <h3>Programming</h3>
+          <p>From beginner to advanced.</p>
+        </article>
+        <article class="glow-card">
+          <h3>Robotics &amp; STEM</h3>
+          <p>Build, create, problem solve.</p>
+        </article>
+        <article class="glow-card">
+          <h3>Math Enrichment</h3>
+          <p>Stronger foundations and deeper understanding.</p>
+        </article>
+      </div>
+      <article class="glow-card partner-card">
+        <p class="beat-tagline">Same mission. Different paths.</p>
+        <p>Whether 1-on-1 or in a group, MetaMinds helps students build skills, confidence, and opportunities.</p>
+      </article>
       <p class="page-quiet">What’s running changes. We won’t list a fake catalog.</p>
-      <div class="group-topics">
-        ${GROUP_PREVIEW_CARDS.map(
-          (item) => `
-            <article class="glow-card">
-              <h3>${item.title}</h3>
-              <p>${item.body}</p>
-            </article>
-          `
-        ).join('')}
-      </div>
-      <p><a href="/programs/group-classes">Explore group classes</a></p>
+      ${bookWide()}
     </section>
 
     <section class="page-block" id="pricing-preview">
