@@ -4261,6 +4261,19 @@ a.subject-chip {
   position: relative;
 }
 
+.mentor-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.mentor-photo--live {
+  background: #101624;
+}
+
 .mentor-sil {
   position: absolute;
   left: 50%;

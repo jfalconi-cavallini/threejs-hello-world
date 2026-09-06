@@ -4215,7 +4215,7 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <p class="eyebrow eyebrow-dash">Personalized tutoring for a brighter tomorrow</p>
+        <p class="eyebrow eyebrow-dash">Personalized tutoring</p>
         <h1>A mentor who stays with your child<span class="stop">.</span></h1>
         <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
         <div class="hero-actions">

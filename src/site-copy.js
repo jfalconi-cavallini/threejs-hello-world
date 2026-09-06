@@ -106,6 +106,8 @@ export const HOME_FAQ = [
   },
 ]
 
+const HOME_MENTOR_RAIL = ['Jose', 'Emma', 'Alan', 'Christian']
+
 export const MENTOR_PREVIEW = [
   {
     name: 'Jose',
@@ -118,7 +120,7 @@ export const MENTOR_PREVIEW = [
   },
   {
     name: 'Emma',
-    role: 'Mentor',
+    role: 'Co-Founder',
     line: 'ML, data, and SAT/ACT.',
     tags: ['Science', 'Math', 'College Prep'],
     bio: 'UCSD Neuroscience. Berkeley master’s. Loves helping students understand and enjoy learning.',
@@ -126,32 +128,22 @@ export const MENTOR_PREVIEW = [
     photo: '/mentors/emma.jpg',
   },
   {
-    name: 'Johan',
+    name: 'Alan',
     role: 'Mentor',
-    line: 'Engineering and math.',
-    tags: ['Engineering', 'Math'],
-    bio: 'Engineering and math. A mentor who stays with the work.',
-    initials: 'JC',
+    line: 'Hardware validation engineer. STEM.',
+    tags: ['STEM', 'Engineering'],
+    bio: 'Hardware validation engineer. STEM.',
+    initials: 'AM',
+    photo: '/mentors/alan.jpg',
   },
   {
-    name: 'Daniel',
+    name: 'Christian',
     role: 'Mentor',
-    line: 'AP, Math, Physics.',
-    tags: ['AP', 'Math', 'Physics'],
-    bio: 'UT Austin. Experienced in AP courses and test prep. Enjoys making challenging concepts click.',
-    initials: 'D',
-    example: true,
-    photo: '/mentors/daniel.jpg',
-  },
-  {
-    name: 'Priya',
-    role: 'Mentor',
-    tags: ['Biology', 'Chemistry', 'College Prep'],
-    line: 'Biology, Chemistry, College Prep.',
-    bio: 'UT Dallas. Passionate about STEM and helping students build strong foundations in science.',
-    initials: 'P',
-    example: true,
-    photo: '/mentors/priya.jpg',
+    line: 'Math and CS. MBA candidate.',
+    tags: ['Math', 'CS'],
+    bio: 'Math and CS. MBA candidate.',
+    initials: 'CT',
+    photo: '/mentors/christian.jpg',
   },
 ]
 
@@ -615,12 +607,11 @@ const SUBJECT_BAR = [
 
 export function mentorPreviewHtml({ home = false } = {}) {
   const people = home
-    ? MENTOR_PREVIEW.filter((person) => person.name !== 'Johan')
+    ? MENTOR_PREVIEW.filter((person) => HOME_MENTOR_RAIL.includes(person.name))
     : MENTOR_PREVIEW
   return people.map(
     (person) => `
       <article class="mentor-card glow-card mentor-dir-card">
-        ${person.example ? '<p class="example-tag">Example</p>' : ''}
         <div class="mentor-photo${person.photo ? ' mentor-photo--shot' : ''}" aria-hidden="true">
           ${person.photo
             ? `<img class="mentor-shot" src="${person.photo}" alt="" width="160" height="160">`
