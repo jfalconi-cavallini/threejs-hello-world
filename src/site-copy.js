@@ -727,11 +727,8 @@ export function homeAfterChaptersHtml() {
       <p class="eyebrow eyebrow-dash">How they grow</p>
       <h2>Support that grows with them<span class="stop">.</span></h2>
       <p>From building foundations to achieving big goals, MetaMinds stays with your child through every stage.</p>
-      <div class="plant-timeline plant-timeline--3" aria-hidden="true">
-        <div class="plant-col"><span class="plant-viz plant-viz--1"><span class="plant-stem"></span><span class="plant-bud"></span></span></div>
-        <div class="plant-col"><span class="plant-viz plant-viz--2"><span class="plant-stem"></span><span class="plant-leaf plant-leaf--l"></span><span class="plant-leaf plant-leaf--r"></span><span class="plant-bud"></span></span></div>
-        <div class="plant-col"><span class="plant-viz plant-viz--4"><span class="plant-stem"></span><span class="plant-leaf plant-leaf--l"></span><span class="plant-leaf plant-leaf--r"></span><span class="plant-leaf plant-leaf--hi"></span><span class="plant-bud"></span></span></div>
-        <span class="plant-horizon"></span>
+      <div class="plant-timeline plant-timeline--frame" aria-hidden="true">
+        <img class="plant-frame" src="/frames/ch06-trees.png" alt="" width="780" height="439">
       </div>
       <div class="grow-rail grow-rail--frame">
         ${growStages.map(([title, body, dot]) => `
