@@ -398,8 +398,8 @@ export function resultsFrameHtml() {
         <svg class="results-chart" viewBox="0 0 320 140" role="img" aria-label="SAT Math 370 to 590">
           <defs>
             <linearGradient id="results-frame-sat-line" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#3d8bff"/>
-              <stop offset="1" stop-color="#8ec5ff"/>
+              <stop offset="0" stop-color="#ff5c00"/>
+              <stop offset="1" stop-color="#3d8bff"/>
             </linearGradient>
             <linearGradient id="results-frame-sat-fill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stop-color="rgba(61,139,255,0.28)"/>
@@ -411,10 +411,11 @@ export function resultsFrameHtml() {
           <line x1="24" y1="100" x2="304" y2="100" class="results-chart-grid"/>
           <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="url(#results-frame-sat-fill)" stroke="none"/>
           <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="none" stroke="url(#results-frame-sat-line)" stroke-width="2.6" stroke-linecap="round"/>
-          <circle cx="24" cy="100" r="3.5" fill="#3d8bff"/>
-          <circle cx="296" cy="24" r="4" fill="#8ec5ff"/>
+          <circle cx="24" cy="100" r="4" fill="#ff5c00"/>
+          <text x="24" y="118" class="results-chart-node" text-anchor="middle">370</text>
+          <circle cx="296" cy="24" r="4.5" fill="#3d8bff"/>
+          <text x="296" y="16" class="results-chart-node" text-anchor="middle">590</text>
         </svg>
-        <p class="results-chart-label">SAT Math</p>
       </div>
       <div class="results-frame-block">
         <div class="results-frame-head">
@@ -489,8 +490,45 @@ function bookWide(extraClass = '') {
   `
 }
 
-export function mentorPreviewHtml() {
-  return MENTOR_PREVIEW.map(
+function frameScroll() {
+  return `
+    <div class="frame-scroll" aria-hidden="true">
+      <span class="frame-scroll-bar"><i></i></span>
+      SCROLL
+    </div>
+  `
+}
+
+function glyph(d) {
+  return `<svg class="frame-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="${d}"/></svg>`
+}
+
+const HIW_ICOS = {
+  '01': glyph('M4 4h16v12H7l-3 3zM8 8h8v2H8zm0 4h5v2H8z'),
+  '02': glyph('M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM9 12.5c-3.05 0-7 1.54-7 4.6V19h8.2v-1.4c0-1.3.5-2.4 1.3-3.3C10.6 13 9.8 12.5 9 12.5zm6.5 0c-.4 0-.9 0-1.3.1 1.5.8 2.5 2 2.5 3.5V19H22v-1.9c0-2.4-3.1-3.6-6.5-3.6z'),
+  '03': glyph('M6 3h9l5 5v13H6zm9 1.5V9h4.5zM8 12h8v1.5H8zm0 3.5h8V17H8z'),
+  '04': glyph('M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z'),
+  '05': glyph('M12 6V3L8 7l4 4V8a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z'),
+}
+
+const TRAIT_ICOS = [
+  ['trait-ico--orange', glyph('M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM2 19v-1.9C2 14.6 5.95 13 9 13c.8 0 1.6.1 2.3.4-.8.9-1.3 2-1.3 3.3V19zm13.5-6c3.4 0 6.5 1.2 6.5 3.6V19h-5.3v-1.9c0-1.5-1-2.7-2.5-3.5.4-.1.9-.1 1.3-.1z')],
+  ['trait-ico--blue', glyph('M12 3 3 8v2h18V8zm-7 9h2v7H5zm5 0h4v7h-4zm7 0h2v7h-2z')],
+  ['trait-ico--purple', glyph('M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z')],
+  ['trait-ico--pink', glyph('M12 21s-7-4.4-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.6-7 10-7 10z')],
+]
+
+const SUBJECT_BAR = [
+  ['Personalized learning plans', glyph('M12 3 3 8v2h18V8zm-7 9h2v7H5zm5 0h4v7h-4zm7 0h2v7h-2z')],
+  ['Progress tracking', glyph('M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z')],
+  ['Supportive mentors', glyph('M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM2 19v-1.9C2 14.6 5.95 13 9 13c.8 0 1.6.1 2.3.4-.8.9-1.3 2-1.3 3.3V19z')],
+]
+
+export function mentorPreviewHtml({ home = false } = {}) {
+  const people = home
+    ? MENTOR_PREVIEW.filter((person) => person.name !== 'Johan')
+    : MENTOR_PREVIEW
+  return people.map(
     (person) => `
       <article class="mentor-card glow-card mentor-dir-card">
         ${person.example ? '<p class="example-tag">Example</p>' : ''}
@@ -498,7 +536,8 @@ export function mentorPreviewHtml() {
           <span class="mentor-sil"></span>
           <span class="mentor-initials">${person.initials}</span>
         </div>
-        <h3>${person.name} <span class="mentor-role">${person.role}</span></h3>
+        <h3>${person.name}</h3>
+        <p class="mentor-role">${person.role}</p>
         <div class="mentor-tags">${(person.tags || []).map((tag) => `<span>${tag}</span>`).join('')}</div>
         <p>${person.bio || person.line}</p>
       </article>
@@ -514,10 +553,10 @@ export function homeAfterChaptersHtml() {
     ['Parent updates', 'Quick updates so you’re not left guessing how tutoring is going.'],
   ]
   const growStages = [
-    ['Elementary', 'Build strong foundations and confidence.', 1],
-    ['Middle School', 'Strengthen independence, study habits, and core skills.', 2],
-    ['High School', 'Tackle advanced classes, AP courses, and test preparation with confidence.', 3],
-    ['College & Beyond', 'Continue growing with support for college courses, career goals, and real-world skills.', 4],
+    ['Elementary', 'Build strong foundations and confidence.', 'plant-dot--1'],
+    ['Middle School', 'Strengthen independence, study habits, and core skills.', 'plant-dot--2'],
+    ['High School', 'Tackle advanced classes, AP courses, and test preparation with confidence.', 'plant-dot--3'],
+    ['College & Beyond', 'Continue growing with support for college courses, career goals, and real-world skills.', 'plant-dot--4'],
   ]
   const earlyExamples = [
     ['Middle school math', 'Fractions and algebra readiness compound. Gaps here show up for years.'],
@@ -598,34 +637,30 @@ export function homeAfterChaptersHtml() {
       <p class="eyebrow eyebrow-dash">How they grow</p>
       <h2>Support that grows with them<span class="stop">.</span></h2>
       <p>From building foundations to achieving big goals, MetaMinds stays with your child through every stage.</p>
-      <div class="plant-timeline" aria-hidden="true">
-        ${growStages.map(([title], i) => `
-          <div class="plant-col">
-            <span class="plant-viz plant-viz--${i + 1}">
-              <span class="plant-stem"></span>
-              <span class="plant-leaf plant-leaf--l"></span>
-              <span class="plant-leaf plant-leaf--r"></span>
-              <span class="plant-leaf plant-leaf--hi"></span>
-              <span class="plant-bud"></span>
-            </span>
-            <span class="plant-dot plant-dot--${i + 1}"></span>
-          </div>
-        `).join('')}
+      <div class="plant-timeline plant-timeline--3" aria-hidden="true">
+        <div class="plant-col"><span class="plant-viz plant-viz--1"><span class="plant-stem"></span><span class="plant-bud"></span></span></div>
+        <div class="plant-col"><span class="plant-viz plant-viz--2"><span class="plant-stem"></span><span class="plant-leaf plant-leaf--l"></span><span class="plant-leaf plant-leaf--r"></span><span class="plant-bud"></span></span></div>
+        <div class="plant-col"><span class="plant-viz plant-viz--4"><span class="plant-stem"></span><span class="plant-leaf plant-leaf--l"></span><span class="plant-leaf plant-leaf--r"></span><span class="plant-leaf plant-leaf--hi"></span><span class="plant-bud"></span></span></div>
         <span class="plant-horizon"></span>
       </div>
       <div class="grow-rail grow-rail--frame">
-        ${growStages.map(([title, body]) => `
+        ${growStages.map(([title, body, dot]) => `
           <article class="grow-copy">
+            <span class="plant-dot ${dot}"></span>
             <h3>${title}</h3>
             <p>${body}</p>
           </article>
         `).join('')}
       </div>
-      <article class="glow-card partner-card">
-        <p class="score-kicker">A long-term academic partner</p>
-        <p class="beat-tagline">Your child’s goals will change. Our support evolves with them. Same mission. Every stage.</p>
+      <article class="glow-card partner-card partner-card--icon">
+        <span class="partner-ico" aria-hidden="true">${glyph('M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z')}</span>
+        <div>
+          <p class="score-kicker">A long-term academic partner</p>
+          <p class="beat-tagline">Your child’s goals will change. Our support evolves with them. Same mission. Every stage.</p>
+        </div>
       </article>
       ${bookWide()}
+      ${frameScroll()}
     </section>
 
     <section class="page-block" id="start-earlier">
@@ -644,90 +679,120 @@ export function homeAfterChaptersHtml() {
       <p class="page-quiet">Individual results vary. We don’t guarantee outcomes.</p>
     </section>
 
-    <section class="home-frame" id="how-it-works">
+    <section class="home-frame home-frame--hiw" id="how-it-works">
       <p class="eyebrow eyebrow-dash">How it works</p>
       <h2>A clear process from start to progress<span class="stop">.</span></h2>
       <p>We keep things simple, structured, and focused on your student’s goals.</p>
+      <span class="jose-viz jose-viz--orbs" aria-hidden="true"></span>
       <ol class="hiw-rail">
         ${frameHow.map(([n, tone, title, body]) => `
-          <li class="hiw-step glow-card">
+          <li class="hiw-step">
             <span class="hiw-n ${tone}">${n}</span>
-            <div>
-              <h3>${title}</h3>
-              <p>${body}</p>
-            </div>
+            <article class="glow-card hiw-card">
+              <span class="hiw-ico ${tone}" aria-hidden="true">${HIW_ICOS[n]}</span>
+              <div>
+                <h3>${title}</h3>
+                <p>${body}</p>
+              </div>
+            </article>
           </li>
         `).join('')}
       </ol>
-      <article class="glow-card partner-card">
-        <p class="score-kicker">Same goal at every step.</p>
-        <p>More confidence. Better understanding. Real progress.</p>
+      <article class="glow-card partner-card partner-card--icon">
+        <span class="partner-ico" aria-hidden="true">${glyph('M12 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zm.5 4.2v5.3l3.8 2.2-.9 1.5L11 13V7.2z')}</span>
+        <div>
+          <p class="score-kicker">Same goal at every step.</p>
+          <p>More confidence. Better understanding. Real progress.</p>
+        </div>
       </article>
       ${bookWide()}
-      <p class="page-quiet"><a href="/how-it-works">How it works</a></p>
+      ${frameScroll()}
     </section>
 
     <section class="home-frame home-frame--results" id="results">
+      <p class="eyebrow eyebrow-dash">Results</p>
+      <h2>Progress you can point to<span class="stop">.</span></h2>
+      <p>No fake promises. Just consistent work, targeted practice, and measurable improvement parents can actually see.</p>
+      ${resultsFrameHtml()}
+      ${frameScroll()}
+    </section>
+    <section class="home-frame home-frame--scores" id="results-more">
       <p class="eyebrow eyebrow-dash">Real student progress</p>
       <h2>Real students.<br>Real progress<span class="stop">.</span></h2>
       <p>With the right support, students gain confidence and reach goals they once thought were out of reach.</p>
-      ${resultsFrameHtml()}
-    </section>
-    <section class="home-frame home-frame--scores" id="results-more">
+      <div class="score-hero-row">
+        <div class="jose-viz jose-viz--bars" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+          <span class="jose-viz-arrow"></span>
+        </div>
+      </div>
       ${resultsScoreCardsHtml()}
       <p class="results-disclaimer">
         SAT Math 370 → 590 and SAT Composite 950 → 1110 are individual student results. AP Calc, Python, and the parent quote are frame examples. Outcomes vary and are not guaranteed.
       </p>
       ${bookWide()}
-      <p class="page-quiet"><a href="/results">See results</a></p>
+      ${frameScroll()}
     </section>
 
-    <section class="home-frame" id="subjects">
+    <section class="home-frame home-frame--subjects" id="subjects">
       <p class="eyebrow eyebrow-dash">Subjects we offer</p>
       <h2>Support in the subjects that matter<span class="stop">.</span></h2>
       <p>From math to programming, we help students build understanding, confidence, and real skills that last.</p>
       <div class="subject-3x3">
         ${subjects3.map(([title, body, href, tone]) => `
           <a class="glow-card subject-tile" href="${href}">
-            <span class="subject-ico ${tone}" aria-hidden="true">${subjectGlyph(tone)}</span>
+            <span class="subject-tile-top">
+              <span class="subject-ico ${tone}" aria-hidden="true">${subjectGlyph(tone)}</span>
+              <span class="subject-go" aria-hidden="true">${ARROW_ICON}</span>
+            </span>
             <h3>${title}</h3>
             <p>${body}</p>
           </a>
         `).join('')}
       </div>
       <div class="subject-bar">
-        <span>Personalized learning plans</span>
-        <span>Progress tracking</span>
-        <span>Supportive mentors</span>
+        ${SUBJECT_BAR.map(([label, ico]) => `
+          <span><em aria-hidden="true">${ico}</em>${label}</span>
+        `).join('')}
+      </div>
+      <div class="skills-next">
+        <p class="eyebrow">More than academics</p>
+        <h3>Skills for what’s next.</h3>
+        <p>Problem-solving and a growth mindset — not just the next assignment.</p>
       </div>
       ${bookWide()}
-      <p class="page-quiet"><a href="/programs">See programs</a></p>
+      ${frameScroll()}
     </section>
 
-    <section class="home-frame" id="mentors">
+    <section class="home-frame home-frame--mentors" id="mentors">
       <p class="eyebrow eyebrow-dash">Our mentors</p>
       <h2>The right person matters<span class="stop">.</span></h2>
       <p>We match your student with a mentor who fits their subject, level, goals, and learning style.</p>
       <div class="mentor-traits">
-        ${mentorTraits.map(([title, body]) => `
-          <article class="glow-card mentor-trait">
+        ${mentorTraits.map(([title, body], i) => `
+          <article class="mentor-trait">
+            <span class="trait-ico ${TRAIT_ICOS[i][0]}" aria-hidden="true">${TRAIT_ICOS[i][1]}</span>
             <h3>${title}</h3>
             <p>${body}</p>
           </article>
         `).join('')}
       </div>
-      <p class="score-kicker mentor-dir-label">Meet a few of our mentors</p>
-      <div class="mentor-dir">
-        ${mentorPreviewHtml()}
+      <div class="mentor-dir-head">
+        <p class="score-kicker mentor-dir-label">Meet a few of our mentors</p>
+        <a class="mentor-all" href="/mentors">View all mentors →</a>
       </div>
-      <article class="glow-card partner-card">
-        <p>More than a tutor. Our mentors are students, graduates, and professionals who care about your success.</p>
+      <div class="mentor-dir">
+        ${mentorPreviewHtml({ home: true })}
+      </div>
+      <article class="glow-card partner-card partner-card--icon">
+        <span class="partner-ico" aria-hidden="true">${TRAIT_ICOS[0][1]}</span>
+        <p><strong>More than a tutor.</strong> Our mentors are students, graduates, and professionals who care about your success.</p>
       </article>
       ${bookWide()}
-      <p class="page-quiet"><a href="/mentors">Meet our mentors</a></p>
+      ${frameScroll()}
     </section>
 
-    <section class="home-frame" id="group-classes">
+    <section class="home-frame home-frame--fit" id="group-classes">
       <p class="eyebrow eyebrow-dash">Find the right fit</p>
       <h2>Choose the kind of support that fits<span class="stop">.</span></h2>
       <p>1-on-1 mentoring is the core. Small groups are a separate format — same standards, shared goals.</p>
@@ -745,8 +810,9 @@ export function homeAfterChaptersHtml() {
       </div>
       <div class="compare-grid compare-grid--fit">
         <article class="glow-card compare-card compare-card--one">
-          <p class="score-kicker">Personalized. Flexible. Focused.</p>
+          <span class="compare-ico compare-ico--one" aria-hidden="true">${glyph('M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 1.5c-3.3 0-8 1.7-8 5V20h16v-1.5c0-3.3-4.7-5-8-5z')}</span>
           <h3>1-on-1 Mentoring</h3>
+          <p class="score-kicker">Personalized. Flexible. Focused.</p>
           <ul class="compare-list">
             <li>Individualized instruction</li>
             <li>Support with schoolwork</li>
@@ -755,11 +821,12 @@ export function homeAfterChaptersHtml() {
             <li>Flexible scheduling</li>
             <li>Adjusts as goals change</li>
           </ul>
-          <a class="fit-link" href="/consult">Learn more${ARROW_ICON}</a>
+          <a class="fit-link fit-link--one" href="/consult">Learn more${ARROW_ICON}</a>
         </article>
         <article class="glow-card compare-card compare-card--group">
-          <p class="score-kicker">Learn together. Go further.</p>
+          <span class="compare-ico compare-ico--group" aria-hidden="true">${TRAIT_ICOS[0][1]}</span>
           <h3>Small Group Classes</h3>
+          <p class="score-kicker">Learn together. Go further.</p>
           <ul class="compare-list">
             <li>Same standards. Shared goals.</li>
             <li>Structured curriculum</li>
@@ -768,37 +835,39 @@ export function homeAfterChaptersHtml() {
             <li>Engaging and interactive</li>
             <li>Taught by experienced mentors</li>
           </ul>
-          <a class="fit-link" href="/programs/group-classes">Explore group classes${ARROW_ICON}</a>
+          <a class="fit-link fit-link--group" href="/programs/group-classes">Explore group classes${ARROW_ICON}</a>
         </article>
       </div>
-      <article class="glow-card partner-card">
+      <article class="glow-card partner-card partner-card--icon fit-consult">
+        <span class="partner-ico" aria-hidden="true">${glyph('M12 3 3 8v2h18V8zm-7 9h2v7H5zm5 0h4v7h-4zm7 0h2v7h-2z')}</span>
         <p>Not sure which is right for your student? We’ll help you decide during your free consultation.</p>
+        <a class="fit-consult-link" href="/consult">Book a consultation${ARROW_ICON}</a>
       </article>
-      <p class="score-kicker">Common group class topics</p>
+      <p class="score-kicker group-topics-label">Common group class topics</p>
       <div class="group-topics group-topics--4">
-        <article class="glow-card">
+        <article class="glow-card topic-card">
+          <span class="topic-thumb topic-thumb--sat" aria-hidden="true"></span>
           <h3>SAT Prep</h3>
           <p>Strategy, practice, and real progress.</p>
         </article>
-        <article class="glow-card">
+        <article class="glow-card topic-card">
+          <span class="topic-thumb topic-thumb--code" aria-hidden="true"></span>
           <h3>Programming</h3>
           <p>From beginner to advanced.</p>
         </article>
-        <article class="glow-card">
+        <article class="glow-card topic-card">
+          <span class="topic-thumb topic-thumb--robot" aria-hidden="true"></span>
           <h3>Robotics &amp; STEM</h3>
           <p>Build, create, problem solve.</p>
         </article>
-        <article class="glow-card">
+        <article class="glow-card topic-card">
+          <span class="topic-thumb topic-thumb--math" aria-hidden="true"></span>
           <h3>Math Enrichment</h3>
           <p>Stronger foundations and deeper understanding.</p>
         </article>
       </div>
-      <article class="glow-card partner-card">
-        <p class="beat-tagline">Same mission. Different paths.</p>
-        <p>Whether 1-on-1 or in a group, MetaMinds helps students build skills, confidence, and opportunities.</p>
-      </article>
-      <p class="page-quiet">What’s running changes. We won’t list a fake catalog.</p>
       ${bookWide()}
+      ${frameScroll()}
     </section>
 
     <section class="page-block" id="pricing-preview">
