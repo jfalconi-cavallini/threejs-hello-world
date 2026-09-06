@@ -758,15 +758,15 @@ body.is-static-home .earth-hold {
 .chapter-hero::before {
   content: "";
   position: absolute;
-  left: 10%;
+  left: 28%;
   right: -4%;
   bottom: 0;
-  height: 52%;
+  height: 38%;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 46% 58% at 38% 68%, rgba(255, 92, 0, 0.22), transparent 64%),
-    radial-gradient(ellipse 50% 60% at 72% 64%, rgba(61, 139, 255, 0.22), transparent 66%);
-  filter: blur(16px);
+    radial-gradient(ellipse 40% 48% at 36% 86%, rgba(255, 92, 0, 0.16), transparent 68%),
+    radial-gradient(ellipse 42% 50% at 70% 86%, rgba(61, 139, 255, 0.15), transparent 70%);
+  filter: blur(14px);
 }
 
 .chapter-hero::after,
@@ -5172,25 +5172,25 @@ body.is-close-hold .hero-atmosphere {
   width: 86%;
   height: 70%;
   background:
-    radial-gradient(circle 7px at 22% 38%, rgba(255, 92, 0, 0.28), transparent 70%),
-    radial-gradient(circle 5px at 58% 22%, rgba(61, 139, 255, 0.32), transparent 70%),
-    radial-gradient(circle 9px at 78% 48%, rgba(255, 92, 0, 0.22), transparent 70%),
-    radial-gradient(circle 4px at 40% 68%, rgba(61, 139, 255, 0.26), transparent 70%),
-    radial-gradient(circle 6px at 88% 72%, rgba(255, 184, 80, 0.18), transparent 70%);
-  filter: blur(1.2px);
+    radial-gradient(circle 4px at 18% 28%, rgba(255, 92, 0, 0.16), transparent 70%),
+    radial-gradient(circle 3px at 62% 16%, rgba(61, 139, 255, 0.18), transparent 70%),
+    radial-gradient(circle 5px at 88% 42%, rgba(255, 92, 0, 0.12), transparent 70%),
+    radial-gradient(circle 3px at 36% 78%, rgba(61, 139, 255, 0.14), transparent 70%),
+    radial-gradient(circle 4px at 92% 76%, rgba(255, 184, 80, 0.10), transparent 70%);
+  filter: blur(0.8px);
 }
 
 .hero-atmosphere-floor {
   position: absolute;
-  left: 18%;
-  right: -4%;
+  left: 36%;
+  right: -6%;
   bottom: 0;
-  height: 24%;
+  height: 22%;
   background:
-    radial-gradient(ellipse 46% 80% at 38% 100%, rgba(255, 92, 0, 0.34), transparent 72%),
-    radial-gradient(ellipse 46% 80% at 70% 100%, rgba(61, 139, 255, 0.30), transparent 74%);
-  filter: blur(10px);
-  opacity: 0.85;
+    radial-gradient(ellipse 38% 72% at 32% 100%, rgba(255, 92, 0, 0.40), transparent 70%),
+    radial-gradient(ellipse 38% 72% at 68% 100%, rgba(61, 139, 255, 0.36), transparent 72%);
+  filter: blur(12px);
+  opacity: 0.9;
 }
 
 .jose-viz {
@@ -6406,6 +6406,20 @@ body.is-still-shot .chapter {
 
   .copy-hero .hero-cta {
     padding: 10px 14px;
+  }
+
+  .hero-atmosphere-net {
+    right: -12%;
+    top: 36%;
+    width: 72%;
+    height: 58%;
+    opacity: 0.22;
+  }
+
+  .hero-atmosphere-floor {
+    left: 22%;
+    right: -10%;
+    height: 20%;
   }
 
   .lb-intro .scroll-marker--phone,

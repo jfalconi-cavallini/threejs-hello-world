@@ -5,6 +5,11 @@ import { fileURLToPath } from 'node:url'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
+import {
+  BRAIN_SAMPLE_OPTIONS,
+  modelToParticlePositions,
+} from '../src/sample-mesh.js'
+
 // Offline sample of the three homepage forms. The parent-facing
 // boot path ships these Float32 bins (~60KB each) instead of
 // decoding lightbulb.glb (14.7MB) / logo.glb (7.6MB) on hard refresh.
@@ -92,173 +97,6 @@ function parseGLB(filePath) {
   })
 }
 
-function modelToParticlePositions(model, desiredSize, puffScale, count) {
-  model.updateMatrixWorld(true)
-
-  const STRIDE = 10
-  const maxTris = Math.max(count * 8, 8000)
-  const packed = new Float32Array(maxTris * STRIDE)
-  let stored = 0
-  let seen = 0
-  let totalArea = 0
-
-  const vA = new THREE.Vector3()
-  const vB = new THREE.Vector3()
-  const vC = new THREE.Vector3()
-  const edge1 = new THREE.Vector3()
-  const edge2 = new THREE.Vector3()
-  const cross = new THREE.Vector3()
-
-  let minX = Infinity
-  let minY = Infinity
-  let minZ = Infinity
-  let maxX = -Infinity
-  let maxY = -Infinity
-  let maxZ = -Infinity
-
-  const writeTri = (slot, area) => {
-    const base = slot * STRIDE
-    packed[base] = vA.x
-    packed[base + 1] = vA.y
-    packed[base + 2] = vA.z
-    packed[base + 3] = vB.x
-    packed[base + 4] = vB.y
-    packed[base + 5] = vB.z
-    packed[base + 6] = vC.x
-    packed[base + 7] = vC.y
-    packed[base + 8] = vC.z
-    packed[base + 9] = area
-  }
-
-  model.traverse((child) => {
-    if (!child.isMesh) return
-    const geo = child.geometry
-    if (!geo?.attributes?.position) return
-
-    const pos = geo.attributes.position
-    const idx = geo.index
-    const faceCount = idx ? idx.count / 3 : pos.count / 3
-
-    for (let f = 0; f < faceCount; f++) {
-      const a = idx ? idx.getX(f * 3) : f * 3
-      const b = idx ? idx.getX(f * 3 + 1) : f * 3 + 1
-      const c = idx ? idx.getX(f * 3 + 2) : f * 3 + 2
-
-      vA.fromBufferAttribute(pos, a).applyMatrix4(child.matrixWorld)
-      vB.fromBufferAttribute(pos, b).applyMatrix4(child.matrixWorld)
-      vC.fromBufferAttribute(pos, c).applyMatrix4(child.matrixWorld)
-
-      edge1.subVectors(vB, vA)
-      edge2.subVectors(vC, vA)
-      cross.crossVectors(edge1, edge2)
-      const area = cross.length() * 0.5
-      if (area < 1e-10) continue
-
-      seen += 1
-
-      if (stored < maxTris) {
-        writeTri(stored, area)
-        totalArea += area
-        stored += 1
-      } else {
-        const j = Math.floor(Math.random() * seen)
-        if (j < maxTris) {
-          totalArea -= packed[j * STRIDE + 9]
-          writeTri(j, area)
-          totalArea += area
-        }
-      }
-
-      minX = Math.min(minX, vA.x, vB.x, vC.x)
-      minY = Math.min(minY, vA.y, vB.y, vC.y)
-      minZ = Math.min(minZ, vA.z, vB.z, vC.z)
-      maxX = Math.max(maxX, vA.x, vB.x, vC.x)
-      maxY = Math.max(maxY, vA.y, vB.y, vC.y)
-      maxZ = Math.max(maxZ, vA.z, vB.z, vC.z)
-    }
-  })
-
-  if (!stored || totalArea <= 0) {
-    throw new Error('Model contained no usable mesh vertices.')
-  }
-
-  const cdf = new Float64Array(stored)
-  let cumulative = 0
-  for (let t = 0; t < stored; t++) {
-    cumulative += packed[t * STRIDE + 9] / totalArea
-    cdf[t] = cumulative
-  }
-
-  const centerX = (minX + maxX) / 2
-  const centerY = (minY + maxY) / 2
-  const centerZ = (minZ + maxZ) / 2
-  const scale =
-    desiredSize / Math.max(maxX - minX, maxY - minY, maxZ - minZ)
-
-  const output = new Float32Array(count * 3)
-
-  for (let i = 0; i < count; i++) {
-    const r = Math.random()
-    let lo = 0
-    let hi = stored - 1
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1
-      if (cdf[mid] < r) lo = mid + 1
-      else hi = mid
-    }
-    const base = lo * STRIDE
-
-    let u = Math.random()
-    let v = Math.random()
-    if (u + v > 1) {
-      u = 1 - u
-      v = 1 - v
-    }
-    const w = 1 - u - v
-
-    const i3 = i * 3
-    const px =
-      (w * packed[base] +
-        u * packed[base + 3] +
-        v * packed[base + 6] -
-        centerX) *
-      scale
-    const py =
-      (w * packed[base + 1] +
-        u * packed[base + 4] +
-        v * packed[base + 7] -
-        centerY) *
-      scale
-    const pz =
-      (w * packed[base + 2] +
-        u * packed[base + 5] +
-        v * packed[base + 8] -
-        centerZ) *
-      scale
-
-    const e1x = packed[base + 3] - packed[base]
-    const e1y = packed[base + 4] - packed[base + 1]
-    const e1z = packed[base + 5] - packed[base + 2]
-    const e2x = packed[base + 6] - packed[base]
-    const e2y = packed[base + 7] - packed[base + 1]
-    const e2z = packed[base + 8] - packed[base + 2]
-    let nx = e1y * e2z - e1z * e2y
-    let ny = e1z * e2x - e1x * e2z
-    let nz = e1x * e2y - e1y * e2x
-    const nlen = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1
-    nx /= nlen
-    ny /= nlen
-    nz /= nlen
-
-    const puff = (Math.random() - 0.22) * 0.22 * puffScale
-    output[i3] = px + nx * puff
-    output[i3 + 1] = py + ny * puff
-    output[i3 + 2] = pz + nz * puff
-  }
-
-  return output
-}
-
 function writeBake(name, positions) {
   if (positions.length !== BAKE_COUNT * 3) {
     throw new Error(`${name} bake length ${positions.length}`)
@@ -279,13 +117,17 @@ function writeBake(name, positions) {
 
 const jobs = [
   {
-    // Topology source for the hero / morph brain. Area-weighted
+    // Topology source for the hero / morph brain. Outer-cortex
     // triangle samples off public/models/brain.glb — not a
-    // procedural cortex SDF.
+    // procedural SDF, not a volume fill of cerebellum / internals.
     name: 'brain',
     file: 'brain.glb',
     size: BRAIN_SIZE,
-    puff: 0.10,
+    puff: BRAIN_SAMPLE_OPTIONS.puff,
+    options: {
+      ...BRAIN_SAMPLE_OPTIONS,
+      maxTris: 52000,
+    },
   },
   {
     name: 'lightbulb',
@@ -309,8 +151,12 @@ for (const job of jobs) {
     gltf.scene,
     job.size,
     job.puff,
-    BAKE_COUNT
+    BAKE_COUNT,
+    job.options
   )
+  if (!positions) {
+    throw new Error(`${job.name} produced no samples`)
+  }
   writeBake(job.name, positions)
 }
 

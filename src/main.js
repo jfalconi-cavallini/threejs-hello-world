@@ -27,6 +27,10 @@ import {
   buildPlexusSegments,
   finishBrainPositions,
 } from './brain-form.js'
+import {
+  BRAIN_SAMPLE_OPTIONS,
+  modelToParticlePositions,
+} from './sample-mesh.js'
 
 import './style.css'
 
@@ -257,26 +261,26 @@ const LOGO_SIZE = 4.6
 // in the right half with air. 4.1–4.8 parked the mesh past the
 // right clip even at 1440px (lookAt only follows 18% of form X).
 const RIGHT_X = 1.72
-const HERO_BRAIN_X = 2.42
+const HERO_BRAIN_X = 2.28
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390×844): GLB-sampled particle brain in the lower-right
-// well. Type stays upper-left — never cover headline / CTA.
-// Framing only. Do not raise particle count.
+// Phone (~390×844): whole GLB cortex in the lower-right well —
+// two hemispheres + fissure must read, not a cropped smear.
+// Type stays upper-left. Framing only. Do not raise particle count.
 const MOBILE_X = 0.02
-const MOBILE_HERO_X = 0.98
+const MOBILE_HERO_X = 0.56
 const MOBILE_HOLD_Y = -1.35
-const MOBILE_HERO_Y = -1.72
+const MOBILE_HERO_Y = -0.96
 const MOBILE_BULB_Y = -1.68
 const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 1.22
+const MOBILE_HERO_SCALE = 0.90
 const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
 const MOBILE_MORPH_SCALE = 0.68
@@ -284,8 +288,8 @@ const MOBILE_BULB_SCALE = 0.74
 const MOBILE_EARTH_SCALE = 0.44
 const MOBILE_TEAM_SCALE = 0.22
 const DESKTOP_HOLD_SCALE = 0.78
-const DESKTOP_HERO_SCALE = 0.68
-const DESKTOP_HERO_Y = -0.78
+const DESKTOP_HERO_SCALE = 0.72
+const DESKTOP_HERO_Y = -0.58
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -737,6 +741,7 @@ function createPointMaterial({
     uDrift: { value: drift },
     uAlpha: { value: alpha },
     uSoft: { value: 0 },
+    uFacet: { value: 1 },
   }
 
   const material =
@@ -754,6 +759,7 @@ function createPointMaterial({
         uniform float uSize;
         uniform float uDrift;
         uniform float uSoft;
+        uniform float uFacet;
         attribute float aScale;
         attribute vec3 color;
         varying vec3 vColor;
@@ -772,8 +778,8 @@ function createPointMaterial({
           float dist = max(0.42, -mvPosition.z);
           float atten = 12.4 / dist;
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, mix(33.0, 14.0, uSoft));
-          gl_PointSize = max(sz, 1.4);
+          sz = min(sz, mix(7.2, 4.6, uSoft));
+          gl_PointSize = max(sz, 1.0);
           gl_Position = projectionMatrix * mvPosition;
           // Slow tumble, unique per particle so the field doesn't
           // read as a uniform grid of identical facets.
@@ -783,6 +789,7 @@ function createPointMaterial({
       fragmentShader: `
         uniform float uAlpha;
         uniform float uSoft;
+        uniform float uFacet;
         varying vec3 vColor;
         varying float vAngle;
 
@@ -813,12 +820,14 @@ function createPointMaterial({
           float edge = 1.0 - smoothstep(lw - aa, lw + aa, abs(d));
           float fill = smoothstep(0.0, -0.55, d) * 0.16;
           float tri = clamp(edge + fill, 0.0, 1.0);
-          float glow = smoothstep(0.92, 0.12, disc);
-          float core = mix(tri, glow, uSoft);
+          float glow = smoothstep(0.58, 0.10, disc);
+          float pin = smoothstep(0.48, 0.08, disc);
+          float facet = mix(tri, glow, uSoft);
+          float core = mix(pin, facet, uFacet);
 
           if (core < 0.02) discard;
 
-          gl_FragColor = vec4(vColor * mix(1.1, 1.35, uSoft), core * uAlpha);
+          gl_FragColor = vec4(vColor * mix(1.12, 1.08, uFacet), core * uAlpha);
         }
       `,
     })
@@ -872,9 +881,9 @@ particleGeometry.setAttribute(
 
 const particleMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 8.5 : 7,
-    drift: REDUCED_MOTION ? 0 : 0.042,
-    alpha: 0.9,
+    size: MOBILE_AT_LOAD ? 3.05 : 3.4,
+    drift: REDUCED_MOTION ? 0 : 0.028,
+    alpha: 0.96,
     additive: true,
   })
 
@@ -1192,9 +1201,9 @@ for (
     Math.PI
 
   scales[i] =
-    0.72 +
+    0.84 +
     Math.random() *
-    1.0
+    0.34
 
   morphOffsets[i] =
     Math.random() *
@@ -1213,6 +1222,7 @@ let volumeField = null
 let logoDetail = null
 let heroBrainDetail = null
 let heroPlexus = null
+let heroFloor = null
 
 // Extra volumetric dust — golden-ratio sphere, no Math.random
 // so the existing RNG stream for forms/explosions stays intact.
@@ -1454,174 +1464,13 @@ function loadGLB(url) {
   )
 }
 
-// ======================================================
-// MODEL -> PARTICLES
-// ======================================================
-
-function modelToParticlePositions(
-  model,
-  desiredSize,
-  puffScale = 1,
-  count = PARTICLE_COUNT
-) {
-  model.updateMatrixWorld(true)
-
-  // Packed triangle store. The old JS `tris.push(...)` on
-  // lightbulb.glb / logo.glb allocated tens of MB of boxed
-  // numbers and Aw Snap'd before createPage. Mobile keeps a
-  // reservoir of faces; desktop caps the typed buffer.
-  const STRIDE = 10 // 9 floats + 1 area
-  // Desktop was a hard 20k-tri pack (800KB) on every GLB. Cap at
-  // count * 4 so a 5k-point bake fallback cannot spike past the
-  // particle budget. Happy path never packs — it reads .f32.bin.
-  const maxTris = MOBILE_AT_LOAD
-    ? Math.max(count * 8, 2400)
-    : Math.max(count * 4, 64)
-  const packed =
-    new Float32Array(maxTris * STRIDE)
-  let stored = 0
-  let seen = 0
-  let totalArea = 0
-
-  const vA = new THREE.Vector3()
-  const vB = new THREE.Vector3()
-  const vC = new THREE.Vector3()
-  const edge1 = new THREE.Vector3()
-  const edge2 = new THREE.Vector3()
-  const cross = new THREE.Vector3()
-
-  let minX = Infinity, minY = Infinity, minZ = Infinity
-  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity
-
-  const writeTri = (slot, area) => {
-    const base = slot * STRIDE
-    packed[base]     = vA.x
-    packed[base + 1] = vA.y
-    packed[base + 2] = vA.z
-    packed[base + 3] = vB.x
-    packed[base + 4] = vB.y
-    packed[base + 5] = vB.z
-    packed[base + 6] = vC.x
-    packed[base + 7] = vC.y
-    packed[base + 8] = vC.z
-    packed[base + 9] = area
+function meshSampleOptions(count, extra = {}) {
+  return {
+    maxTris: MOBILE_AT_LOAD
+      ? Math.max(count * 8, 2400)
+      : Math.max(count * 4, 64),
+    ...extra,
   }
-
-  model.traverse((child) => {
-    if (!child.isMesh) return
-    const geo = child.geometry
-    if (!geo?.attributes?.position) return
-
-    const pos = geo.attributes.position
-    const idx = geo.index
-    const faceCount = idx ? idx.count / 3 : pos.count / 3
-
-    for (let f = 0; f < faceCount; f++) {
-      const a = idx ? idx.getX(f * 3)     : f * 3
-      const b = idx ? idx.getX(f * 3 + 1) : f * 3 + 1
-      const c = idx ? idx.getX(f * 3 + 2) : f * 3 + 2
-
-      vA.fromBufferAttribute(pos, a).applyMatrix4(child.matrixWorld)
-      vB.fromBufferAttribute(pos, b).applyMatrix4(child.matrixWorld)
-      vC.fromBufferAttribute(pos, c).applyMatrix4(child.matrixWorld)
-
-      edge1.subVectors(vB, vA)
-      edge2.subVectors(vC, vA)
-      cross.crossVectors(edge1, edge2)
-      const area = cross.length() * 0.5
-      if (area < 1e-10) continue
-
-      seen += 1
-
-      if (stored < maxTris) {
-        writeTri(stored, area)
-        totalArea += area
-        stored += 1
-      } else {
-        const j = Math.floor(Math.random() * seen)
-        if (j < maxTris) {
-          totalArea -= packed[j * STRIDE + 9]
-          writeTri(j, area)
-          totalArea += area
-        }
-      }
-
-      minX = Math.min(minX, vA.x, vB.x, vC.x)
-      minY = Math.min(minY, vA.y, vB.y, vC.y)
-      minZ = Math.min(minZ, vA.z, vB.z, vC.z)
-      maxX = Math.max(maxX, vA.x, vB.x, vC.x)
-      maxY = Math.max(maxY, vA.y, vB.y, vC.y)
-      maxZ = Math.max(maxZ, vA.z, vB.z, vC.z)
-    }
-  })
-
-  if (!stored || totalArea <= 0) return null
-
-  const tris = packed
-  const triCount = stored
-
-  // Build CDF for area-weighted triangle selection
-  const cdf = new Float64Array(triCount)
-  let cumulative = 0
-  for (let t = 0; t < triCount; t++) {
-    cumulative += tris[t * STRIDE + 9] / totalArea
-    cdf[t] = cumulative
-  }
-
-  const centerX = (minX + maxX) / 2
-  const centerY = (minY + maxY) / 2
-  const centerZ = (minZ + maxZ) / 2
-  const scale = desiredSize / Math.max(maxX - minX, maxY - minY, maxZ - minZ)
-
-  const output = new Float32Array(count * 3)
-
-  for (let i = 0; i < count; i++) {
-    // Binary search: pick a triangle weighted by surface area
-    const r = Math.random()
-    let lo = 0, hi = triCount - 1
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1
-      if (cdf[mid] < r) lo = mid + 1
-      else hi = mid
-    }
-    const base = lo * STRIDE
-
-    // Random point inside the triangle via barycentric coords
-    let u = Math.random(), v = Math.random()
-    if (u + v > 1) { u = 1 - u; v = 1 - v }
-    const w = 1 - u - v
-
-    const i3 = i * 3
-    const px = (w * tris[base]     + u * tris[base + 3] + v * tris[base + 6] - centerX) * scale
-    const py = (w * tris[base + 1] + u * tris[base + 4] + v * tris[base + 7] - centerY) * scale
-    const pz = (w * tris[base + 2] + u * tris[base + 5] + v * tris[base + 8] - centerZ) * scale
-
-    // Puff along the triangle's own face normal, not the vector from
-    // the model's bounding-box center. A center-relative puff smears
-    // points sideways across whatever is laid out along that axis —
-    // fatal for a wide horizontal wordmark, where it blurs letters
-    // into their neighbors instead of just thickening each stroke.
-    const e1x = tris[base + 3] - tris[base]
-    const e1y = tris[base + 4] - tris[base + 1]
-    const e1z = tris[base + 5] - tris[base + 2]
-    const e2x = tris[base + 6] - tris[base]
-    const e2y = tris[base + 7] - tris[base + 1]
-    const e2z = tris[base + 8] - tris[base + 2]
-    let nx = e1y * e2z - e1z * e2y
-    let ny = e1z * e2x - e1x * e2z
-    let nz = e1x * e2y - e1y * e2x
-    const nlen = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1
-    nx /= nlen
-    ny /= nlen
-    nz /= nlen
-
-    const puff = (Math.random() - 0.22) * 0.22 * puffScale
-    output[i3]     = px + nx * puff
-    output[i3 + 1] = py + ny * puff
-    output[i3 + 2] = pz + nz * puff
-  }
-
-  return output
 }
 
 // ======================================================
@@ -1634,7 +1483,9 @@ function generateLogoPositions(logoScene) {
   return modelToParticlePositions(
     logoScene,
     LOGO_SIZE,
-    0.25
+    0.25,
+    PARTICLE_COUNT,
+    meshSampleOptions(PARTICLE_COUNT)
   )
 }
 
@@ -1650,8 +1501,9 @@ function buildHeroBrainDetail(brainScene) {
   const positions = modelToParticlePositions(
     brainScene,
     BRAIN_SIZE,
-    0.25,
-    HERO_BRAIN_DETAIL_COUNT
+    BRAIN_SAMPLE_OPTIONS.puff,
+    HERO_BRAIN_DETAIL_COUNT,
+    meshSampleOptions(HERO_BRAIN_DETAIL_COUNT, BRAIN_SAMPLE_OPTIONS)
   )
 
   if (!positions) {
@@ -1744,7 +1596,8 @@ function buildLogoDetail(
     logoScene,
     LOGO_SIZE,
     0.1,
-    oversample
+    oversample,
+    meshSampleOptions(oversample)
   )
 
   if (!rawPositions) {
@@ -1841,8 +1694,9 @@ function buildLogoDetail(
   const brainRaw = modelToParticlePositions(
     brainScene,
     iconBrainSize,
-    0.22,
-    brainRawCount
+    BRAIN_SAMPLE_OPTIONS.puff,
+    brainRawCount,
+    meshSampleOptions(brainRawCount, BRAIN_SAMPLE_OPTIONS)
   )
 
   let brainMinX = Infinity
@@ -2501,26 +2355,24 @@ function applyScrollCamera(p) {
       (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
       (p >= STAGE.earthForm && p < STAGE.earthHold)
 
-    // Hero stays closer so the GLB brain fills the lower-right well
-    // instead of sitting behind the CTA as a distant sliver.
+    // Hero stays in the lower-right well, pulled back just enough
+    // that both hemispheres + the fissure stay in frame.
     const onHero = p < STAGE.brainMove
     const onHeroHold = p < STAGE.brainHold
     cameraTarget.z *= onLogo
       ? 2.05
       : onHero
-        ? 0.92
+        ? 1.08
         : onCopyHold
           ? 1.28
           : 1.18
 
     if (!onLogo) {
-      cameraTarget.x *= onHeroHold ? -0.06 : 0.08
+      cameraTarget.x *= onHeroHold ? -0.02 : 0.08
     }
 
-    // Keep the brain in the lower well. A positive Y lift is what
-    // parked the form on the headline / CTA.
     if (onHeroHold) {
-      cameraTarget.y = -0.10
+      cameraTarget.y = 0.04
     }
   }
 
@@ -2729,7 +2581,7 @@ function containFormInView() {
     ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.42 : midHold ? 0.46 : 0.32)
     : (heroCopy ? 0.30 : tall ? 0.12 : 0.12)
   const padBot = mobile
-    ? ((heroCopy || bulbCopy) ? -0.14 : midHold ? 0.02 : 0.05)
+    ? (heroCopy ? 0.16 : bulbCopy ? -0.14 : midHold ? 0.02 : 0.05)
     : (tall ? 0.22 : 0.14)
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
@@ -2784,9 +2636,9 @@ function containFormInView() {
       cap = 0.82
       transformTarget.y = Math.min(transformTarget.y, -1.45)
     } else if (heroCopy) {
-      cap = 1.24
-      transformTarget.x = Math.max(0.78, Math.min(1.12, transformTarget.x))
-      transformTarget.y = Math.min(transformTarget.y, -1.52)
+      cap = 0.94
+      transformTarget.x = Math.max(0.38, Math.min(0.70, transformTarget.x))
+      transformTarget.y = Math.max(-1.12, Math.min(-0.78, transformTarget.y))
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -2795,8 +2647,8 @@ function containFormInView() {
     )
   } else if (heroCopy) {
     transformTarget.x = Math.max(2.05, transformTarget.x)
-    transformTarget.y = Math.min(transformTarget.y, -0.62)
-    transformTarget.s = Math.min(transformTarget.s, 0.72)
+    transformTarget.y = Math.min(transformTarget.y, -0.48)
+    transformTarget.s = Math.min(transformTarget.s, 0.76)
   }
 
   if (!heroCopy && transformTarget.x - radius < viewL) {
@@ -3634,12 +3486,14 @@ async function loadBakedPositions(url) {
   return sliceBake(full)
 }
 
-async function sampleGlbForm(url, desiredSize, puffScale = 1) {
+async function sampleGlbForm(url, desiredSize, puffScale = 1, extra = {}) {
   const glb = await loadGLB(url)
   const positions = modelToParticlePositions(
     glb.scene,
     desiredSize,
-    puffScale
+    puffScale,
+    PARTICLE_COUNT,
+    meshSampleOptions(PARTICLE_COUNT, extra)
   )
   disposeObject3D(glb.scene)
   return positions
@@ -3653,7 +3507,13 @@ async function loadFormPositions(name, glbUrl, desiredSize, puffScale = 1) {
     }
     return baked
   } catch {
-    const sampled = await sampleGlbForm(glbUrl, desiredSize, puffScale)
+    const extra = name === 'brain' ? BRAIN_SAMPLE_OPTIONS : {}
+    const sampled = await sampleGlbForm(
+      glbUrl,
+      desiredSize,
+      name === 'brain' ? BRAIN_SAMPLE_OPTIONS.puff : puffScale,
+      extra
+    )
     if (name === 'brain' && sampled) {
       return finishBrainPositions(sampled, desiredSize)
     }
@@ -3775,11 +3635,14 @@ function bindBrainForm() {
 }
 
 function buildHeroPlexus(positions) {
-  if (MOBILE_AT_LOAD || REDUCED_MOTION) {
+  if (REDUCED_MOTION) {
     return null
   }
 
-  const segs = buildPlexusSegments(positions, 720)
+  const segs = buildPlexusSegments(
+    positions,
+    MOBILE_AT_LOAD ? 320 : 720
+  )
   if (!segs || segs.length < 6) {
     return null
   }
@@ -3817,22 +3680,65 @@ function buildHeroPlexus(positions) {
   return lines
 }
 
+function buildHeroFloor() {
+  const geometry = new THREE.PlaneGeometry(3.9, 2.15)
+  const material = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+    uniforms: {
+      uAlpha: { value: 0 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec2 vUv;
+      uniform float uAlpha;
+      void main() {
+        vec2 p = vUv * 2.0 - 1.0;
+        float left = exp(-pow((p.x + 0.30) / 0.46, 2.0) - pow(p.y / 0.36, 2.0));
+        float right = exp(-pow((p.x - 0.30) / 0.46, 2.0) - pow(p.y / 0.36, 2.0));
+        vec3 col =
+          vec3(1.0, 0.38, 0.04) * left * 0.62 +
+          vec3(0.22, 0.52, 1.0) * right * 0.58;
+        float a = (left + right) * uAlpha;
+        if (a < 0.012) discard;
+        gl_FragColor = vec4(col, a);
+      }
+    `,
+  })
+
+  const mesh = new THREE.Mesh(geometry, material)
+  mesh.rotation.x = -Math.PI / 2
+  mesh.frustumCulled = false
+  mesh.visible = false
+  scene.add(mesh)
+  return mesh
+}
+
 async function bootExperience() {
   // CPU only. Do not construct WebGL until the brain buffer
   // is in memory — first paint must not decode 15MB GLBs.
-  // Hero hold is the GLB-sampled particle brain (same PARTICLE_COUNT
-  // as the morph budget). Happy path reads the Float32 bake of
-  // public/models/brain.glb — never a procedural SDF blob, never a
-  // PNG/JPG plate. No extra Points / bloom / DPR.
+  // Hero hold is the GLB outer-cortex particle brain (same
+  // PARTICLE_COUNT as the morph budget). Happy path reads the
+  // Float32 bake of public/models/brain.glb — never a procedural
+  // SDF blob, never a PNG/JPG plate. No extra Points / bloom / DPR.
   brainPositions = await loadFormPositions(
     'brain',
     BRAIN_GLB_URL,
     BRAIN_SIZE,
-    0.10
+    BRAIN_SAMPLE_OPTIONS.puff
   )
 
   renderer = createWebGLRenderer()
   heroPlexus = buildHeroPlexus(brainPositions)
+  heroFloor = buildHeroFloor()
   bindBrainForm()
   startLoop()
   armFirstFrameWatchdog()
@@ -5038,23 +4944,24 @@ function updateParticleInstances(
           )
 
         if (isBrainForm) {
-          if (normalizedX < 0.48) {
+          if (normalizedX < 0.47) {
             tempColor.lerpColors(
               HERO_ORANGE,
               HERO_AMBER,
-              normalizedX / 0.48
+              normalizedX / 0.47
             )
-          } else if (normalizedX < 0.52) {
+          } else if (normalizedX < 0.53) {
             tempColor.lerpColors(
               HERO_ORANGE,
               HERO_CYAN,
-              (normalizedX - 0.48) / 0.04
+              (normalizedX - 0.47) / 0.06
             )
+            tempColor.multiplyScalar(0.22)
           } else {
             tempColor.lerpColors(
               HERO_CYAN,
               HERO_ICE,
-              (normalizedX - 0.52) / 0.48
+              (normalizedX - 0.53) / 0.47
             )
           }
         } else if (normalizedX < 0.45) {
@@ -5624,6 +5531,11 @@ function animate() {
         heroPlexus.material.opacity = 0
         heroPlexus.visible = false
       }
+
+      if (heroFloor) {
+        heroFloor.material.uniforms.uAlpha.value = 0
+        heroFloor.visible = false
+      }
     } else {
       particles.visible = true
       debris.visible = true
@@ -5679,12 +5591,12 @@ function animate() {
 
       particleMaterial.uniforms.uAlpha.value +=
         (
-          0.9 -
+          (onBrainHold ? 0.96 : 0.9) -
           particleMaterial.uniforms.uAlpha.value
         ) *
         0.1
 
-      const softTarget = onBrainHold ? 0.92 : 0
+      const softTarget = onBrainHold ? 0.08 : 0
       particleMaterial.uniforms.uSoft.value +=
         (
           softTarget -
@@ -5692,10 +5604,20 @@ function animate() {
         ) *
         0.12
 
+      const facetTarget = onBrainHold ? 0 : 1
+      if (particleMaterial.uniforms.uFacet) {
+        particleMaterial.uniforms.uFacet.value +=
+          (
+            facetTarget -
+            particleMaterial.uniforms.uFacet.value
+          ) *
+          0.14
+      }
+
       const driftTarget =
         onBrainHold
-          ? (REDUCED_MOTION ? 0 : 0.055)
-          : (REDUCED_MOTION ? 0 : 0.042)
+          ? (REDUCED_MOTION ? 0 : 0.016)
+          : (REDUCED_MOTION ? 0 : 0.028)
       particleMaterial.uniforms.uDrift.value +=
         (
           driftTarget -
@@ -5704,10 +5626,23 @@ function animate() {
         0.1
 
       if (heroPlexus) {
-        const plexusTarget = hideStage ? 0 : onBrainHold ? 0.28 : 0
+        const plexusTarget = hideStage ? 0 : onBrainHold ? 0.52 : 0
         heroPlexus.material.opacity +=
           (plexusTarget - heroPlexus.material.opacity) * 0.12
         heroPlexus.visible = heroPlexus.material.opacity > 0.02
+      }
+
+      if (heroFloor) {
+        const floorTarget = hideStage ? 0 : onBrainHold ? 0.72 : 0
+        heroFloor.material.uniforms.uAlpha.value +=
+          (floorTarget - heroFloor.material.uniforms.uAlpha.value) * 0.12
+        heroFloor.visible =
+          heroFloor.material.uniforms.uAlpha.value > 0.02
+        const s = particles.scale.x
+        heroFloor.position.x = particles.position.x * 0.94
+        heroFloor.position.y = particles.position.y - 1.48 * s
+        heroFloor.position.z = 0.06
+        heroFloor.scale.set(s * 1.05, s * 0.62, 1)
       }
 
       if (logoDetail) {
@@ -5741,15 +5676,17 @@ function animate() {
         heroBrainDetail.material.uniforms.uAlpha.value > 0.02
     }
 
-    const logoBlend =
-      THREE.AdditiveBlending
+    const holdBlend =
+      onBrainHold
+        ? THREE.NormalBlending
+        : THREE.AdditiveBlending
 
     if (
       particleMaterial.blending !==
-      logoBlend
+      holdBlend
     ) {
       particleMaterial.blending =
-        logoBlend
+        holdBlend
       particleMaterial.needsUpdate =
         true
     }
