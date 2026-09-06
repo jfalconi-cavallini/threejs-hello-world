@@ -19,6 +19,7 @@ import {
   PARENT_ICON,
   VIDEO_ICON,
   NEARBY_ICON,
+  BEAT_GO,
 } from './chrome.js'
 import { createHomeAfter } from './home-after.js'
 
@@ -4277,26 +4278,29 @@ function createPage() {
         <h2>Tutoring shouldn’t disappear when the hour ends<span class="stop">.</span></h2>
         <p>Every session should lead to the next step.</p>
         <div class="beat-cards">
-          <article class="beat-card">
-            <span class="beat-card-icon" aria-hidden="true">${TARGET_ICON}</span>
+          <article class="beat-card beat-card--go">
+            <span class="beat-card-icon beat-card-icon--orange" aria-hidden="true">${TARGET_ICON}</span>
             <div>
               <h3>Targeted practice</h3>
               <p>Homework matched to the weak spot from that session.</p>
             </div>
+            ${BEAT_GO}
           </article>
-          <article class="beat-card">
+          <article class="beat-card beat-card--go">
             <span class="beat-card-icon" aria-hidden="true">${NOTE_ICON}</span>
             <div>
               <h3>Session notes</h3>
               <p>Clear notes on what was covered and what comes next.</p>
             </div>
+            ${BEAT_GO}
           </article>
-          <article class="beat-card">
-            <span class="beat-card-icon" aria-hidden="true">${PARENT_ICON}</span>
+          <article class="beat-card beat-card--go">
+            <span class="beat-card-icon beat-card-icon--orange" aria-hidden="true">${PARENT_ICON}</span>
             <div>
               <h3>Parent updates</h3>
               <p>Quick updates so you know how things are going.</p>
             </div>
+            ${BEAT_GO}
           </article>
         </div>
         <div class="scroll-marker scroll-marker--in-copy">
@@ -4363,21 +4367,12 @@ function createPage() {
       class="chapter logo-hold-chapter"
     >
       <div class="copy copy-center copy-consult">
-        <span class="brand-plate end-mark-plate">
-          <img
-            class="end-mark"
-            src="/metaminds-logo-lock.png"
-            alt="MetaMinds STEM Academy"
-          >
-        </span>
+        <p class="end-word">MetaMinds</p>
         <h2>
           One student. One plan. Years of growth.
         </h2>
         <p>
           Free. 30 minutes. No obligation.
-        </p>
-        <p>
-          DFW. Zoom. A mentor who stays.
         </p>
         <a
           href="/consult"
@@ -5257,11 +5252,9 @@ function animate() {
       || document.querySelector('.earth-hold')
         ?.classList.contains('is-live') === true
 
-    // Close plate is the PNG lockup. Hide the particle stage only
-    // once the logo is fully formed, the logo chapter is on screen,
-    // or consult is already painted. Hiding during logo-forming
-    // left a black gap on phone — the canvas went away before the
-    // plate won exclusive paint.
+    // Close hold is the readable MetaMinds word (DOM type, not the
+    // PNG plate). Hide the particle stage once the logo is formed,
+    // the logo chapter is on screen, or consult is already painted.
     const hideStage =
       onLogoHold ||
       isCloseHoldStory() ||
@@ -5671,21 +5664,50 @@ window.addEventListener(
   }
 )
 
+function scrollStillTarget() {
+  const sel = new URLSearchParams(window.location.search).get('still')
+  if (!sel) {
+    return
+  }
+
+  const el = document.querySelector(sel)
+  if (!el) {
+    return
+  }
+
+  document.body.classList.add('is-still-shot')
+  if (
+    el.classList.contains('logo-hold-chapter') ||
+    el.id === 'consultation'
+  ) {
+    document.body.classList.add('is-close-hold')
+  }
+  document.querySelectorAll('.chapter, .home-frame, .page-block').forEach((node) => {
+    if (node === el || node.contains(el) || el.contains(node)) {
+      return
+    }
+    node.setAttribute('hidden', '')
+  })
+  window.scrollTo(0, 0)
+}
+
 async function startHome() {
   createPage()
-
-  await afterIdle()
 
   if (previousBootCrashed()) {
     clearBootAttempt()
     enableStaticFallback(true)
+    scrollStillTarget()
     return
   }
 
   if (shouldSkipWebGL()) {
     enableStaticFallback()
+    scrollStillTarget()
     return
   }
+
+  await afterIdle()
 
   try {
     markBootAttempt()

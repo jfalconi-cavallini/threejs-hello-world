@@ -4,7 +4,7 @@ export function createHomeAfter() {
   const after = document.createElement('div')
   after.className = 'home-after'
   after.innerHTML = `
-    <div class="home-after-inner site-shell">
+    <div class="home-after-inner">
       ${homeAfterChaptersHtml()}
     </div>
   `
