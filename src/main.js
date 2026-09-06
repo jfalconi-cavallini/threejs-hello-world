@@ -23,10 +23,7 @@ import {
 } from './chrome.js'
 import { createHomeAfter } from './home-after.js'
 import { mountLookBar } from './look-bar.js'
-import {
-  generateBrainPositions,
-  buildPlexusSegments,
-} from './brain-form.js'
+import { buildPlexusSegments } from './brain-form.js'
 
 import './style.css'
 
@@ -248,6 +245,7 @@ disposeExistingRenderer()
 // ======================================================
 
 const BRAIN_SIZE = 3.2
+const BRAIN_GLB_URL = '/models/brain.glb'
 const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
@@ -263,18 +261,19 @@ const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390×844): Jose elite hero — particle brain in the lower
-// well. Type stays upper-left. Framing only. Do not raise particle count.
+// Phone (~390×844): GLB-sampled particle brain in the lower-right
+// well. Type stays upper-left — never cover headline / CTA.
+// Framing only. Do not raise particle count.
 const MOBILE_X = 0.02
-const MOBILE_HERO_X = 0.58
+const MOBILE_HERO_X = 0.86
 const MOBILE_HOLD_Y = -1.35
-const MOBILE_HERO_Y = -1.18
+const MOBILE_HERO_Y = -1.46
 const MOBILE_BULB_Y = -1.68
 const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 1.68
+const MOBILE_HERO_SCALE = 1.38
 const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
 const MOBILE_MORPH_SCALE = 0.68
@@ -282,7 +281,8 @@ const MOBILE_BULB_SCALE = 0.74
 const MOBILE_EARTH_SCALE = 0.44
 const MOBILE_TEAM_SCALE = 0.22
 const DESKTOP_HOLD_SCALE = 0.78
-const DESKTOP_HERO_SCALE = 0.90
+const DESKTOP_HERO_SCALE = 0.86
+const DESKTOP_HERO_Y = -0.22
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -2498,26 +2498,26 @@ function applyScrollCamera(p) {
       (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
       (p >= STAGE.earthForm && p < STAGE.earthHold)
 
-    // Hero stays closer so the brain fills the lower third instead
-    // of sitting behind the CTA as a distant sliver.
+    // Hero stays closer so the GLB brain fills the lower-right well
+    // instead of sitting behind the CTA as a distant sliver.
     const onHero = p < STAGE.brainMove
     const onHeroHold = p < STAGE.brainHold
     cameraTarget.z *= onLogo
       ? 2.05
       : onHero
-        ? 0.90
+        ? 0.92
         : onCopyHold
           ? 1.28
           : 1.18
 
     if (!onLogo) {
-      cameraTarget.x *= onHeroHold ? 0.02 : 0.08
+      cameraTarget.x *= onHeroHold ? -0.06 : 0.08
     }
 
-    // Slight lift only — keep the large brain pulled up under the
-    // CTA. Other holds keep y = 0.
+    // Keep the brain in the lower well. A positive Y lift is what
+    // parked the form on the headline / CTA.
     if (onHeroHold) {
-      cameraTarget.y = 0.06
+      cameraTarget.y = -0.10
     }
   }
 
@@ -2777,8 +2777,9 @@ function containFormInView() {
       cap = 0.82
       transformTarget.y = Math.min(transformTarget.y, -1.45)
     } else if (heroCopy) {
-      cap = 1.78
-      transformTarget.y = Math.min(transformTarget.y, -0.92)
+      cap = 1.42
+      transformTarget.x = Math.max(0.62, Math.min(1.02, transformTarget.x))
+      transformTarget.y = Math.min(transformTarget.y, -1.28)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -2969,7 +2970,7 @@ function updateStory() {
     transformTarget.y =
       isMobile()
         ? MOBILE_HERO_Y
-        : 0
+        : DESKTOP_HERO_Y
 
     transformTarget.s =
       isMobile()
@@ -2977,13 +2978,13 @@ function updateStory() {
         : DESKTOP_HERO_SCALE
 
     transformTarget.rx =
-      -0.02
+      -0.22
 
     transformTarget.ry =
-      0.08
+      0.28
 
     transformTarget.rz =
-      0
+      0.04
   }
 
   // ==================================================
@@ -3800,12 +3801,15 @@ function buildHeroPlexus(positions) {
 async function bootExperience() {
   // CPU only. Do not construct WebGL until the brain buffer
   // is in memory — first paint must not decode 15MB GLBs.
-  // Hero hold is a procedural particle cortex (same count as the
-  // morph budget). The puffed GLB bake reads as a blob; the 2D
-  // plate is the rejected still. No extra Points / bloom / DPR.
-  brainPositions = generateBrainPositions(
-    PARTICLE_COUNT,
-    BRAIN_SIZE
+  // Hero hold is the GLB-sampled particle brain (same PARTICLE_COUNT
+  // as the morph budget). Happy path reads the Float32 bake of
+  // public/models/brain.glb — never a procedural SDF blob, never a
+  // PNG/JPG plate. No extra Points / bloom / DPR.
+  brainPositions = await loadFormPositions(
+    'brain',
+    BRAIN_GLB_URL,
+    BRAIN_SIZE,
+    0.4
   )
 
   renderer = createWebGLRenderer()

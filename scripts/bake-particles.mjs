@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { generateBrainPositions } from '../src/brain-form.js'
 
 // Offline sample of the three homepage forms. The parent-facing
 // boot path ships these Float32 bins (~60KB each) instead of
@@ -280,6 +279,9 @@ function writeBake(name, positions) {
 
 const jobs = [
   {
+    // Topology source for the hero / morph brain. Area-weighted
+    // triangle samples off public/models/brain.glb — not a
+    // procedural cortex SDF.
     name: 'brain',
     file: 'brain.glb',
     size: BRAIN_SIZE,
@@ -302,11 +304,6 @@ const jobs = [
 mkdirSync(outDir, { recursive: true })
 
 for (const job of jobs) {
-  if (job.name === 'brain') {
-    writeBake(job.name, generateBrainPositions(BAKE_COUNT, job.size))
-    continue
-  }
-
   const gltf = await parseGLB(path.join(root, 'public', 'models', job.file))
   const positions = modelToParticlePositions(
     gltf.scene,
