@@ -1897,7 +1897,8 @@ body.is-static-home .scene-canvas {
 
   .copy-hero .scroll-marker--in-copy,
   .lb-intro .scroll-marker--in-copy,
-  .t5-main .scroll-marker--in-copy {
+  .t5-main .scroll-marker--in-copy,
+  .earth-hold .scroll-marker--in-copy {
     margin-top: 16px;
   }
 

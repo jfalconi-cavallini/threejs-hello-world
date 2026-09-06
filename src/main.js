@@ -4149,9 +4149,14 @@ function createPage() {
 
     <section class="chapter chapter-earth" id="grow">
       <div class="copy copy-lane earth-hold">
-        <p class="eyebrow"><span class="beat-meta">Earth · </span>How they grow</p>
-        <h2>Support that<br>grows with them.</h2>
-        <p>Elementary &amp; Middle. High School &amp; AP. SAT &amp; ACT. Programming &amp; STEM.</p>
+        <p class="eyebrow eyebrow-dash">How students grow</p>
+        <h2>Support that can grow with them.</h2>
+        <p>One system from the early years through college — not a one-semester patch.</p>
+        <p class="beat-tagline">The mentor stays. The plan updates. The student keeps moving.</p>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 
