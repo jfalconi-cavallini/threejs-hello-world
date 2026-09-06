@@ -594,9 +594,9 @@ export function homeAfterChaptersHtml() {
       )}
     </section>
 
-    <section class="page-block frame-chapter" id="pathways">
+    <section class="home-frame" id="pathways">
       <p class="eyebrow eyebrow-dash">How they grow</p>
-      <h2>Support that grows with them.</h2>
+      <h2>Support that grows with them<span class="stop">.</span></h2>
       <p>From building foundations to achieving big goals, MetaMinds stays with your child through every stage.</p>
       <div class="plant-timeline" aria-hidden="true">
         ${growStages.map(([title], i) => `
@@ -644,9 +644,9 @@ export function homeAfterChaptersHtml() {
       <p class="page-quiet">Individual results vary. We don’t guarantee outcomes.</p>
     </section>
 
-    <section class="page-block frame-chapter" id="how-it-works">
+    <section class="home-frame" id="how-it-works">
       <p class="eyebrow eyebrow-dash">How it works</p>
-      <h2>A clear process from start to progress.</h2>
+      <h2>A clear process from start to progress<span class="stop">.</span></h2>
       <p>We keep things simple, structured, and focused on your student’s goals.</p>
       <ol class="hiw-rail">
         ${frameHow.map(([n, tone, title, body]) => `
@@ -667,11 +667,13 @@ export function homeAfterChaptersHtml() {
       <p class="page-quiet"><a href="/how-it-works">How it works</a></p>
     </section>
 
-    <section class="page-block frame-chapter" id="results">
+    <section class="home-frame home-frame--results" id="results">
       <p class="eyebrow eyebrow-dash">Real student progress</p>
-      <h2>Real students.<br>Real progress.</h2>
+      <h2>Real students.<br>Real progress<span class="stop">.</span></h2>
       <p>With the right support, students gain confidence and reach goals they once thought were out of reach.</p>
       ${resultsFrameHtml()}
+    </section>
+    <section class="home-frame home-frame--scores" id="results-more">
       ${resultsScoreCardsHtml()}
       <p class="results-disclaimer">
         SAT Math 370 → 590 and SAT Composite 950 → 1110 are individual student results. AP Calc, Python, and the parent quote are frame examples. Outcomes vary and are not guaranteed.
@@ -680,9 +682,9 @@ export function homeAfterChaptersHtml() {
       <p class="page-quiet"><a href="/results">See results</a></p>
     </section>
 
-    <section class="page-block frame-chapter" id="subjects">
+    <section class="home-frame" id="subjects">
       <p class="eyebrow eyebrow-dash">Subjects we offer</p>
-      <h2>Support in the subjects that matter.</h2>
+      <h2>Support in the subjects that matter<span class="stop">.</span></h2>
       <p>From math to programming, we help students build understanding, confidence, and real skills that last.</p>
       <div class="subject-3x3">
         ${subjects3.map(([title, body, href, tone]) => `
@@ -702,9 +704,9 @@ export function homeAfterChaptersHtml() {
       <p class="page-quiet"><a href="/programs">See programs</a></p>
     </section>
 
-    <section class="page-block frame-chapter" id="mentors">
+    <section class="home-frame" id="mentors">
       <p class="eyebrow eyebrow-dash">Our mentors</p>
-      <h2>The right person matters.</h2>
+      <h2>The right person matters<span class="stop">.</span></h2>
       <p>We match your student with a mentor who fits their subject, level, goals, and learning style.</p>
       <div class="mentor-traits">
         ${mentorTraits.map(([title, body]) => `
@@ -725,9 +727,9 @@ export function homeAfterChaptersHtml() {
       <p class="page-quiet"><a href="/mentors">Meet our mentors</a></p>
     </section>
 
-    <section class="page-block frame-chapter" id="group-classes">
+    <section class="home-frame" id="group-classes">
       <p class="eyebrow eyebrow-dash">Find the right fit</p>
-      <h2>Choose the kind of support that fits.</h2>
+      <h2>Choose the kind of support that fits<span class="stop">.</span></h2>
       <p>1-on-1 mentoring is the core. Small groups are a separate format — same standards, shared goals.</p>
       <div class="fit-portals" aria-hidden="true">
         <div class="fit-portal fit-portal--one">
