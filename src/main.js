@@ -23,6 +23,10 @@ import {
 } from './chrome.js'
 import { createHomeAfter } from './home-after.js'
 import { mountLookBar } from './look-bar.js'
+import {
+  generateBrainPositions,
+  buildPlexusSegments,
+} from './brain-form.js'
 
 import './style.css'
 
@@ -259,9 +263,8 @@ const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390×844): Jose elite hero — 2D brain plate in the lower
-// well (CSS/img). Particle morph stays for later chapters only.
-// Type stays upper-left. Framing only. Do not raise particle count.
+// Phone (~390×844): Jose elite hero — particle brain in the lower
+// well. Type stays upper-left. Framing only. Do not raise particle count.
 const MOBILE_X = 0.02
 const MOBILE_HERO_X = 0.58
 const MOBILE_HOLD_Y = -1.35
@@ -636,6 +639,26 @@ const INK =
     0xf3f6f9
   )
 
+const HERO_AMBER =
+  new THREE.Color(
+    0xffb450
+  )
+
+const HERO_ORANGE =
+  new THREE.Color(
+    0xff5c00
+  )
+
+const HERO_CYAN =
+  new THREE.Color(
+    0x3d8bff
+  )
+
+const HERO_ICE =
+  new THREE.Color(
+    0x67e8f9
+  )
+
 const tempColor =
   new THREE.Color()
 
@@ -710,6 +733,7 @@ function createPointMaterial({
     uSize: { value: size },
     uDrift: { value: drift },
     uAlpha: { value: alpha },
+    uSoft: { value: 0 },
   }
 
   const material =
@@ -726,6 +750,7 @@ function createPointMaterial({
         uniform float uPixelRatio;
         uniform float uSize;
         uniform float uDrift;
+        uniform float uSoft;
         attribute float aScale;
         attribute vec3 color;
         varying vec3 vColor;
@@ -744,7 +769,7 @@ function createPointMaterial({
           float dist = max(0.42, -mvPosition.z);
           float atten = 12.4 / dist;
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, 33.0);
+          sz = min(sz, mix(33.0, 14.0, uSoft));
           gl_PointSize = max(sz, 1.4);
           gl_Position = projectionMatrix * mvPosition;
           // Slow tumble, unique per particle so the field doesn't
@@ -754,6 +779,7 @@ function createPointMaterial({
       `,
       fragmentShader: `
         uniform float uAlpha;
+        uniform float uSoft;
         varying vec3 vColor;
         varying float vAngle;
 
@@ -777,16 +803,19 @@ function createPointMaterial({
           vec2 rc = vec2(ca * c.x - sa * c.y, sa * c.x + ca * c.y);
 
           float d = sdEquilateralTriangle(rc, 0.62);
+          float disc = length(c);
 
           float lw = 0.07;
           float aa = 0.05;
           float edge = 1.0 - smoothstep(lw - aa, lw + aa, abs(d));
           float fill = smoothstep(0.0, -0.55, d) * 0.16;
-          float core = clamp(edge + fill, 0.0, 1.0);
+          float tri = clamp(edge + fill, 0.0, 1.0);
+          float glow = smoothstep(0.92, 0.12, disc);
+          float core = mix(tri, glow, uSoft);
 
           if (core < 0.02) discard;
 
-          gl_FragColor = vec4(vColor * 1.1, core * uAlpha);
+          gl_FragColor = vec4(vColor * mix(1.1, 1.35, uSoft), core * uAlpha);
         }
       `,
     })
@@ -1180,6 +1209,7 @@ particleGeometry.attributes.aScale.needsUpdate =
 let volumeField = null
 let logoDetail = null
 let heroBrainDetail = null
+let heroPlexus = null
 
 // Extra volumetric dust — golden-ratio sphere, no Math.random
 // so the existing RNG stream for forms/explosions stays intact.
@@ -3724,17 +3754,62 @@ function bindBrainForm() {
   updateStory()
 }
 
+function buildHeroPlexus(positions) {
+  if (MOBILE_AT_LOAD || REDUCED_MOTION) {
+    return null
+  }
+
+  const segs = buildPlexusSegments(positions, 720)
+  if (!segs || segs.length < 6) {
+    return null
+  }
+
+  const colors = new Float32Array(segs.length)
+  for (let i = 0; i < segs.length; i += 3) {
+    const t = segs[i] < 0 ? 0 : 1
+    if (t < 1) {
+      tempColor.lerpColors(HERO_ORANGE, HERO_AMBER, 0.45)
+    } else {
+      tempColor.lerpColors(HERO_CYAN, HERO_ICE, 0.45)
+    }
+    colors[i] = tempColor.r
+    colors[i + 1] = tempColor.g
+    colors[i + 2] = tempColor.b
+  }
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(segs, 3))
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+
+  const material = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+  })
+
+  const lines = new THREE.LineSegments(geometry, material)
+  lines.frustumCulled = false
+  lines.visible = false
+  particles.add(lines)
+  return lines
+}
+
 async function bootExperience() {
   // CPU only. Do not construct WebGL until the brain buffer
   // is in memory — first paint must not decode 15MB GLBs.
-  brainPositions = await loadFormPositions(
-    'brain',
-    '/models/brain.glb',
-    BRAIN_SIZE,
-    0.4
+  // Hero hold is a procedural particle cortex (same count as the
+  // morph budget). The puffed GLB bake reads as a blob; the 2D
+  // plate is the rejected still. No extra Points / bloom / DPR.
+  brainPositions = generateBrainPositions(
+    PARTICLE_COUNT,
+    BRAIN_SIZE
   )
 
   renderer = createWebGLRenderer()
+  heroPlexus = buildHeroPlexus(brainPositions)
   bindBrainForm()
   startLoop()
   armFirstFrameWatchdog()
@@ -4371,15 +4446,8 @@ function createPage() {
           </a>
         </div>
       </div>
-      <div class="hero-brain-plate" aria-hidden="true">
-        <img
-          class="hero-brain-form"
-          src="/frames/hero-brain-plate.jpg"
-          alt=""
-          width="1152"
-          height="864"
-        >
-      </div>
+      <!-- JOSE LOCK: hero visual is the live Three.js particle field.
+           Elite PNGs are look targets only — never an on-screen plate. -->
       <div class="hero-atmosphere" aria-hidden="true">
         <div class="hero-atmosphere-net"></div>
         <div class="hero-atmosphere-bokeh"></div>
@@ -4932,14 +5000,41 @@ function updateParticleInstances(
           }
         }
       } else {
+        const isBrainForm =
+          currentStage === 'brain' ||
+          currentStage === 'brain-moving' ||
+          currentStage === 'brain-explosion'
+
         const normalizedX =
           THREE.MathUtils.clamp(
-            (x + 2.6) / 5.2,
+            isBrainForm
+              ? (x + 1.55) / 3.1
+              : (x + 2.6) / 5.2,
             0,
             1
           )
 
-        if (normalizedX < 0.45) {
+        if (isBrainForm) {
+          if (normalizedX < 0.48) {
+            tempColor.lerpColors(
+              HERO_ORANGE,
+              HERO_AMBER,
+              normalizedX / 0.48
+            )
+          } else if (normalizedX < 0.52) {
+            tempColor.lerpColors(
+              HERO_ORANGE,
+              HERO_CYAN,
+              (normalizedX - 0.48) / 0.04
+            )
+          } else {
+            tempColor.lerpColors(
+              HERO_CYAN,
+              HERO_ICE,
+              (normalizedX - 0.52) / 0.48
+            )
+          }
+        } else if (normalizedX < 0.45) {
           tempColor.lerpColors(
             ORANGE,
             BURNT_ORANGE,
@@ -5321,9 +5416,14 @@ function animate() {
       currentStage ===
       'brain'
     ) {
+      // Oscillate, do not spin — Jose split is warm-left / cool-right.
       particles.rotation.y +=
-        dt *
-        0.24
+        (
+          transformTarget.ry +
+          Math.sin(lastFrameTime * 0.00032) * 0.10 -
+          particles.rotation.y
+        ) *
+        0.08
     }
 
     else if (
@@ -5488,6 +5588,11 @@ function animate() {
           detailMesh.visible = false
         }
       }
+
+      if (heroPlexus) {
+        heroPlexus.material.opacity = 0
+        heroPlexus.visible = false
+      }
     } else {
       particles.visible = true
       debris.visible = true
@@ -5543,13 +5648,36 @@ function animate() {
 
       particleMaterial.uniforms.uAlpha.value +=
         (
-          (
-            onBrainHold ? 0.45 :
-            0.9
-          ) -
+          0.9 -
           particleMaterial.uniforms.uAlpha.value
         ) *
         0.1
+
+      const softTarget = onBrainHold ? 0.82 : 0
+      particleMaterial.uniforms.uSoft.value +=
+        (
+          softTarget -
+          particleMaterial.uniforms.uSoft.value
+        ) *
+        0.12
+
+      const driftTarget =
+        onBrainHold
+          ? (REDUCED_MOTION ? 0 : 0.055)
+          : (REDUCED_MOTION ? 0 : 0.042)
+      particleMaterial.uniforms.uDrift.value +=
+        (
+          driftTarget -
+          particleMaterial.uniforms.uDrift.value
+        ) *
+        0.1
+
+      if (heroPlexus) {
+        const plexusTarget = hideStage ? 0 : onBrainHold ? 0.28 : 0
+        heroPlexus.material.opacity +=
+          (plexusTarget - heroPlexus.material.opacity) * 0.12
+        heroPlexus.visible = heroPlexus.material.opacity > 0.02
+      }
 
       if (logoDetail) {
         for (let li = 0; li < logoDetail.length; li++) {

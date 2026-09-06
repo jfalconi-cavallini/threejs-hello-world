@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { generateBrainPositions } from '../src/brain-form.js'
 
 // Offline sample of the three homepage forms. The parent-facing
 // boot path ships these Float32 bins (~60KB each) instead of
@@ -301,6 +302,11 @@ const jobs = [
 mkdirSync(outDir, { recursive: true })
 
 for (const job of jobs) {
+  if (job.name === 'brain') {
+    writeBake(job.name, generateBrainPositions(BAKE_COUNT, job.size))
+    continue
+  }
+
   const gltf = await parseGLB(path.join(root, 'public', 'models', job.file))
   const positions = modelToParticlePositions(
     gltf.scene,
