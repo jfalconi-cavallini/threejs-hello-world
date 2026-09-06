@@ -14,15 +14,45 @@ body.is-frame-page .metaminds-nav {
   border-bottom: 1px solid rgba(243, 246, 249, 0.06);
 }
 
-/* JOSE LOGO LOCK — same white pill + lockup PNG as the sketch still. */
-body.is-frame-page .brand-plate {
+/* JOSE LOGO LOCK — sketch PNG (brain + MetaMinds STEM Academy wordmark)
+   on the same white nav pill as the attached still. */
+body.is-frame-page .brand-plate,
+body.is-frame-page .footer-plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
   padding: 4px 12px 4px 8px;
   background: #ffffff;
+  box-shadow: 0 0 22px rgba(61, 139, 255, 0.16);
 }
 
-body.is-frame-page .brand-logo {
+body.is-frame-page .brand-logo,
+body.is-frame-page .footer-logo {
   height: 40px;
+  max-width: none;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (max-width: 767px) {
+  body.is-frame-page .brand-plate {
+    border-radius: 999px;
+    padding: 4px 11px 4px 7px;
+  }
+
+  body.is-frame-page .brand-logo {
+    height: 26px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 430px) {
+  body.is-frame-page .brand-logo {
+    height: 26px;
+    max-width: none;
+  }
 }
 
 body.is-frame-page .site-shell {
