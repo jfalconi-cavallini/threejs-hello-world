@@ -22,6 +22,7 @@ import {
   BEAT_GO,
 } from './chrome.js'
 import { createHomeAfter } from './home-after.js'
+import { mountLookBar } from './look-bar.js'
 
 import './style.css'
 
@@ -4214,21 +4215,22 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <p class="eyebrow eyebrow-dash">Personalized tutoring</p>
-        <h1>A mentor who<br> stays with<br> your child<span class="stop">.</span></h1>
+        <p class="eyebrow eyebrow-dash">Personalized tutoring for a brighter tomorrow</p>
+        <h1>A mentor who stays with your child<span class="stop">.</span></h1>
         <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
         <div class="hero-actions">
           <a class="primary-button hero-cta" href="/consult">
             Book Free Consultation
             ${ARROW_ICON}
           </a>
-          <a class="hero-secondary-cta" href="/programs">Explore Programs</a>
+          <a class="hero-secondary-cta" href="/programs">Explore Programs →</a>
         </div>
-        <div class="scroll-marker scroll-marker--in-copy">
-          SCROLL
+        <div class="scroll-marker scroll-marker--in-copy scroll-marker--phone">
           <span></span>
+          SCROLL
         </div>
       </div>
+      <div class="jose-viz jose-viz--brain" aria-hidden="true"></div>
     </section>
 
     <section class="chapter chapter-morph chapter-morph-a chapter-understand" id="understand">
@@ -4303,11 +4305,12 @@ function createPage() {
             ${BEAT_GO}
           </article>
         </div>
-        <div class="scroll-marker scroll-marker--in-copy">
-          SCROLL
+        <div class="scroll-marker scroll-marker--in-copy scroll-marker--phone">
           <span></span>
+          SCROLL
         </div>
       </div>
+      <div class="jose-viz jose-viz--bulb" aria-hidden="true"></div>
     </section>
 
     <section class="chapter chapter-morph chapter-morph-b" id="team">
@@ -4316,25 +4319,26 @@ function createPage() {
         <h2>The right mentor doesn’t have to live down the street<span class="stop">.</span></h2>
         <p>Virtual is primary. In person is available when a tutor is already nearby.</p>
         <div class="beat-cards beat-cards--pair">
-          <article class="beat-card">
-            <span class="beat-card-icon" aria-hidden="true">${VIDEO_ICON}</span>
+          <article class="beat-card beat-card--orange">
+            <span class="beat-card-icon beat-card-icon--orange" aria-hidden="true">${VIDEO_ICON}</span>
             <div>
               <h3>1-on-1 virtual tutoring</h3>
             </div>
           </article>
-          <article class="beat-card">
+          <article class="beat-card beat-card--blue">
             <span class="beat-card-icon" aria-hidden="true">${NEARBY_ICON}</span>
             <div>
               <h3>In-person by availability</h3>
             </div>
           </article>
         </div>
-        <p class="beat-tagline">The goal is the right fit, not just the closest tutor.</p>
-        <div class="scroll-marker scroll-marker--in-copy">
-          SCROLL
+        <p class="beat-tagline beat-tagline--dash">The goal is the right fit, not just the closest tutor.</p>
+        <div class="scroll-marker scroll-marker--in-copy scroll-marker--phone">
           <span></span>
+          SCROLL
         </div>
       </div>
+      <div class="jose-viz jose-viz--pair" aria-hidden="true"></div>
     </section>
 
     <section class="chapter chapter-earth" id="grow">
@@ -4402,6 +4406,7 @@ function createPage() {
     main
 
   setupNav()
+  mountLookBar({ route: '/', tipped: false })
 
   // ==================================================
   // MASTER SCROLL
@@ -5688,6 +5693,14 @@ function scrollStillTarget() {
     }
     node.setAttribute('hidden', '')
   })
+  const after = document.querySelector('.home-after')
+  if (after && !after.contains(el)) {
+    after.setAttribute('hidden', '')
+  }
+  const experience = document.querySelector('.experience')
+  if (experience && !experience.contains(el)) {
+    experience.setAttribute('hidden', '')
+  }
   window.scrollTo(0, 0)
 }
 
