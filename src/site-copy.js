@@ -244,6 +244,75 @@ export function homeFaqHtml() {
   `
 }
 
+const SAT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 18h3v-6H4zm6.5 0h3V6h-3zM17 18h3v-9h-3z"/></svg>`
+const SCHOOL_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 1 8l11 5 9-4.09V15h2V8zm-7 9.18V16c0 1.66 3.13 3 7 3s7-1.34 7-3v-3.82l-7 3.18z"/></svg>`
+const PARENT_ICO = `<svg class="results-ico-glyph" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 9 11zm6.5 0A3 3 0 1 0 12.5 8a3 3 0 0 0 3 3zM9 12.5c-3.05 0-7 1.54-7 4.6V19h8.2v-1.4c0-1.3.5-2.4 1.3-3.3C10.6 13 9.8 12.5 9 12.5zm6.5 0c-.4 0-.9 0-1.3.1 1.5.8 2.5 2 2.5 3.5V19H22v-1.9c0-2.4-3.1-3.6-6.5-3.6z"/></svg>`
+
+export function resultsFrameHtml() {
+  return `
+    <article class="glow-card results-frame">
+      <div class="results-frame-block">
+        <div class="results-frame-head">
+          <span class="results-ico results-ico--sat">${SAT_ICO}</span>
+          <h3>SAT Prep</h3>
+          <span class="results-badge">+220 Math</span>
+        </div>
+        <p class="score-line">370 → 590</p>
+        <p class="score-kicker">SAT Math · individual student result</p>
+        <p class="results-frame-sub">SAT Composite 950 → 1110 <span class="results-badge results-badge--ghost">+160</span></p>
+        <svg class="results-chart" viewBox="0 0 320 140" role="img" aria-label="SAT Math 370 to 590">
+          <defs>
+            <linearGradient id="results-sat-line" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#3d8bff"/>
+              <stop offset="1" stop-color="#8ec5ff"/>
+            </linearGradient>
+            <linearGradient id="results-sat-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="rgba(61,139,255,0.28)"/>
+              <stop offset="1" stop-color="rgba(61,139,255,0)"/>
+            </linearGradient>
+          </defs>
+          <line x1="24" y1="28" x2="304" y2="28" class="results-chart-grid"/>
+          <line x1="24" y1="64" x2="304" y2="64" class="results-chart-grid"/>
+          <line x1="24" y1="100" x2="304" y2="100" class="results-chart-grid"/>
+          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="url(#results-sat-fill)" stroke="none"/>
+          <path d="M24 100 C 90 94, 140 78, 190 52 S 270 30, 296 24" fill="none" stroke="url(#results-sat-line)" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="24" cy="100" r="3.5" fill="#3d8bff"/>
+          <circle cx="296" cy="24" r="4" fill="#8ec5ff"/>
+        </svg>
+        <p class="results-chart-label">SAT Math</p>
+      </div>
+      <div class="results-frame-block">
+        <div class="results-frame-head">
+          <span class="results-ico results-ico--school">${SCHOOL_ICO}</span>
+          <h3>School Support</h3>
+        </div>
+        <p>Cleaner work, stronger understanding, more confidence.</p>
+        <div class="results-chips">
+          <span>Better grades</span>
+          <span>More participation</span>
+          <span>Higher confidence</span>
+        </div>
+      </div>
+      <div class="results-frame-block">
+        <div class="results-frame-head">
+          <span class="results-ico results-ico--parent">${PARENT_ICO}</span>
+          <h3>Parent Visibility</h3>
+        </div>
+        <p>Updates after sessions and clear next steps.</p>
+        <div class="results-chips">
+          <span>Session notes</span>
+          <span>Progress tracking</span>
+          <span>Action plans</span>
+        </div>
+      </div>
+      <a class="primary-button results-frame-cta" href="/consult">
+        Book Free Consultation
+        ${ARROW_ICON}
+      </a>
+    </article>
+  `
+}
+
 export function resultsStripHtml({ eyebrow = 'Verified' } = {}) {
   return `
     ${eyebrow ? `<p class="eyebrow">${eyebrow}</p>` : ''}
@@ -396,33 +465,12 @@ export function homeAfterChaptersHtml() {
       <p class="eyebrow eyebrow-dash">Results</p>
       <h2>Real student progress</h2>
       <p>Individual student results. Outcomes vary and are not guaranteed.</p>
-      <div class="score-grid glow-score-grid">
-        <article class="glow-card score-card">
-          <p class="score-kicker">SAT Math</p>
-          <p class="score-line">370 → 590</p>
-          <p class="score-delta">+220</p>
-        </article>
-        <article class="glow-card score-card">
-          <p class="score-kicker">SAT Composite</p>
-          <p class="score-line">950 → 1110</p>
-          <p class="score-delta">+160</p>
-        </article>
-        <article class="glow-card score-card">
-          <p class="example-tag">Example</p>
-          <p class="score-kicker">School support</p>
-          <p class="score-line score-line--sm">AP Calc 3 → 5</p>
-        </article>
-        <article class="glow-card score-card">
-          <p class="example-tag">Example</p>
-          <p class="score-kicker">Parent visibility</p>
-          <p class="score-line score-line--sm">Python beginner → confident</p>
-        </article>
-      </div>
+      ${resultsFrameHtml()}
       <p class="results-disclaimer">
         SAT Math 370 → 590 · SAT Composite 950 → 1110 · Individual student results. Outcomes vary and are not guaranteed.
       </p>
       <p class="page-quiet">We show named outcomes only when they’re real. No averages. No invented quotes.</p>
-      <p><a href="/results">See results</a> · <a class="primary-button" href="/consult">Book Free Consultation${ARROW_ICON}</a></p>
+      <p><a href="/results">See results</a></p>
     </section>
 
     <section class="page-block" id="subjects">
