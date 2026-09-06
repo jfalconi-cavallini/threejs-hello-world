@@ -5672,7 +5672,9 @@ window.addEventListener(
 )
 
 function scrollStillTarget() {
+  // `?still=#pathways` is parsed as an empty still + location.hash.
   const sel = new URLSearchParams(window.location.search).get('still')
+    || window.location.hash
   if (!sel) {
     return
   }

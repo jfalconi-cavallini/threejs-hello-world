@@ -633,13 +633,11 @@ export function homeAfterChaptersHtml() {
     ['Targeted practice', 'Homework matched to the weak spot — not a random worksheet pile.'],
     ['Parent updates', 'Quick updates so you’re not left guessing how tutoring is going.'],
   ]
-  // Stage art lives in public/frames/. 1–2 are wired now.
-  // Later drop-ins: /frames/ch06-stage3-young.png, /frames/ch06-stage4-tree.png
   const growStages = [
     ['Elementary', 'Build strong foundations and confidence.', 'plant-dot--1', '/frames/ch06-stage1-sprout.png'],
     ['Middle School', 'Strengthen independence, study habits, and core skills.', 'plant-dot--2', '/frames/ch06-stage2-sapling.png'],
-    ['High School', 'Tackle advanced classes, AP courses, and test preparation with confidence.', 'plant-dot--3', ''],
-    ['College & Beyond', 'Continue growing with support for college courses, career goals, and real-world skills.', 'plant-dot--4', ''],
+    ['High School', 'Tackle advanced classes, AP courses, and test preparation with confidence.', 'plant-dot--3', '/frames/ch06-stage3-young-tree.png'],
+    ['College & Beyond', 'Continue growing with support for college courses, career goals, and real-world skills.', 'plant-dot--4', '/frames/ch06-stage4-full-tree.png'],
   ]
   const earlyExamples = [
     ['Middle school math', 'Fractions and algebra readiness compound. Gaps here show up for years.'],
