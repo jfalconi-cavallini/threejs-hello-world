@@ -14,6 +14,17 @@ body.is-frame-page .metaminds-nav {
   border-bottom: 1px solid rgba(243, 246, 249, 0.06);
 }
 
+/* JOSE LOGO LOCK — same white pill + lockup PNG as the sketch still. */
+body.is-frame-page .brand-plate {
+  border-radius: 999px;
+  padding: 4px 12px 4px 8px;
+  background: #ffffff;
+}
+
+body.is-frame-page .brand-logo {
+  height: 40px;
+}
+
 body.is-frame-page .site-shell {
   width: 100%;
   max-width: none;
