@@ -633,11 +633,13 @@ export function homeAfterChaptersHtml() {
     ['Targeted practice', 'Homework matched to the weak spot — not a random worksheet pile.'],
     ['Parent updates', 'Quick updates so you’re not left guessing how tutoring is going.'],
   ]
+  // Stage art lives in public/frames/. 1–2 are wired now.
+  // Later drop-ins: /frames/ch06-stage3-young.png, /frames/ch06-stage4-tree.png
   const growStages = [
-    ['Elementary', 'Build strong foundations and confidence.', 'plant-dot--1'],
-    ['Middle School', 'Strengthen independence, study habits, and core skills.', 'plant-dot--2'],
-    ['High School', 'Tackle advanced classes, AP courses, and test preparation with confidence.', 'plant-dot--3'],
-    ['College & Beyond', 'Continue growing with support for college courses, career goals, and real-world skills.', 'plant-dot--4'],
+    ['Elementary', 'Build strong foundations and confidence.', 'plant-dot--1', '/frames/ch06-stage1-sprout.png'],
+    ['Middle School', 'Strengthen independence, study habits, and core skills.', 'plant-dot--2', '/frames/ch06-stage2-sapling.png'],
+    ['High School', 'Tackle advanced classes, AP courses, and test preparation with confidence.', 'plant-dot--3', ''],
+    ['College & Beyond', 'Continue growing with support for college courses, career goals, and real-world skills.', 'plant-dot--4', ''],
   ]
   const earlyExamples = [
     ['Middle school math', 'Fractions and algebra readiness compound. Gaps here show up for years.'],
@@ -718,12 +720,14 @@ export function homeAfterChaptersHtml() {
       <p class="eyebrow eyebrow-dash">How they grow</p>
       <h2>Support that grows with them<span class="stop">.</span></h2>
       <p>From building foundations to achieving big goals, MetaMinds stays with your child through every stage.</p>
-      <div class="plant-timeline plant-timeline--frame" aria-hidden="true">
-        <img class="plant-frame" src="/frames/ch06-trees.png" alt="" width="780" height="439">
-      </div>
-      <div class="grow-rail grow-rail--frame">
-        ${growStages.map(([title, body, dot]) => `
-          <article class="grow-copy">
+      <div class="grow-rail grow-rail--stages">
+        ${growStages.map(([title, body, dot, src], i) => `
+          <article class="grow-copy grow-copy--stage${src ? ' is-ready' : ' is-slot'}" data-stage="${i + 1}">
+            <div class="plant-stage-frame" aria-hidden="true">
+              ${src
+                ? `<img class="plant-stage" src="${src}" alt="" width="620" height="620">`
+                : `<span class="plant-stage-slot" data-stage="${i + 1}"></span>`}
+            </div>
             <span class="plant-dot ${dot}"></span>
             <h3>${title}</h3>
             <p>${body}</p>
