@@ -1,8 +1,66 @@
 // Hero / morph brain topology comes from public/models/brain.glb
 // (area-weighted triangle samples → public/particles/brain.f32.bin).
-// This file only builds the desktop plexus lines on those points.
 // JOSE LOCK: do not replace the GLB sample with a procedural blob
 // or a PNG/JPG/CSS photo plate.
+
+function normalizeBounds(output, count, desiredSize) {
+  let minX = Infinity
+  let minY = Infinity
+  let minZ = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  let maxZ = -Infinity
+
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3
+    minX = Math.min(minX, output[i3])
+    minY = Math.min(minY, output[i3 + 1])
+    minZ = Math.min(minZ, output[i3 + 2])
+    maxX = Math.max(maxX, output[i3])
+    maxY = Math.max(maxY, output[i3 + 1])
+    maxZ = Math.max(maxZ, output[i3 + 2])
+  }
+
+  const cx = (minX + maxX) * 0.5
+  const cy = (minY + maxY) * 0.5
+  const cz = (minZ + maxZ) * 0.5
+  const span = Math.max(maxX - minX, maxY - minY, maxZ - minZ) || 1
+  const scale = desiredSize / span
+
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3
+    output[i3] = (output[i3] - cx) * scale
+    output[i3 + 1] = (output[i3 + 1] - cy) * scale
+    output[i3 + 2] = (output[i3 + 2] - cz) * scale
+  }
+}
+
+// brain.glb world axes: X = anterior–posterior, Y = superior,
+// Z = left–right. The hero camera looks down −Z, so a raw sample
+// reads as a side-on oval. Remap hemispheres onto X and pitch so
+// the cortex silhouette (two lobes + fissure) faces the hold.
+export function finishBrainPositions(positions, desiredSize = 3.2) {
+  const count = positions.length / 3
+  const pitch = -0.58
+  const c = Math.cos(pitch)
+  const s = Math.sin(pitch)
+
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3
+    const ap = positions[i3]
+    const up = positions[i3 + 1]
+    const lr = positions[i3 + 2]
+    const x = lr
+    const y = up
+    const z = -ap
+    positions[i3] = x
+    positions[i3 + 1] = y * c - z * s
+    positions[i3 + 2] = y * s + z * c
+  }
+
+  normalizeBounds(positions, count, desiredSize)
+  return positions
+}
 
 export function buildPlexusSegments(positions, maxSegments = 900) {
   const count = positions.length / 3

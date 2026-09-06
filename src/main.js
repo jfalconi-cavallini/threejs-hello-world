@@ -23,7 +23,10 @@ import {
 } from './chrome.js'
 import { createHomeAfter } from './home-after.js'
 import { mountLookBar } from './look-bar.js'
-import { buildPlexusSegments } from './brain-form.js'
+import {
+  buildPlexusSegments,
+  finishBrainPositions,
+} from './brain-form.js'
 
 import './style.css'
 
@@ -254,7 +257,7 @@ const LOGO_SIZE = 4.6
 // in the right half with air. 4.1–4.8 parked the mesh past the
 // right clip even at 1440px (lookAt only follows 18% of form X).
 const RIGHT_X = 1.72
-const HERO_BRAIN_X = 1.74
+const HERO_BRAIN_X = 1.96
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
@@ -281,8 +284,8 @@ const MOBILE_BULB_SCALE = 0.74
 const MOBILE_EARTH_SCALE = 0.44
 const MOBILE_TEAM_SCALE = 0.22
 const DESKTOP_HOLD_SCALE = 0.78
-const DESKTOP_HERO_SCALE = 0.86
-const DESKTOP_HERO_Y = -0.22
+const DESKTOP_HERO_SCALE = 0.76
+const DESKTOP_HERO_Y = -0.48
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -2719,8 +2722,8 @@ function containFormInView() {
     : 0.14
   const heroCopy = copyIsLive('.copy-hero')
   const padTop = mobile
-    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.38 : midHold ? 0.46 : 0.32)
-    : (tall ? 0.12 : 0.12)
+    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.42 : midHold ? 0.46 : 0.32)
+    : (heroCopy ? 0.30 : tall ? 0.12 : 0.12)
   const padBot = mobile
     ? ((heroCopy || bulbCopy) ? -0.14 : midHold ? 0.02 : 0.05)
     : (tall ? 0.22 : 0.14)
@@ -2786,26 +2789,30 @@ function containFormInView() {
       radius,
       size * 0.54 * transformTarget.s
     )
+  } else if (heroCopy) {
+    transformTarget.x = Math.max(1.62, transformTarget.x)
+    transformTarget.y = Math.min(transformTarget.y, -0.36)
+    transformTarget.s = Math.min(transformTarget.s, 0.82)
   }
 
-  if (!(mobile && heroCopy) && transformTarget.x - radius < viewL) {
+  if (!heroCopy && transformTarget.x - radius < viewL) {
     transformTarget.x = viewL + radius
   }
 
-  if (!(mobile && heroCopy) && transformTarget.x + radius > viewR) {
+  if (!heroCopy && transformTarget.x + radius > viewR) {
     transformTarget.x = viewR - radius
   }
 
   // Jose hero/bulb frames clip the floor. Pushing Y up to stay
   // inside viewB is what parked the brain behind the CTA.
   if (
-    !(mobile && (heroCopy || bulbCopy)) &&
+    !(heroCopy || (mobile && bulbCopy)) &&
     transformTarget.y - radius < viewB
   ) {
     transformTarget.y = viewB + radius
   }
 
-  if (!(mobile && heroCopy) && transformTarget.y + radius > viewT) {
+  if (!heroCopy && transformTarget.y + radius > viewT) {
     transformTarget.y = viewT - radius
   }
 }
@@ -2978,13 +2985,13 @@ function updateStory() {
         : DESKTOP_HERO_SCALE
 
     transformTarget.rx =
-      -0.22
+      -0.04
 
     transformTarget.ry =
-      0.28
+      0.10
 
     transformTarget.rz =
-      0.04
+      0.02
   }
 
   // ==================================================
@@ -3636,9 +3643,17 @@ async function sampleGlbForm(url, desiredSize, puffScale = 1) {
 
 async function loadFormPositions(name, glbUrl, desiredSize, puffScale = 1) {
   try {
-    return await loadBakedPositions(FORM_BAKES[name])
+    const baked = await loadBakedPositions(FORM_BAKES[name])
+    if (name === 'brain') {
+      return finishBrainPositions(baked, desiredSize)
+    }
+    return baked
   } catch {
-    return sampleGlbForm(glbUrl, desiredSize, puffScale)
+    const sampled = await sampleGlbForm(glbUrl, desiredSize, puffScale)
+    if (name === 'brain' && sampled) {
+      return finishBrainPositions(sampled, desiredSize)
+    }
+    return sampled
   }
 }
 
@@ -3809,7 +3824,7 @@ async function bootExperience() {
     'brain',
     BRAIN_GLB_URL,
     BRAIN_SIZE,
-    0.4
+    0.18
   )
 
   renderer = createWebGLRenderer()
