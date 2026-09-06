@@ -325,7 +325,7 @@ function progressCard({
       <p class="before-after">
         <span>Before <strong>${before}</strong></span>
         <span class="before-after-arrow">→</span>
-        <span>After <strong>${after}</strong></span>
+        <span>After <strong class="after-val">${after}</strong></span>
       </p>
       <p>${body}</p>
     </article>
@@ -379,6 +379,11 @@ export function resultsScoreCardsHtml() {
       <p class="quote-mark" aria-hidden="true">“</p>
       <p class="quote-text">My son’s confidence in math has completely changed. He actually looks forward to his sessions, and his grades have improved a lot.</p>
       <p class="quote-by">— Parent of 10th Grade Student</p>
+      <div class="quote-nav" aria-hidden="true">
+        <span class="quote-nav-btn">‹</span>
+        <span class="quote-dots"><i class="is-on"></i><i></i><i></i></span>
+        <span class="quote-nav-btn">›</span>
+      </div>
     </article>
   `
 }
@@ -718,9 +723,11 @@ export function homeAfterChaptersHtml() {
     </section>
     <section class="home-frame home-frame--scores" id="results-more">
       <p class="eyebrow eyebrow-dash">Real student progress</p>
-      <h2>Real students.<br>Real progress<span class="stop">.</span></h2>
-      <p>With the right support, students gain confidence and reach goals they once thought were out of reach.</p>
       <div class="score-hero-row">
+        <div>
+          <h2>Real students.<br>Real progress<span class="stop">.</span></h2>
+          <p>With the right support, students gain confidence and reach goals they once thought were out of reach.</p>
+        </div>
         <div class="jose-viz jose-viz--bars" aria-hidden="true">
           <i></i><i></i><i></i><i></i>
           <span class="jose-viz-arrow"></span>
@@ -728,7 +735,7 @@ export function homeAfterChaptersHtml() {
       </div>
       ${resultsScoreCardsHtml()}
       <p class="results-disclaimer">
-        SAT Math 370 → 590 and SAT Composite 950 → 1110 are individual student results. AP Calc, Python, and the parent quote are frame examples. Outcomes vary and are not guaranteed.
+        Individual results are examples from real MetaMinds students. Outcomes vary and are not guaranteed.
       </p>
       ${bookWide()}
       ${frameScroll()}
@@ -766,8 +773,13 @@ export function homeAfterChaptersHtml() {
 
     <section class="home-frame home-frame--mentors" id="mentors">
       <p class="eyebrow eyebrow-dash">Our mentors</p>
-      <h2>The right person matters<span class="stop">.</span></h2>
-      <p>We match your student with a mentor who fits their subject, level, goals, and learning style.</p>
+      <div class="mentor-hero-row">
+        <div>
+          <h2>The right person matters<span class="stop">.</span></h2>
+          <p>We match your student with a mentor who fits their subject, level, goals, and learning style.</p>
+        </div>
+        <div class="jose-viz jose-viz--pair" aria-hidden="true"></div>
+      </div>
       <div class="mentor-traits">
         ${mentorTraits.map(([title, body], i) => `
           <article class="mentor-trait">
