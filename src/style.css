@@ -323,16 +323,16 @@ body.is-static-home .earth-hold {
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-  padding: 7px 16px 7px 12px;
+  padding: 5px 14px 5px 10px;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
 }
 
 .brand-logo {
-  height: 46px;
+  height: 48px;
   width: auto;
-  max-width: min(248px, 42vw);
+  max-width: min(268px, 46vw);
   display: block;
   object-fit: contain;
   object-position: left center;
@@ -743,6 +743,20 @@ body.is-static-home .earth-hold {
   height: 1px;
 }
 
+.chapter-hero::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 48% 55% at 32% 72%, rgba(255, 92, 0, 0.20), transparent 64%),
+    radial-gradient(ellipse 48% 55% at 68% 74%, rgba(61, 139, 255, 0.18), transparent 66%);
+  filter: blur(18px);
+}
+
 .chapter-hero::after,
 .chapter-how::after,
 .chapter-morph-b::after {
@@ -759,6 +773,13 @@ body.is-static-home .earth-hold {
     transparent 72%
   );
   filter: blur(10px);
+}
+
+.chapter-hero::after {
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at 36% 100%, rgba(255, 92, 0, 0.18), transparent 68%),
+    radial-gradient(ellipse at 64% 100%, rgba(61, 139, 255, 0.16), transparent 70%);
 }
 
 .chapter-team {
@@ -891,7 +912,13 @@ body.is-static-home .earth-hold {
   font-size: clamp(15px, 1.2vw, 18px);
   font-weight: 500;
   line-height: 1.45;
-  color: var(--mm-mute);
+  color: #fff;
+}
+
+.copy-hero .eyebrow {
+  color: #fff;
+  letter-spacing: 0.16em;
+  margin-bottom: 16px;
 }
 
 .hero-divider {
@@ -950,22 +977,33 @@ body.is-static-home .earth-hold {
 .primary-button.hero-cta {
   margin-top: 0;
   padding: 14px 22px;
+  box-shadow: 0 0 28px rgba(255, 92, 0, 0.42);
 }
 
 .hero-secondary-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--mm-mute);
-  border-bottom: 1px solid rgba(127, 145, 168, 0.4);
+  color: #fff;
+  border-bottom: 1px solid var(--mm-electric);
   padding-bottom: 2px;
+  box-shadow: none;
   transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.hero-secondary-cta .btn-arrow {
+  color: var(--mm-electric);
+  width: 12px;
+  height: 12px;
 }
 
 .hero-secondary-cta:hover {
   color: #fff;
-  border-color: #fff;
+  border-color: var(--mm-electric);
 }
 
 .btn-arrow {
@@ -1709,17 +1747,21 @@ body.is-static-home .earth-hold {
   .metaminds-nav--cinematic .brand-plate,
   .footer-plate {
     border-radius: 999px;
-    padding: 5px 13px 5px 9px;
+    padding: 4px 12px 4px 8px;
     background: #ffffff;
-    border: 0;
+    border: 1px solid rgba(255, 255, 255, 0.92);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
   }
 
   .brand-logo {
-    height: 36px;
-    max-width: min(196px, calc(100vw - 136px));
+    height: 40px;
+    max-width: min(220px, calc(100vw - 148px));
     object-fit: contain;
     object-position: left center;
+  }
+
+  .nav-cta .btn-arrow {
+    display: none;
   }
 
   .end-word {
@@ -1852,8 +1894,17 @@ body.is-static-home .earth-hold {
   }
 
   .copy-hero p {
-    margin-top: 12px;
+    margin-top: 14px;
     font-size: 15px;
+    color: #fff;
+  }
+
+  .copy-hero .eyebrow {
+    letter-spacing: 0.08em;
+    font-size: 8px;
+    line-height: 1.45;
+    max-width: 36ch;
+    margin-bottom: 14px;
   }
 
   .hero-divider {
@@ -1873,10 +1924,10 @@ body.is-static-home .earth-hold {
   }
 
   .hero-actions {
-    margin-top: 18px;
+    margin-top: 22px;
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: 16px;
   }
 
   .copy-mid {
@@ -2045,7 +2096,6 @@ body.is-static-home .earth-hold {
     font-size: 12px;
   }
 
-  .copy-hero .scroll-marker--in-copy,
   .lb-intro .scroll-marker--in-copy,
   .t5-main .scroll-marker--in-copy,
   .earth-hold .scroll-marker--in-copy {
@@ -2118,6 +2168,11 @@ body.is-static-home .earth-hold {
     bottom: 5svh;
   }
 
+  .scroll-marker--hero {
+    left: 16px;
+    bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  }
+
   .sketch-footer,
   .site-footer {
     flex-direction: column;
@@ -2145,8 +2200,8 @@ body.is-static-home .earth-hold {
   }
 
   .brand-logo {
-    height: 36px;
-    max-width: min(196px, calc(100vw - 136px));
+    height: 38px;
+    max-width: min(210px, calc(100vw - 148px));
   }
 }
 
@@ -4920,7 +4975,7 @@ a.subject-chip {
 .hero-secondary-cta {
   color: #fff;
   border-bottom: 1px solid #3d8bff;
-  box-shadow: 0 1px 0 rgba(61, 139, 255, 0.35);
+  box-shadow: none;
 }
 
 .beat-card--orange::before {
@@ -4973,6 +5028,47 @@ a.subject-chip {
   100% { transform: scaleY(0); transform-origin: bottom center; }
 }
 
+/* Hero SCROLL sits on the viewport, not inside the copy
+   transform containing-block. Visible only while hero copy is live. */
+.scroll-marker--hero {
+  position: fixed;
+  left: clamp(48px, 7vw, 120px);
+  bottom: max(22px, env(safe-area-inset-bottom, 0px));
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: rgba(243, 246, 249, 0.72);
+}
+
+.copy-hero.is-live ~ .scroll-marker--hero {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scroll-marker--hero span {
+  width: 1px;
+  height: 52px;
+  background: linear-gradient(
+    180deg,
+    rgba(243, 246, 249, 0.38) 0%,
+    rgba(243, 246, 249, 0.38) 80%,
+    var(--mm-cta) 80%
+  );
+  animation: none;
+}
+
+.scroll-marker--hero span::after {
+  display: none;
+}
+
 .jose-viz {
   display: none;
   pointer-events: none;
@@ -4998,12 +5094,12 @@ body.is-still-shot .jose-viz {
 
 .chapter-hero .jose-viz--brain {
   top: auto;
-  bottom: 5%;
+  bottom: 0;
   right: 50%;
   transform: translateX(50%);
-  width: min(96vw, 380px);
-  height: 34vh;
-  min-height: 240px;
+  width: min(100vw, 420px);
+  height: 46vh;
+  min-height: 320px;
 }
 
 .chapter-how .jose-viz--bulb {
@@ -5413,9 +5509,10 @@ body.is-still-shot .chapter {
     width: 100%;
     justify-content: center;
     white-space: nowrap;
-    letter-spacing: 0.05em;
-    padding: 14px 16px;
+    letter-spacing: 0.06em;
+    padding: 15px 18px;
     font-size: 12px;
+    box-shadow: 0 0 28px rgba(255, 92, 0, 0.42);
   }
 
   body.is-static-home .t5-main h2,
@@ -5427,7 +5524,7 @@ body.is-still-shot .chapter {
 
   body.is-static-home .copy-hero h1,
   body.is-still-shot .copy-hero h1 {
-    font-size: 32px;
+    font-size: 36px;
     line-height: 1.02;
   }
 
@@ -5439,8 +5536,8 @@ body.is-still-shot .chapter {
 
   body.is-static-home .jose-viz--brain,
   body.is-still-shot .jose-viz--brain {
-    height: 34vh;
-    min-height: 240px;
+    height: 46vh;
+    min-height: 320px;
   }
 
   body.is-static-home .jose-viz--bulb,
@@ -6158,35 +6255,27 @@ body.is-still-shot .chapter {
    Grids stop squeezing four columns into 88px cards. */
 @media (max-width: 767px) {
   .copy-hero {
-    top: calc(var(--mm-nav-h) + 12px);
-    max-height: 46svh;
+    top: calc(var(--mm-nav-h) + 20px);
+    max-height: none;
   }
 
   .copy-hero h1 {
-    font-size: clamp(28px, 7.4vw, 34px);
+    font-size: clamp(34px, 8.8vw, 42px);
     line-height: 1.02;
   }
 
   .copy-hero p {
-    margin-top: 8px;
-    font-size: 14px;
+    margin-top: 14px;
+    font-size: 15px;
   }
 
   .copy-hero .hero-actions {
-    margin-top: 12px;
-    gap: 10px;
+    margin-top: 22px;
+    gap: 16px;
   }
 
   .copy-hero .hero-cta {
-    padding: 12px 14px;
-  }
-
-  .copy-hero .scroll-marker--phone {
-    position: fixed;
-    left: 16px;
-    bottom: max(16px, env(safe-area-inset-bottom, 0px));
-    margin-top: 0;
-    z-index: 12;
+    padding: 15px 18px;
   }
 
   .lb-intro .scroll-marker--phone,
@@ -6199,10 +6288,10 @@ body.is-still-shot .chapter {
   }
 
   .chapter-hero .jose-viz--brain {
-    bottom: 2%;
+    bottom: 0;
     width: min(100vw, 420px);
-    height: 42vh;
-    min-height: 300px;
+    height: 46vh;
+    min-height: 320px;
   }
 
   .chapter-how .jose-viz--bulb {

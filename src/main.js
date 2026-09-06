@@ -259,18 +259,18 @@ const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390×844): Jose frames put the form in the lower third,
-// large enough to read as the still coming alive. Type stays in
-// the top lane. Do not recenter onto the H1 or shrink to a sliver.
+// Phone (~390×844): Jose elite hero — form in the lower well,
+// large, with air under the CTA. Type stays in the top lane.
+// Framing only (Y / scale / camera). Do not raise particle count.
 const MOBILE_X = 0.02
 const MOBILE_HOLD_Y = -1.35
-const MOBILE_HERO_Y = -1.42
+const MOBILE_HERO_Y = -1.78
 const MOBILE_BULB_Y = -1.68
 const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 1.12
+const MOBILE_HERO_SCALE = 1.30
 const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
 const MOBILE_MORPH_SCALE = 0.68
@@ -2470,16 +2470,23 @@ function applyScrollCamera(p) {
     // Hero stays closer so the brain fills the lower third instead
     // of sitting behind the CTA as a distant sliver.
     const onHero = p < STAGE.brainMove
+    const onHeroHold = p < STAGE.brainHold
     cameraTarget.z *= onLogo
       ? 2.05
       : onHero
-        ? 1.12
+        ? 1.04
         : onCopyHold
           ? 1.28
           : 1.18
 
     if (!onLogo) {
       cameraTarget.x *= 0.08
+    }
+
+    // Raise the camera so the hero brain reads in the lower well
+    // with air under the CTA. Other holds keep y = 0.
+    if (onHeroHold) {
+      cameraTarget.y = 0.22
     }
   }
 
@@ -2681,7 +2688,7 @@ function containFormInView() {
     : 0.14
   const heroCopy = copyIsLive('.copy-hero')
   const padTop = mobile
-    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.50 : midHold ? 0.46 : 0.32)
+    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.56 : midHold ? 0.46 : 0.32)
     : (tall ? 0.12 : 0.12)
   const padBot = mobile
     ? ((heroCopy || bulbCopy) ? -0.08 : midHold ? 0.02 : 0.05)
@@ -2701,7 +2708,7 @@ function containFormInView() {
     size * (tall ? (mobile ? 0.58 : 0.66) : 0.54) * transformTarget.s
   const maxR = Math.min(
     (viewR - viewL) * (heroCopy ? 0.56 : 0.46),
-    (viewT - viewB) * (heroCopy || bulbCopy ? 0.58 : 0.44)
+    (viewT - viewB) * (heroCopy ? 0.64 : bulbCopy ? 0.58 : 0.44)
   )
 
   if (radius > maxR && radius > 0) {
@@ -2732,8 +2739,8 @@ function containFormInView() {
       cap = 0.82
       transformTarget.y = Math.min(transformTarget.y, -1.45)
     } else if (heroCopy) {
-      cap = 1.18
-      transformTarget.y = Math.min(transformTarget.y, -1.22)
+      cap = 1.36
+      transformTarget.y = Math.min(transformTarget.y, -1.55)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -4342,7 +4349,7 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <p class="eyebrow eyebrow-dash">Personalized tutoring</p>
+        <p class="eyebrow eyebrow-dash">Personalized tutoring for a brighter tomorrow</p>
         <h1>A mentor who stays with your child<span class="stop">.</span></h1>
         <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
         <div class="hero-actions">
@@ -4350,12 +4357,15 @@ function createPage() {
             Book Free Consultation
             ${ARROW_ICON}
           </a>
-          <a class="hero-secondary-cta" href="/programs">Explore Programs →</a>
+          <a class="hero-secondary-cta" href="/programs">
+            Explore Programs
+            ${ARROW_ICON}
+          </a>
         </div>
-        <div class="scroll-marker scroll-marker--in-copy scroll-marker--phone">
-          <span></span>
-          SCROLL
-        </div>
+      </div>
+      <div class="scroll-marker scroll-marker--hero" aria-hidden="true">
+        <span></span>
+        SCROLL
       </div>
       <div class="jose-viz jose-viz--brain" aria-hidden="true"></div>
     </section>
