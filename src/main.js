@@ -3457,10 +3457,24 @@ function copyFadeOf(el) {
 let copyJumpLock = null
 
 function isCloseHoldStory() {
-  return (
+  if (
     currentStage === 'logo' ||
     story.progress >= STAGE.logoForm
-  )
+  ) {
+    return true
+  }
+
+  // Hash / fast-flicker can park the logo chapter on screen
+  // before scrubbed story.progress catches logoForm. The plate
+  // must still win — that is the only readable phone mark.
+  const hold = document.querySelector('.logo-hold-chapter')
+  if (!hold) {
+    return false
+  }
+
+  const rect = hold.getBoundingClientRect()
+  const mid = window.innerHeight * 0.42
+  return rect.top <= mid && rect.bottom >= 80
 }
 
 function lockConsultCloseHold() {
@@ -5016,11 +5030,13 @@ function animate() {
         ?.classList.contains('is-live') === true
 
     // Close plate is the PNG lockup. Hide the particle stage only
-    // once the logo is fully formed (or consult is already painted).
-    // Hiding during logo-forming left a black gap on phone — the
-    // canvas went away before the plate won exclusive paint.
+    // once the logo is fully formed, the logo chapter is on screen,
+    // or consult is already painted. Hiding during logo-forming
+    // left a black gap on phone — the canvas went away before the
+    // plate won exclusive paint.
     const hideStage =
       onLogoHold ||
+      isCloseHoldStory() ||
       consultLive
 
     document.body.classList.toggle(
