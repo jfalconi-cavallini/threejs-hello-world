@@ -259,18 +259,19 @@ const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390×844): Jose elite hero — form in the lower well,
-// large, with air under the CTA. Type stays in the top lane.
-// Framing only (Y / scale / camera). Do not raise particle count.
+// Phone (~390×844): Jose elite hero — large form in the lower-right
+// well, pulled up under the CTA. Type stays upper-left. Framing
+// only (X / Y / scale / camera). Do not raise particle count.
 const MOBILE_X = 0.02
+const MOBILE_HERO_X = 0.58
 const MOBILE_HOLD_Y = -1.35
-const MOBILE_HERO_Y = -1.78
+const MOBILE_HERO_Y = -1.18
 const MOBILE_BULB_Y = -1.68
 const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 1.30
+const MOBILE_HERO_SCALE = 1.68
 const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
 const MOBILE_MORPH_SCALE = 0.68
@@ -2474,19 +2475,19 @@ function applyScrollCamera(p) {
     cameraTarget.z *= onLogo
       ? 2.05
       : onHero
-        ? 1.04
+        ? 0.90
         : onCopyHold
           ? 1.28
           : 1.18
 
     if (!onLogo) {
-      cameraTarget.x *= 0.08
+      cameraTarget.x *= onHeroHold ? 0.02 : 0.08
     }
 
-    // Raise the camera so the hero brain reads in the lower well
-    // with air under the CTA. Other holds keep y = 0.
+    // Slight lift only — keep the large brain pulled up under the
+    // CTA. Other holds keep y = 0.
     if (onHeroHold) {
-      cameraTarget.y = 0.22
+      cameraTarget.y = 0.06
     }
   }
 
@@ -2688,10 +2689,10 @@ function containFormInView() {
     : 0.14
   const heroCopy = copyIsLive('.copy-hero')
   const padTop = mobile
-    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.56 : midHold ? 0.46 : 0.32)
+    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.38 : midHold ? 0.46 : 0.32)
     : (tall ? 0.12 : 0.12)
   const padBot = mobile
-    ? ((heroCopy || bulbCopy) ? -0.08 : midHold ? 0.02 : 0.05)
+    ? ((heroCopy || bulbCopy) ? -0.14 : midHold ? 0.02 : 0.05)
     : (tall ? 0.22 : 0.14)
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
@@ -2707,8 +2708,8 @@ function containFormInView() {
   let radius =
     size * (tall ? (mobile ? 0.58 : 0.66) : 0.54) * transformTarget.s
   const maxR = Math.min(
-    (viewR - viewL) * (heroCopy ? 0.56 : 0.46),
-    (viewT - viewB) * (heroCopy ? 0.64 : bulbCopy ? 0.58 : 0.44)
+    (viewR - viewL) * (heroCopy ? 0.72 : 0.46),
+    (viewT - viewB) * (heroCopy ? 0.74 : bulbCopy ? 0.58 : 0.44)
   )
 
   if (radius > maxR && radius > 0) {
@@ -2717,10 +2718,9 @@ function containFormInView() {
   }
 
   if (mobile) {
-    transformTarget.x = Math.max(
-      -0.16,
-      Math.min(0.16, transformTarget.x)
-    )
+    transformTarget.x = heroCopy
+      ? Math.max(-0.04, Math.min(0.82, transformTarget.x))
+      : Math.max(-0.16, Math.min(0.16, transformTarget.x))
     // Jose frames: hero/bulb sit in the lower third at a large
     // read. Old caps (0.28–0.42) plus a positive Y floor shoved
     // every hold onto the headline. Keep a high ceiling; let the
@@ -2739,8 +2739,8 @@ function containFormInView() {
       cap = 0.82
       transformTarget.y = Math.min(transformTarget.y, -1.45)
     } else if (heroCopy) {
-      cap = 1.36
-      transformTarget.y = Math.min(transformTarget.y, -1.55)
+      cap = 1.78
+      transformTarget.y = Math.min(transformTarget.y, -0.92)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -2925,7 +2925,7 @@ function updateStory() {
 
     transformTarget.x =
       isMobile()
-        ? MOBILE_X
+        ? MOBILE_HERO_X
         : HERO_BRAIN_X
 
     transformTarget.y =
@@ -4349,8 +4349,8 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <p class="eyebrow eyebrow-dash">Personalized tutoring for a brighter tomorrow</p>
-        <h1>A mentor who stays with your child<span class="stop">.</span></h1>
+        <p class="eyebrow eyebrow-dash">Personalized tutoring<br>for a brighter tomorrow</p>
+        <h1>A mentor who stays<br>with your child<span class="stop">.</span></h1>
         <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
         <div class="hero-actions">
           <a class="primary-button hero-cta" href="/consult">
@@ -4362,6 +4362,11 @@ function createPage() {
             ${ARROW_ICON}
           </a>
         </div>
+      </div>
+      <div class="hero-atmosphere" aria-hidden="true">
+        <div class="hero-atmosphere-net"></div>
+        <div class="hero-atmosphere-bokeh"></div>
+        <div class="hero-atmosphere-floor"></div>
       </div>
       <div class="scroll-marker scroll-marker--hero" aria-hidden="true">
         <span></span>

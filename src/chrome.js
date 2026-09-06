@@ -134,6 +134,16 @@ const LOCKUP = `
       </span>
 `
 
+const LOCKUP_CINEMATIC = `
+      <span class="brand-plate brand-plate--dark">
+        <img
+          src="/metaminds-logo-lock.png"
+          alt="MetaMinds STEM Academy"
+          class="brand-logo"
+        >
+      </span>
+`
+
 export const PROGRAM_LINKS = [
   { href: '/programs/academic-tutoring', label: 'Academic Tutoring' },
   { href: '/programs/sat-act', label: 'SAT & ACT Prep' },
@@ -183,7 +193,7 @@ export function createNavbar({ page = 'home' } = {}) {
 
   nav.innerHTML = `
     <a class="brand" href="${homeHref}">
-      ${LOCKUP}
+      ${page === 'home' ? LOCKUP_CINEMATIC : LOCKUP}
     </a>
 
     <div class="nav-inline">
