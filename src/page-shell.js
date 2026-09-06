@@ -19,7 +19,7 @@ export function mountPage({ page, html, frame = false, lookRoute } = {}) {
   setupNav()
 
   if (lookRoute) {
-    mountLookBar({ route: lookRoute })
+    mountLookBar({ route: lookRoute, tipped: true })
   }
 
   if (location.hash) {
