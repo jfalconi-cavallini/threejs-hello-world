@@ -3921,6 +3921,58 @@ a.subject-chip {
   object-position: center bottom;
 }
 
+.grow-rail--stages {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+.grow-copy--stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.plant-stage-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.plant-stage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.plant-stage-slot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px dashed rgba(142, 197, 255, 0.2);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 78%, rgba(61, 139, 255, 0.1), transparent 48%);
+}
+
+.grow-copy--stage .plant-dot {
+  margin-top: 8px;
+}
+
+.grow-copy--stage h3 {
+  margin-top: 6px;
+}
+
 .plant-horizon {
   position: absolute;
   left: 0;
@@ -4647,7 +4699,8 @@ a.subject-chip {
 }
 
 @media (max-width: 767px) {
-  .home-frame .grow-rail--frame {
+  .home-frame .grow-rail--frame,
+  .home-frame .grow-rail--stages {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
     margin-top: 12px;
@@ -5507,6 +5560,23 @@ body.is-still-shot .chapter {
     max-height: 148px;
   }
 
+  #pathways .grow-rail--stages {
+    margin-top: 10px;
+    gap: 6px;
+  }
+
+  #pathways .plant-stage-frame {
+    border-radius: 10px;
+  }
+
+  #pathways .grow-copy--stage .plant-dot {
+    margin-top: 6px;
+  }
+
+  #pathways .grow-copy--stage h3 {
+    margin-top: 4px;
+  }
+
   .chapter-morph-b .jose-viz--pair-shot {
     width: min(94vw, 360px);
     height: 170px;
@@ -5892,5 +5962,49 @@ body.is-still-shot .chapter {
   #mentors .partner-card p {
     font-size: 10px;
     line-height: 1.25;
+  }
+}
+
+/* #pathways phone still — sequenced stage frames, not the strip. */
+@media (max-width: 767px) {
+  #pathways {
+    padding: calc(var(--mm-nav-h) + 6px) 12px 10px;
+    gap: 0;
+  }
+
+  #pathways > .eyebrow {
+    margin-bottom: 6px;
+    font-size: 9px;
+  }
+
+  #pathways > h2 {
+    font-size: 24px;
+  }
+
+  #pathways > p:not(.eyebrow):not(.score-kicker) {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  #pathways .grow-rail--stages {
+    margin-top: 10px;
+    gap: 6px;
+  }
+
+  #pathways .grow-copy--stage p {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  #pathways .partner-card {
+    margin-top: 10px;
+    padding: 10px 12px;
+  }
+
+  #pathways .frame-book {
+    margin-top: 10px;
   }
 }
