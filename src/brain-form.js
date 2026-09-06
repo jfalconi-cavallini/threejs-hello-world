@@ -62,8 +62,8 @@ export function finishBrainPositions(positions, desiredSize = 3.2) {
 
   // Open a thin dark midline so 1.6k phone points do not fill the
   // longitudinal fissure. Keep this a groove, not a cheek split.
-  const halfGap = desiredSize * 0.024
-  const groove = desiredSize * 0.018
+  const halfGap = desiredSize * 0.022
+  const groove = desiredSize * 0.020
   for (let i = 0; i < count; i++) {
     const i3 = i * 3
     let x = positions[i3]

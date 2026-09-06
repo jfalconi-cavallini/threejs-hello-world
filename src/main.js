@@ -272,15 +272,15 @@ const EARTH_X = 1.78
 // two hemispheres + fissure must read, not a cropped smear.
 // Type stays upper-left. Framing only. Do not raise particle count.
 const MOBILE_X = 0.02
-const MOBILE_HERO_X = 0.62
+const MOBILE_HERO_X = 0.56
 const MOBILE_HOLD_Y = -1.35
-const MOBILE_HERO_Y = -1.06
+const MOBILE_HERO_Y = -0.96
 const MOBILE_BULB_Y = -1.68
 const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 0.96
+const MOBILE_HERO_SCALE = 0.90
 const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
 const MOBILE_MORPH_SCALE = 0.68
@@ -741,6 +741,7 @@ function createPointMaterial({
     uDrift: { value: drift },
     uAlpha: { value: alpha },
     uSoft: { value: 0 },
+    uFacet: { value: 1 },
   }
 
   const material =
@@ -758,6 +759,7 @@ function createPointMaterial({
         uniform float uSize;
         uniform float uDrift;
         uniform float uSoft;
+        uniform float uFacet;
         attribute float aScale;
         attribute vec3 color;
         varying vec3 vColor;
@@ -776,8 +778,8 @@ function createPointMaterial({
           float dist = max(0.42, -mvPosition.z);
           float atten = 12.4 / dist;
           float sz = uSize * aScale * atten * uPixelRatio;
-          sz = min(sz, mix(11.5, 6.4, uSoft));
-          gl_PointSize = max(sz, 1.05);
+          sz = min(sz, mix(7.2, 4.6, uSoft));
+          gl_PointSize = max(sz, 1.0);
           gl_Position = projectionMatrix * mvPosition;
           // Slow tumble, unique per particle so the field doesn't
           // read as a uniform grid of identical facets.
@@ -787,6 +789,7 @@ function createPointMaterial({
       fragmentShader: `
         uniform float uAlpha;
         uniform float uSoft;
+        uniform float uFacet;
         varying vec3 vColor;
         varying float vAngle;
 
@@ -817,12 +820,14 @@ function createPointMaterial({
           float edge = 1.0 - smoothstep(lw - aa, lw + aa, abs(d));
           float fill = smoothstep(0.0, -0.55, d) * 0.16;
           float tri = clamp(edge + fill, 0.0, 1.0);
-          float glow = smoothstep(0.68, 0.10, disc);
-          float core = mix(tri, glow, uSoft);
+          float glow = smoothstep(0.58, 0.10, disc);
+          float pin = smoothstep(0.48, 0.08, disc);
+          float facet = mix(tri, glow, uSoft);
+          float core = mix(pin, facet, uFacet);
 
           if (core < 0.02) discard;
 
-          gl_FragColor = vec4(vColor * mix(1.08, 1.16, uSoft), core * uAlpha);
+          gl_FragColor = vec4(vColor * mix(1.12, 1.08, uFacet), core * uAlpha);
         }
       `,
     })
@@ -876,9 +881,9 @@ particleGeometry.setAttribute(
 
 const particleMaterial =
   createPointMaterial({
-    size: MOBILE_AT_LOAD ? 3.6 : 4.2,
+    size: MOBILE_AT_LOAD ? 3.05 : 3.4,
     drift: REDUCED_MOTION ? 0 : 0.028,
-    alpha: 0.92,
+    alpha: 0.96,
     additive: true,
   })
 
@@ -2357,7 +2362,7 @@ function applyScrollCamera(p) {
     cameraTarget.z *= onLogo
       ? 2.05
       : onHero
-        ? 1.02
+        ? 1.08
         : onCopyHold
           ? 1.28
           : 1.18
@@ -2576,7 +2581,7 @@ function containFormInView() {
     ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.42 : midHold ? 0.46 : 0.32)
     : (heroCopy ? 0.30 : tall ? 0.12 : 0.12)
   const padBot = mobile
-    ? (heroCopy ? 0.10 : bulbCopy ? -0.14 : midHold ? 0.02 : 0.05)
+    ? (heroCopy ? 0.16 : bulbCopy ? -0.14 : midHold ? 0.02 : 0.05)
     : (tall ? 0.22 : 0.14)
   const viewL = lookX - halfW * (1 - padX)
   const viewR = lookX + halfW * (1 - padX)
@@ -2631,9 +2636,9 @@ function containFormInView() {
       cap = 0.82
       transformTarget.y = Math.min(transformTarget.y, -1.45)
     } else if (heroCopy) {
-      cap = 1.02
-      transformTarget.x = Math.max(0.42, Math.min(0.78, transformTarget.x))
-      transformTarget.y = Math.max(-1.24, Math.min(-0.88, transformTarget.y))
+      cap = 0.94
+      transformTarget.x = Math.max(0.38, Math.min(0.70, transformTarget.x))
+      transformTarget.y = Math.max(-1.12, Math.min(-0.78, transformTarget.y))
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
@@ -3636,7 +3641,7 @@ function buildHeroPlexus(positions) {
 
   const segs = buildPlexusSegments(
     positions,
-    MOBILE_AT_LOAD ? 200 : 720
+    MOBILE_AT_LOAD ? 320 : 720
   )
   if (!segs || segs.length < 6) {
     return null
@@ -4951,7 +4956,7 @@ function updateParticleInstances(
               HERO_CYAN,
               (normalizedX - 0.47) / 0.06
             )
-            tempColor.multiplyScalar(0.38)
+            tempColor.multiplyScalar(0.22)
           } else {
             tempColor.lerpColors(
               HERO_CYAN,
@@ -5586,12 +5591,12 @@ function animate() {
 
       particleMaterial.uniforms.uAlpha.value +=
         (
-          0.9 -
+          (onBrainHold ? 0.96 : 0.9) -
           particleMaterial.uniforms.uAlpha.value
         ) *
         0.1
 
-      const softTarget = onBrainHold ? 0.16 : 0
+      const softTarget = onBrainHold ? 0.08 : 0
       particleMaterial.uniforms.uSoft.value +=
         (
           softTarget -
@@ -5599,9 +5604,19 @@ function animate() {
         ) *
         0.12
 
+      const facetTarget = onBrainHold ? 0 : 1
+      if (particleMaterial.uniforms.uFacet) {
+        particleMaterial.uniforms.uFacet.value +=
+          (
+            facetTarget -
+            particleMaterial.uniforms.uFacet.value
+          ) *
+          0.14
+      }
+
       const driftTarget =
         onBrainHold
-          ? (REDUCED_MOTION ? 0 : 0.020)
+          ? (REDUCED_MOTION ? 0 : 0.016)
           : (REDUCED_MOTION ? 0 : 0.028)
       particleMaterial.uniforms.uDrift.value +=
         (
@@ -5611,14 +5626,14 @@ function animate() {
         0.1
 
       if (heroPlexus) {
-        const plexusTarget = hideStage ? 0 : onBrainHold ? 0.34 : 0
+        const plexusTarget = hideStage ? 0 : onBrainHold ? 0.52 : 0
         heroPlexus.material.opacity +=
           (plexusTarget - heroPlexus.material.opacity) * 0.12
         heroPlexus.visible = heroPlexus.material.opacity > 0.02
       }
 
       if (heroFloor) {
-        const floorTarget = hideStage ? 0 : onBrainHold ? 0.52 : 0
+        const floorTarget = hideStage ? 0 : onBrainHold ? 0.72 : 0
         heroFloor.material.uniforms.uAlpha.value +=
           (floorTarget - heroFloor.material.uniforms.uAlpha.value) * 0.12
         heroFloor.visible =
@@ -5661,15 +5676,17 @@ function animate() {
         heroBrainDetail.material.uniforms.uAlpha.value > 0.02
     }
 
-    const logoBlend =
-      THREE.AdditiveBlending
+    const holdBlend =
+      onBrainHold
+        ? THREE.NormalBlending
+        : THREE.AdditiveBlending
 
     if (
       particleMaterial.blending !==
-      logoBlend
+      holdBlend
     ) {
       particleMaterial.blending =
-        logoBlend
+        holdBlend
       particleMaterial.needsUpdate =
         true
     }
