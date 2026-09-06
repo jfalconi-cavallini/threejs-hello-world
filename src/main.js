@@ -24,8 +24,8 @@ import {
 import { createHomeAfter } from './home-after.js'
 import { mountLookBar } from './look-bar.js'
 import {
-  generateBrainPositions,
   buildPlexusSegments,
+  finishBrainPositions,
 } from './brain-form.js'
 
 import './style.css'
@@ -248,6 +248,7 @@ disposeExistingRenderer()
 // ======================================================
 
 const BRAIN_SIZE = 3.2
+const BRAIN_GLB_URL = '/models/brain.glb'
 const LIGHTBULB_SIZE = 4.45
 const EARTH_SIZE = 4.35
 const LOGO_SIZE = 4.6
@@ -256,25 +257,26 @@ const LOGO_SIZE = 4.6
 // in the right half with air. 4.1–4.8 parked the mesh past the
 // right clip even at 1440px (lookAt only follows 18% of form X).
 const RIGHT_X = 1.72
-const HERO_BRAIN_X = 1.74
+const HERO_BRAIN_X = 2.42
 const LEFT_X = -2.0
 const CENTER_X = 0.35
 const LOGO_X = 0
 const NOTES_X = 1.78
 const EARTH_X = 1.78
 
-// Phone (~390×844): Jose elite hero — particle brain in the lower
-// well. Type stays upper-left. Framing only. Do not raise particle count.
+// Phone (~390×844): GLB-sampled particle brain in the lower-right
+// well. Type stays upper-left — never cover headline / CTA.
+// Framing only. Do not raise particle count.
 const MOBILE_X = 0.02
-const MOBILE_HERO_X = 0.58
+const MOBILE_HERO_X = 0.98
 const MOBILE_HOLD_Y = -1.35
-const MOBILE_HERO_Y = -1.18
+const MOBILE_HERO_Y = -1.72
 const MOBILE_BULB_Y = -1.68
 const MOBILE_TEAM_Y = -1.58
 const MOBILE_RESULTS_Y = -0.72
 const MOBILE_RESULTS_X = 0.02
 
-const MOBILE_HERO_SCALE = 1.68
+const MOBILE_HERO_SCALE = 1.22
 const MOBILE_HOLD_SCALE = 0.68
 const MOBILE_RESULTS_SCALE = 0.42
 const MOBILE_MORPH_SCALE = 0.68
@@ -282,7 +284,8 @@ const MOBILE_BULB_SCALE = 0.74
 const MOBILE_EARTH_SCALE = 0.44
 const MOBILE_TEAM_SCALE = 0.22
 const DESKTOP_HOLD_SCALE = 0.78
-const DESKTOP_HERO_SCALE = 0.90
+const DESKTOP_HERO_SCALE = 0.68
+const DESKTOP_HERO_Y = -0.78
 
 // Tighter hover effect.
 const INTERACTION_RADIUS = 0.28
@@ -2453,8 +2456,8 @@ function applyScrollCamera(p) {
   // Copy holds stay OUT so type sits in a dark lane or over a
   // distant silhouette. Dolly IN only during morphs — no copy.
   const keys = [
-    { p: 0.000, z: 4.55, fov: 50, x: -0.88 },
-    { p: STAGE.brainHold, z: 4.40, fov: 51, x: -0.82 },
+    { p: 0.000, z: 4.55, fov: 50, x: -1.18 },
+    { p: STAGE.brainHold, z: 4.40, fov: 51, x: -1.12 },
     // Hold wide through the page-2 block — no dolly-in while there's
     // copy on screen — then ease in across the longer explosion.
     { p: STAGE.brainMove, z: 4.40, fov: 51, x: -0.82 },
@@ -2498,26 +2501,26 @@ function applyScrollCamera(p) {
       (p >= STAGE.bulbForm && p < STAGE.bulbHold) ||
       (p >= STAGE.earthForm && p < STAGE.earthHold)
 
-    // Hero stays closer so the brain fills the lower third instead
-    // of sitting behind the CTA as a distant sliver.
+    // Hero stays closer so the GLB brain fills the lower-right well
+    // instead of sitting behind the CTA as a distant sliver.
     const onHero = p < STAGE.brainMove
     const onHeroHold = p < STAGE.brainHold
     cameraTarget.z *= onLogo
       ? 2.05
       : onHero
-        ? 0.90
+        ? 0.92
         : onCopyHold
           ? 1.28
           : 1.18
 
     if (!onLogo) {
-      cameraTarget.x *= onHeroHold ? 0.02 : 0.08
+      cameraTarget.x *= onHeroHold ? -0.06 : 0.08
     }
 
-    // Slight lift only — keep the large brain pulled up under the
-    // CTA. Other holds keep y = 0.
+    // Keep the brain in the lower well. A positive Y lift is what
+    // parked the form on the headline / CTA.
     if (onHeroHold) {
-      cameraTarget.y = 0.06
+      cameraTarget.y = -0.10
     }
   }
 
@@ -2701,12 +2704,16 @@ function containFormInView() {
     Math.tan((fov * Math.PI) / 360) * z
   const halfW = halfH * aspect
   const midHold = midScrollCopyLive()
-  const lookX = mobile
-    ? transformTarget.x * 0.22
-    : transformTarget.x * 0.18
-  const lookY = mobile
-    ? transformTarget.y * 0.08
-    : transformTarget.y * 0.42
+  const lookX = currentStage === 'brain'
+    ? transformTarget.x * (mobile ? 0.03 : 0.06)
+    : mobile
+      ? transformTarget.x * 0.22
+      : transformTarget.x * 0.18
+  const lookY = currentStage === 'brain'
+    ? transformTarget.y * (mobile ? 0.02 : 0.12)
+    : mobile
+      ? transformTarget.y * 0.08
+      : transformTarget.y * 0.42
   const bulbCopy =
     copyIsLive('.lb-intro')
   const teamCopy = teamCopyLive()
@@ -2719,8 +2726,8 @@ function containFormInView() {
     : 0.14
   const heroCopy = copyIsLive('.copy-hero')
   const padTop = mobile
-    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.38 : midHold ? 0.46 : 0.32)
-    : (tall ? 0.12 : 0.12)
+    ? (teamCopy ? 0.58 : bulbCopy ? 0.54 : heroCopy ? 0.42 : midHold ? 0.46 : 0.32)
+    : (heroCopy ? 0.30 : tall ? 0.12 : 0.12)
   const padBot = mobile
     ? ((heroCopy || bulbCopy) ? -0.14 : midHold ? 0.02 : 0.05)
     : (tall ? 0.22 : 0.14)
@@ -2777,34 +2784,39 @@ function containFormInView() {
       cap = 0.82
       transformTarget.y = Math.min(transformTarget.y, -1.45)
     } else if (heroCopy) {
-      cap = 1.78
-      transformTarget.y = Math.min(transformTarget.y, -0.92)
+      cap = 1.24
+      transformTarget.x = Math.max(0.78, Math.min(1.12, transformTarget.x))
+      transformTarget.y = Math.min(transformTarget.y, -1.52)
     }
     transformTarget.s = Math.min(transformTarget.s, cap)
     radius = Math.min(
       radius,
       size * 0.54 * transformTarget.s
     )
+  } else if (heroCopy) {
+    transformTarget.x = Math.max(2.05, transformTarget.x)
+    transformTarget.y = Math.min(transformTarget.y, -0.62)
+    transformTarget.s = Math.min(transformTarget.s, 0.72)
   }
 
-  if (!(mobile && heroCopy) && transformTarget.x - radius < viewL) {
+  if (!heroCopy && transformTarget.x - radius < viewL) {
     transformTarget.x = viewL + radius
   }
 
-  if (!(mobile && heroCopy) && transformTarget.x + radius > viewR) {
+  if (!heroCopy && transformTarget.x + radius > viewR) {
     transformTarget.x = viewR - radius
   }
 
   // Jose hero/bulb frames clip the floor. Pushing Y up to stay
   // inside viewB is what parked the brain behind the CTA.
   if (
-    !(mobile && (heroCopy || bulbCopy)) &&
+    !(heroCopy || (mobile && bulbCopy)) &&
     transformTarget.y - radius < viewB
   ) {
     transformTarget.y = viewB + radius
   }
 
-  if (!(mobile && heroCopy) && transformTarget.y + radius > viewT) {
+  if (!heroCopy && transformTarget.y + radius > viewT) {
     transformTarget.y = viewT - radius
   }
 }
@@ -2969,7 +2981,7 @@ function updateStory() {
     transformTarget.y =
       isMobile()
         ? MOBILE_HERO_Y
-        : 0
+        : DESKTOP_HERO_Y
 
     transformTarget.s =
       isMobile()
@@ -2977,13 +2989,13 @@ function updateStory() {
         : DESKTOP_HERO_SCALE
 
     transformTarget.rx =
-      -0.02
+      -0.04
 
     transformTarget.ry =
-      0.08
+      0.10
 
     transformTarget.rz =
-      0
+      0.02
   }
 
   // ==================================================
@@ -3635,9 +3647,17 @@ async function sampleGlbForm(url, desiredSize, puffScale = 1) {
 
 async function loadFormPositions(name, glbUrl, desiredSize, puffScale = 1) {
   try {
-    return await loadBakedPositions(FORM_BAKES[name])
+    const baked = await loadBakedPositions(FORM_BAKES[name])
+    if (name === 'brain') {
+      return finishBrainPositions(baked, desiredSize)
+    }
+    return baked
   } catch {
-    return sampleGlbForm(glbUrl, desiredSize, puffScale)
+    const sampled = await sampleGlbForm(glbUrl, desiredSize, puffScale)
+    if (name === 'brain' && sampled) {
+      return finishBrainPositions(sampled, desiredSize)
+    }
+    return sampled
   }
 }
 
@@ -3800,12 +3820,15 @@ function buildHeroPlexus(positions) {
 async function bootExperience() {
   // CPU only. Do not construct WebGL until the brain buffer
   // is in memory — first paint must not decode 15MB GLBs.
-  // Hero hold is a procedural particle cortex (same count as the
-  // morph budget). The puffed GLB bake reads as a blob; the 2D
-  // plate is the rejected still. No extra Points / bloom / DPR.
-  brainPositions = generateBrainPositions(
-    PARTICLE_COUNT,
-    BRAIN_SIZE
+  // Hero hold is the GLB-sampled particle brain (same PARTICLE_COUNT
+  // as the morph budget). Happy path reads the Float32 bake of
+  // public/models/brain.glb — never a procedural SDF blob, never a
+  // PNG/JPG plate. No extra Points / bloom / DPR.
+  brainPositions = await loadFormPositions(
+    'brain',
+    BRAIN_GLB_URL,
+    BRAIN_SIZE,
+    0.10
   )
 
   renderer = createWebGLRenderer()
@@ -5345,10 +5368,18 @@ function animate() {
 
     // Phone: follow the form in X so it stays in frame; barely
     // follow Y so a below-type park does not recenter onto the H1.
+    // Do not chase the hero brain back to center — that recenters
+    // a lower-right park onto the headline / CTA.
+    const onHeroBrain =
+      currentStage === 'brain'
     const lookFollowX =
-      isMobile() ? 0.22 : 0.18
+      onHeroBrain
+        ? (isMobile() ? 0.03 : 0.06)
+        : isMobile() ? 0.22 : 0.18
     const lookFollowY =
-      isMobile() ? 0.08 : 0.42
+      onHeroBrain
+        ? (isMobile() ? 0.02 : 0.12)
+        : isMobile() ? 0.08 : 0.42
 
     lookTarget.x +=
       (
@@ -5653,7 +5684,7 @@ function animate() {
         ) *
         0.1
 
-      const softTarget = onBrainHold ? 0.82 : 0
+      const softTarget = onBrainHold ? 0.92 : 0
       particleMaterial.uniforms.uSoft.value +=
         (
           softTarget -
