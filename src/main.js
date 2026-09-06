@@ -4038,10 +4038,10 @@ function createPage() {
           </a>
           <a class="hero-secondary-cta" href="/programs">Explore Programs</a>
         </div>
-      </div>
-      <div class="scroll-marker">
-        SCROLL
-        <span></span>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 

@@ -1799,7 +1799,7 @@ body.is-static-home .scene-canvas {
   }
 
   .lb-intro h2 {
-    font-size: clamp(28px, 7.6vw, 36px);
+    font-size: clamp(26px, 7vw, 34px);
     line-height: 1.02;
   }
 
@@ -1807,12 +1807,32 @@ body.is-static-home .scene-canvas {
   .beat-cards--pair {
     width: 100%;
     grid-template-columns: 1fr;
-    margin-top: 16px;
+    margin-top: 12px;
+    gap: 8px;
   }
 
   .beat-card {
-    padding: 12px 12px;
-    gap: 12px;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .beat-card-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .beat-card h3 {
+    font-size: 14px;
+  }
+
+  .beat-card p {
+    font-size: 12px;
+  }
+
+  .copy-hero .scroll-marker--in-copy,
+  .lb-intro .scroll-marker--in-copy,
+  .t5-main .scroll-marker--in-copy {
+    margin-top: 16px;
   }
 
   .beat-tagline {
