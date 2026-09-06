@@ -3839,6 +3839,7 @@ function setupCopyTravel() {
 
 const HASH_COPY = {
   '#s1': '.copy-hero',
+  '#understand': '.t3-understand',
   '#bulb': '.lb-intro',
   '#notes': '.lb-intro',
   '#team': '.t5-main',
@@ -4182,10 +4183,10 @@ function createPage() {
           One student. One plan. Years of growth.
         </h2>
         <p>
-          Free. 30 minutes.
+          Free. 30 minutes. No obligation.
         </p>
         <p>
-          DFW. Zoom.
+          DFW. Zoom. A mentor who stays.
         </p>
         <a
           href="/consult"
