@@ -5414,11 +5414,14 @@ function animate() {
       currentStage ===
       'brain'
     ) {
-      // Slow living turn — keep warm-left / cool-right for a
-      // normal hero dwell. 0.24 rad/s flipped the split.
+      // Oscillate, do not spin — Jose split is warm-left / cool-right.
       particles.rotation.y +=
-        dt *
-        0.045
+        (
+          transformTarget.ry +
+          Math.sin(lastFrameTime * 0.00032) * 0.10 -
+          particles.rotation.y
+        ) *
+        0.08
     }
 
     else if (
