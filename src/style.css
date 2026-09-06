@@ -3952,6 +3952,9 @@ a.subject-chip {
   height: 100%;
   object-fit: contain;
   object-position: center bottom;
+  /* Jose PNGs render true — no hue-rotate / tint / blend recolor. */
+  filter: none;
+  mix-blend-mode: normal;
 }
 
 .plant-stage-slot {
@@ -4054,8 +4057,8 @@ a.subject-chip {
 
 .plant-viz--2 .plant-stem { height: 42px; }
 .plant-viz--2 .plant-leaf--l,
-.plant-viz--2 .plant-leaf--r { opacity: 0.9; bottom: 18px; background: #ff7ad9; }
-.plant-viz--2 .plant-bud { bottom: 40px; background: #ff9a7a; color: #ff5c00; }
+.plant-viz--2 .plant-leaf--r { opacity: 0.9; bottom: 18px; background: #3d8bff; }
+.plant-viz--2 .plant-bud { bottom: 40px; background: #ff8a3d; color: #ff5c00; }
 
 .plant-viz--3 .plant-stem { height: 66px; }
 .plant-viz--3 .plant-leaf { opacity: 1; background: #6eb6ff; }
@@ -4085,9 +4088,9 @@ a.subject-chip {
 }
 
 .plant-dot--1 { background: #ff5c00; box-shadow: 0 0 10px #ff5c00; }
-.plant-dot--2 { background: #ff7ad9; box-shadow: 0 0 10px #ff7ad9; }
+.plant-dot--2 { background: #8ec5ff; box-shadow: 0 0 10px #8ec5ff; }
 .plant-dot--3 { background: #3d8bff; box-shadow: 0 0 10px #3d8bff; }
-.plant-dot--4 { background: #8ec5ff; box-shadow: 0 0 10px #8ec5ff; }
+.plant-dot--4 { background: #ff5c00; box-shadow: 0 0 10px #ff5c00; }
 
 .grow-rail--frame {
   margin-top: 18px;
