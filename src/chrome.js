@@ -59,6 +59,44 @@ export const STAR_ICON = iconSvg(
   `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />`
 )
 
+export const TARGET_ICON = iconSvg(
+  'beat-card-glyph',
+  `<circle cx="12" cy="12" r="8" />
+   <circle cx="12" cy="12" r="3" />
+   <line x1="12" y1="2" x2="12" y2="6" />
+   <line x1="12" y1="18" x2="12" y2="22" />
+   <line x1="2" y1="12" x2="6" y2="12" />
+   <line x1="18" y1="12" x2="22" y2="12" />`
+)
+
+export const NOTE_ICON = iconSvg(
+  'beat-card-glyph',
+  `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+   <path d="M14 2v6h6" />
+   <line x1="8" y1="13" x2="16" y2="13" />
+   <line x1="8" y1="17" x2="13" y2="17" />`
+)
+
+export const PARENT_ICON = iconSvg(
+  'beat-card-glyph',
+  `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+   <circle cx="9" cy="7" r="4" />
+   <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+   <path d="M16 3.13a4 4 0 0 1 0 7.75" />`
+)
+
+export const VIDEO_ICON = iconSvg(
+  'beat-card-glyph',
+  `<rect x="2" y="6" width="14" height="12" rx="2" />
+   <path d="m16 10 6-3v10l-6-3z" />`
+)
+
+export const NEARBY_ICON = iconSvg(
+  'beat-card-glyph',
+  `<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+   <circle cx="12" cy="10" r="3" />`
+)
+
 export function mountAtmosphere() {
   if (document.querySelector('.atmosphere')) {
     return
@@ -99,7 +137,7 @@ export const PROGRAM_LINKS = [
 const CONSULT_CTA = `
     <a class="nav-cta" href="/consult">
       <span class="nav-cta-full">Book Free Consultation</span>
-      <span class="nav-cta-short">Book</span>
+      <span class="nav-cta-short">BOOK</span>
       ${ARROW_ICON}
     </a>
 `
@@ -188,6 +226,8 @@ export function createNavbar({ page = 'home' } = {}) {
         <a class="${navActive(page, 'results').trim()}" href="/results">Results</a>
         <a class="${navActive(page, 'pricing').trim()}" href="/pricing">Pricing</a>
         <a class="${navActive(page, 'about').trim()}" href="/about">About</a>
+        <a class="${navActive(page, 'mentors').trim()}" href="/mentors">Mentors</a>
+        <a class="${navActive(page, 'parents').trim()}" href="/parents">Parents</a>
         <a class="${navActive(page, 'login').trim()}" href="/login">Sign In</a>
       </div>
       <a href="/consult" class="primary-button nav-panel-cta">
@@ -221,10 +261,12 @@ export function createFooter() {
       <a href="/results">Results</a>
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
+      <a href="/mentors">Mentors</a>
       <a href="/parents">Parents</a>
       <a href="/consult">Consult</a>
       <a href="mailto:metamindsstemacademy@gmail.com">metamindsstemacademy@gmail.com</a>
     </nav>
+    <p class="footer-whisper">DFW. Zoom. A mentor who stays.</p>
   `
   return footer
 }

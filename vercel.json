@@ -13,6 +13,7 @@
     { "source": "/how-it-works", "destination": "/how-it-works.html" },
     { "source": "/results", "destination": "/results.html" },
     { "source": "/login", "destination": "/login.html" },
-    { "source": "/parents", "destination": "/parents.html" }
+    { "source": "/parents", "destination": "/parents.html" },
+    { "source": "/mentors", "destination": "/mentors.html" }
   ]
 }

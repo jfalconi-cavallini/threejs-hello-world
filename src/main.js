@@ -14,12 +14,22 @@ import {
   createFooter,
   setupNav,
   ARROW_ICON,
+  TARGET_ICON,
+  NOTE_ICON,
+  PARENT_ICON,
+  VIDEO_ICON,
+  NEARBY_ICON,
 } from './chrome.js'
 import { createHomeAfter } from './home-after.js'
 
 import './style.css'
 
 gsap.registerPlugin(ScrollTrigger)
+
+ScrollTrigger.config({
+  ignoreMobileResize: true,
+  autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load',
+})
 
 let scrollProgressBar = null
 let bootScreen = null
@@ -270,13 +280,30 @@ const REPULSION_FORCE = 0.12
 const DEPTH_BULGE = 0.16
 
 // How quickly actual particles chase the story target.
+// Rates are per-second for exp smoothing so 30fps phones and
+// 60fps desktops travel the same curve (old per-frame lerp
+// made mobile morphs hitch whenever rAF dropped).
+const POSITION_FOLLOW_RATE =
+  MOBILE_AT_LOAD
+    ? 8.4
+    : 5.8
+
+const HOLD_FOLLOW_RATE = 14
+const LOGO_FOLLOW_RATE = 36
+
+let morphFollowRate =
+  POSITION_FOLLOW_RATE
+
+// Legacy 60fps-equivalent kept for any remaining callers.
 const POSITION_LERP =
   MOBILE_AT_LOAD
-    ? 0.11
-    : 0.055
+    ? 0.13
+    : 0.09
 
 let morphLerp =
   POSITION_LERP
+
+let frameFollow = POSITION_LERP
 
 // Once every particle gets sufficiently close,
 // stop touching the instance matrices.
@@ -2131,14 +2158,15 @@ function writeMorphTarget(
 
     const delay =
       wave *
-        0.18 +
-      morphOffsets[i]
+        0.07 +
+      morphOffsets[i] *
+        0.45
 
     const local =
       smootherstep(
         clamp01(
           (
-            progress -
+            smoothstep(clamp01(progress)) -
             delay
           ) /
             (
@@ -2229,6 +2257,7 @@ function setHoldShot(
   _x = 0
 ) {
   stageIsTransform = false
+  morphFollowRate = HOLD_FOLLOW_RATE
   morphLerp = Math.max(POSITION_LERP, 0.22)
   transformTarget.s = 1
   // Holds carry copy. Bloom under letters was the session-notes
@@ -2244,6 +2273,8 @@ function setTransformShot(
   scale = 1.14
 ) {
   stageIsTransform = true
+  morphFollowRate =
+    POSITION_FOLLOW_RATE * 1.2
   morphLerp =
     POSITION_LERP * 1.15
   transformTarget.s = isMobile()
@@ -2298,7 +2329,7 @@ function applyScrollCamera(p) {
   }
 
   const span = b.p - a.p || 1
-  const t = smoothstep((p - a.p) / span)
+  const t = smootherstep((p - a.p) / span)
 
   cameraTarget.z = lerp(a.z, b.z, t)
   cameraTarget.fov = lerp(a.fov, b.fov, t)
@@ -2375,13 +2406,8 @@ function copyIsLive(selector) {
 function midScrollCopyLive() {
   return (
     copyIsLive('.copy-hero') ||
-    copyIsLive('.t3-intro') ||
-    copyIsLive('.t3-morph') ||
+    copyIsLive('.t3-understand') ||
     copyIsLive('.lb-intro') ||
-    copyIsLive('.lb-feature-1') ||
-    copyIsLive('.lb-feature-2') ||
-    copyIsLive('.lb-feature-3') ||
-    copyIsLive('.lb-feature-4') ||
     copyIsLive('.t5-main') ||
     copyIsLive('.earth-hold') ||
     copyIsLive('.copy-results') ||
@@ -2495,11 +2521,7 @@ function containFormInView() {
     ? transformTarget.y * 0.08
     : transformTarget.y * 0.42
   const bulbCopy =
-    copyIsLive('.lb-intro') ||
-    copyIsLive('.lb-feature-1') ||
-    copyIsLive('.lb-feature-2') ||
-    copyIsLive('.lb-feature-3') ||
-    copyIsLive('.lb-feature-4')
+    copyIsLive('.lb-intro')
   const teamCopy = teamCopyLive()
   const tall =
     currentStage === 'lightbulb' ||
@@ -3288,6 +3310,7 @@ function updateStory() {
     )
 
     morphLerp = 1
+    morphFollowRate = LOGO_FOLLOW_RATE
 
     transformTarget.s = 1
 
@@ -3429,10 +3452,62 @@ function copyFadeOf(el) {
 // the outgoing beat's copyFade has reached 0.
 let copyJumpLock = null
 
+function isCloseHoldStory() {
+  if (
+    currentStage === 'logo' ||
+    story.progress >= STAGE.logoForm
+  ) {
+    return true
+  }
+
+  // Hash / fast-flicker can park the logo chapter on screen
+  // before scrubbed story.progress catches logoForm. The plate
+  // must still win — that is the only readable phone mark.
+  const hold = document.querySelector('.logo-hold-chapter')
+  if (!hold) {
+    return false
+  }
+
+  const rect = hold.getBoundingClientRect()
+  const mid = window.innerHeight * 0.42
+  return rect.top <= mid && rect.bottom >= 80
+}
+
+function lockConsultCloseHold() {
+  const consult = document.querySelector('.copy-consult')
+  if (!consult) {
+    return false
+  }
+
+  const copies = document.querySelectorAll('.copy')
+  for (let i = 0; i < copies.length; i++) {
+    fadeProxy(copies[i]).copyFade =
+      copies[i] === consult ? 1 : 0
+  }
+
+  const desktop = !isMobile()
+  gsap.set(consult, {
+    y: 0,
+    x: 0,
+    xPercent: desktop ? -50 : 0,
+    yPercent: 0,
+    autoAlpha: 1,
+  })
+  consult.style.opacity = '1'
+  consult.style.visibility = 'visible'
+  consult.classList.add('is-live')
+  return true
+}
+
 function syncCopySlot() {
   const copies = [...document.querySelectorAll('.copy')]
   if (!copies.length) {
     return
+  }
+
+  if (isCloseHoldStory()) {
+    copyJumpLock = null
+    lockConsultCloseHold()
   }
 
   if (copyJumpLock && document.body.contains(copyJumpLock)) {
@@ -3573,7 +3648,10 @@ function wireCopyCluster(desktop, selectors, scroll, beats, copyScrub) {
 }
 
 function setupCopyTravel() {
-  const copyScrub = REDUCED_MOTION ? false : 1.15
+  const copyScrub =
+    REDUCED_MOTION
+      ? false
+      : (MOBILE_AT_LOAD || TOUCH_DEVICE ? 0.78 : 0.58)
   const mm = gsap.matchMedia()
 
   const wire = (desktop) => {
@@ -3629,28 +3707,21 @@ function setupCopyTravel() {
 
     wireCopyCluster(
       desktop,
-      ['.t3-intro', '.t3-morph'],
+      ['.t3-understand'],
       {
         trigger: morphA,
         start: 'top 88%',
         end: 'bottom top',
       },
       [
-        { enter: 0.10, hold: 0.36, exit: 0.10, fadeWait: 0 },
-        { enter: 0.10, hold: 0.44, exit: 0.08, stay: true, fadeWait: 0 },
+        { enter: 0.10, hold: 0.80, exit: 0.08, stay: true, fadeWait: 0 },
       ],
       copyScrub
     )
 
     wireCopyCluster(
       desktop,
-      [
-        '.lb-intro',
-        '.lb-feature-1',
-        '.lb-feature-2',
-        '.lb-feature-3',
-        '.lb-feature-4',
-      ],
+      ['.lb-intro'],
       {
         trigger: lbChapter,
         endTrigger: morphB,
@@ -3658,11 +3729,7 @@ function setupCopyTravel() {
         end: 'top 8%',
       },
       [
-        { enter: 0.12, hold: 0.56, exit: 0.12, fadeWait: 0 },
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
-        PAGE_TURN,
+        { enter: 0.12, hold: 0.80, exit: 0.08, stay: true, fadeWait: 0 },
       ],
       copyScrub
     )
@@ -3715,10 +3782,17 @@ function setupCopyTravel() {
 
     if (consult && morphC) {
       const base = copyAnchor(consult, desktop)
+      const logoHold = document.querySelector('.logo-hold-chapter')
+      const phone = !desktop
 
+      // Phone: the plate is bottom-pinned. A +200 y tween parks it
+      // under the fold, and exclusive paint loses to .copy-results
+      // (stay:true) until fade hits 1.000. Start on-screen and pin
+      // the trigger to the logo chapter so the mark is up before
+      // the canvas hides.
       gsap.set(consult, {
         ...base,
-        y: REDUCED_MOTION ? 0 : 200,
+        y: REDUCED_MOTION || phone ? 0 : 200,
         autoAlpha: 0,
       })
       fadeProxy(consult).copyFade = 0
@@ -3726,9 +3800,9 @@ function setupCopyTravel() {
       const tl = gsap.timeline({
         defaults: {},
         scrollTrigger: {
-          trigger: morphC,
-          start: 'top 50%',
-          end: 'bottom top',
+          trigger: phone && logoHold ? logoHold : morphC,
+          start: phone ? 'top 92%' : 'top 50%',
+          end: phone && logoHold ? 'bottom bottom' : 'bottom top',
           scrub: REDUCED_MOTION ? true : copyScrub,
           onUpdate: syncCopySlot,
         },
@@ -3738,8 +3812,8 @@ function setupCopyTravel() {
         tl,
         consult,
         0,
-        0.14,
-        0.72,
+        phone ? 0.08 : 0.14,
+        phone ? 0.84 : 0.72,
         0.08,
         true,
         0
@@ -3765,8 +3839,9 @@ function setupCopyTravel() {
 
 const HASH_COPY = {
   '#s1': '.copy-hero',
+  '#understand': '.t3-understand',
   '#bulb': '.lb-intro',
-  '#notes': '.lb-feature-4',
+  '#notes': '.lb-intro',
   '#team': '.t5-main',
   '#grow': '.earth-hold',
   '#plan': '.copy-results',
@@ -3780,7 +3855,8 @@ function liveCopyForGeometry() {
     ['.chapter-results', '.copy-results'],
     ['.chapter-earth', '.earth-hold'],
     ['.chapter-morph-b', '.t5-main'],
-    ['.chapter-morph-a', '.t3-intro'],
+    ['.chapter-how', '.lb-intro'],
+    ['.chapter-morph-a', '.t3-understand'],
     ['.chapter-hero', '.copy-hero'],
   ]
 
@@ -3951,7 +4027,8 @@ function createPage() {
 
     <section class="chapter chapter-hero" id="s1">
       <div class="copy copy-left copy-hero">
-        <h1>A mentor who<br> stays with<br> your child.</h1>
+        <p class="eyebrow eyebrow-dash">Personalized tutoring</p>
+        <h1>A mentor who<br> stays with<br> your child<span class="stop">.</span></h1>
         <p>One dedicated mentor. A plan you can see. Progress you can track.</p>
         <div class="hero-actions">
           <a class="primary-button hero-cta" href="/consult">
@@ -3960,73 +4037,126 @@ function createPage() {
           </a>
           <a class="hero-secondary-cta" href="/programs">Explore Programs</a>
         </div>
-      </div>
-      <div class="scroll-marker">
-        SCROLL
-        <span></span>
-      </div>
-    </section>
-
-    <section class="chapter chapter-morph chapter-morph-a">
-      <div class="copy copy-lane t3-intro">
-        <p class="eyebrow"><span class="beat-meta">Brain · </span>What we teach</p>
-        <h2>Every student gets stuck for a different reason.</h2>
-      </div>
-      <div class="copy copy-lane t3-morph">
-        <h2>Understanding changes everything.</h2>
-        <p class="teach-subjects">SAT. ACT. AP. Math. Coding.</p>
-        <p class="teach-range">K–12 through college.</p>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 
-    <section class="chapter chapter-lb-hold-item" id="bulb">
+    <section class="chapter chapter-morph chapter-morph-a chapter-understand" id="understand">
+      <div class="copy copy-lane t3-understand">
+        <p class="eyebrow eyebrow-dash">Understanding</p>
+        <h2>Understanding changes everything<span class="stop">.</span></h2>
+        <p class="beat-lead">SAT. ACT. AP. Math. Science. Writing. Coding. K–12 through college.</p>
+        <p>We start with what they already know, where the gaps are, and what to work on next.</p>
+        <div class="beat-cards beat-cards--paths">
+          <a class="beat-card beat-card--link" href="/programs/academic-tutoring">
+            <div>
+              <h3>Elementary &amp; Middle School</h3>
+              <p>Build fundamentals, confidence, organization, and strong learning habits.</p>
+            </div>
+          </a>
+          <a class="beat-card beat-card--link" href="/programs/ap">
+            <div>
+              <h3>High School &amp; AP</h3>
+              <p>Keep up with harder coursework, fill gaps, and prepare for what comes next.</p>
+            </div>
+          </a>
+          <a class="beat-card beat-card--link" href="/programs/sat-act">
+            <div>
+              <h3>SAT &amp; ACT</h3>
+              <p>Diagnose weaknesses, build strategy, practice deliberately, and track progress.</p>
+            </div>
+          </a>
+          <a class="beat-card beat-card--link" href="/programs/programming-stem">
+            <div>
+              <h3>Programming &amp; STEM</h3>
+              <p>Learn to build with code, robotics, engineering, and real projects.</p>
+            </div>
+          </a>
+        </div>
+        <p class="beat-quiet">One dedicated mentor. A plan you can see.</p>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter chapter-lb-hold-item chapter-how" id="bulb">
+      <span id="notes" class="hash-pin"></span>
       <div class="copy copy-lane lb-intro">
-        <p class="eyebrow"><span class="beat-meta">Bulb · </span>What you see</p>
-        <h2>Tutoring shouldn’t disappear when the hour ends.</h2>
-      </div>
-    </section>
-
-    <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-lane lb-feature-1">
-        <h2>Session notes</h2>
-        <p>What we covered and what comes next — written by the tutor who taught, not a template.</p>
-      </div>
-    </section>
-
-    <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-lane lb-feature-2">
-        <h2>Targeted practice</h2>
-        <p>Homework that matches the weak spot from that session. Not a random worksheet pile.</p>
-      </div>
-    </section>
-
-    <section class="chapter chapter-lb-hold-item">
-      <div class="copy copy-lane lb-feature-3">
-        <h2>Skill tracking</h2>
-        <p>See what’s sticking and what still needs work — week to week, in plain language.</p>
-      </div>
-    </section>
-
-    <section class="chapter chapter-lb-hold-item" id="notes">
-      <div class="copy copy-lane lb-feature-4">
-        <h2>Parent updates</h2>
-        <p>You’re not guessing how tutoring is going. You get the picture without sitting in the call.</p>
+        <p class="eyebrow eyebrow-dash">How it works</p>
+        <h2>Tutoring shouldn’t disappear when the hour ends<span class="stop">.</span></h2>
+        <p>Every session should lead to the next step.</p>
+        <div class="beat-cards">
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${TARGET_ICON}</span>
+            <div>
+              <h3>Targeted practice</h3>
+              <p>Homework matched to the weak spot from that session.</p>
+            </div>
+          </article>
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${NOTE_ICON}</span>
+            <div>
+              <h3>Session notes</h3>
+              <p>Clear notes on what was covered and what comes next.</p>
+            </div>
+          </article>
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${PARENT_ICON}</span>
+            <div>
+              <h3>Parent updates</h3>
+              <p>Quick updates so you know how things are going.</p>
+            </div>
+          </article>
+        </div>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 
     <section class="chapter chapter-morph chapter-morph-b" id="team">
       <div class="copy copy-team t5-main">
-        <h2>Mentors who<br> stay.</h2>
-        <p>The right mentor doesn’t have to live down the street.</p>
-        <p>Virtual is primary. In person when a mentor is already nearby.</p>
+        <p class="eyebrow eyebrow-dash">Mentors who stay</p>
+        <h2>The right mentor doesn’t have to live down the street<span class="stop">.</span></h2>
+        <p>Virtual is primary. In person is available when a tutor is already nearby.</p>
+        <div class="beat-cards beat-cards--pair">
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${VIDEO_ICON}</span>
+            <div>
+              <h3>1-on-1 virtual tutoring</h3>
+            </div>
+          </article>
+          <article class="beat-card">
+            <span class="beat-card-icon" aria-hidden="true">${NEARBY_ICON}</span>
+            <div>
+              <h3>In-person by availability</h3>
+            </div>
+          </article>
+        </div>
+        <p class="beat-tagline">The goal is the right fit, not just the closest tutor.</p>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 
     <section class="chapter chapter-earth" id="grow">
       <div class="copy copy-lane earth-hold">
-        <p class="eyebrow"><span class="beat-meta">Earth · </span>How they grow</p>
-        <h2>Support that<br>grows with them.</h2>
-        <p>Elementary &amp; Middle. High School &amp; AP. SAT &amp; ACT. Programming &amp; STEM.</p>
+        <p class="eyebrow eyebrow-dash">How students grow</p>
+        <h2>Support that can grow with them.</h2>
+        <p>One system from the early years through college — not a one-semester patch.</p>
+        <p class="beat-tagline">The mentor stays. The plan updates. The student keeps moving.</p>
+        <div class="scroll-marker scroll-marker--in-copy">
+          SCROLL
+          <span></span>
+        </div>
       </div>
     </section>
 
@@ -4058,10 +4188,10 @@ function createPage() {
           One student. One plan. Years of growth.
         </h2>
         <p>
-          Free. 30 minutes.
+          Free. 30 minutes. No obligation.
         </p>
         <p>
-          DFW. Zoom.
+          DFW. Zoom. A mentor who stays.
         </p>
         <a
           href="/consult"
@@ -4116,7 +4246,11 @@ function createPage() {
         scrub:
           REDUCED_MOTION
             ? false
-            : 1.35,
+            : (
+                MOBILE_AT_LOAD || TOUCH_DEVICE
+                  ? 0.92
+                  : 0.7
+              ),
 
         onUpdate:
           updateStory,
@@ -4278,15 +4412,15 @@ function updateParticleInstances(
 
       x +=
         dxTarget *
-        morphLerp
+        frameFollow
 
       y +=
         dyTarget *
-        morphLerp
+        frameFollow
 
       z +=
         dzTarget *
-        morphLerp
+        frameFollow
 
       currentPositions[i3] =
         x
@@ -4589,6 +4723,38 @@ function animate() {
   lastFrameTime =
     now
 
+  frameFollow =
+    REDUCED_MOTION
+      ? 1
+      : 1 - Math.exp(-morphFollowRate * dt)
+
+  const formChase =
+    REDUCED_MOTION
+      ? 1
+      : 1 - Math.exp(
+          -(
+            stageIsTransform
+              ? 6.6
+              : 3.4
+          ) * dt
+        )
+
+  const camFollow =
+    REDUCED_MOTION
+      ? 1
+      : 1 - Math.exp(
+          -(
+            (
+              currentStage === 'logo' ||
+              currentStage === 'logo-forming'
+            )
+              ? 9.5
+              : stageIsTransform
+                ? 6.1
+                : 2.2
+          ) * dt
+        )
+
   // ----------------------------------
   // POINTER SMOOTHING
   // ----------------------------------
@@ -4617,22 +4783,8 @@ function animate() {
     Points cloud as a single object.
   */
 
-  const chase =
-    REDUCED_MOTION
-      ? 1
-      : stageIsTransform
-        ? 0.085
-        : 0.032
-
-  const camChase =
-    REDUCED_MOTION
-      ? 1
-      : (
-          currentStage === 'logo' ||
-          currentStage === 'logo-forming'
-        )
-        ? 0.22
-        : 0.014
+  const chase = formChase
+  const camChase = camFollow
 
   const idleY =
     REDUCED_MOTION
@@ -4918,10 +5070,14 @@ function animate() {
       || document.querySelector('.earth-hold')
         ?.classList.contains('is-live') === true
 
-    // Close / consult hides the particle stage for the lockup plate.
-    // TEAM keeps a settled bulb hold — empty black was a void.
+    // Close plate is the PNG lockup. Hide the particle stage only
+    // once the logo is fully formed, the logo chapter is on screen,
+    // or consult is already painted. Hiding during logo-forming
+    // left a black gap on phone — the canvas went away before the
+    // plate won exclusive paint.
     const hideStage =
-      onLogo ||
+      onLogoHold ||
+      isCloseHoldStory() ||
       consultLive
 
     document.body.classList.toggle(
@@ -4953,11 +5109,8 @@ function animate() {
     // particle hide stole the slot and painted the close copy over
     // "Mentors who stay." / results.
     if (hideStage) {
-      if (onLogo) {
-        const consultEl = document.querySelector('.copy-consult')
-        if (consultEl) {
-          fadeProxy(consultEl).copyFade = 1
-        }
+      if (onLogoHold || isCloseHoldStory()) {
+        lockConsultCloseHold()
       }
 
       particles.visible = false

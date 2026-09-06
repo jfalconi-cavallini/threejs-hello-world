@@ -5,6 +5,7 @@ import {
   groupClassesHtml,
   howItWorksPageHtml,
   loginPageHtml,
+  mentorsPageHtml,
   parentsPageHtml,
   programHubHtml,
   programmingStemHtml,
@@ -48,6 +49,10 @@ const pages = {
   login: {
     nav: 'login',
     html: loginPageHtml(),
+  },
+  mentors: {
+    nav: 'mentors',
+    html: mentorsPageHtml(),
   },
   parents: {
     nav: 'parents',
